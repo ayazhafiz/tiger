@@ -1,1 +1,6 @@
-let function g(a: int, b: string): int = a in g("one", "two")
+let
+  function g(a: int, b: string): int =
+    a
+in
+  g("one", "two")
+end

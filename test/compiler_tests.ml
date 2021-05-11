@@ -42,15 +42,19 @@ let mkfi dir name =
 
 let get opt err = match opt with Some v -> v | None -> failwith err
 
+let lex = Lexing.from_string ~with_positions:true
+
+let parse = Parser.toplevel Lexer.read
+
+let testable_expr = Alcotest.testable Print.fmt_expr ( = )
+
 let ensure_lexed fi =
-  if Option.is_none fi.lexed then
-    fi.lexed <- Option.some (Lexing.from_string fi.content ~with_positions:true)
+  if Option.is_none fi.lexed then fi.lexed <- Option.some (lex fi.content)
 
 let ensure_parsed fi =
   ensure_lexed fi;
   let lexed = get fi.lexed "Lexing incomplete" in
-  if Option.is_none fi.parse then
-    fi.parse <- Option.some (Parser.toplevel Lexer.read lexed)
+  if Option.is_none fi.parse then fi.parse <- Option.some (parse lexed)
 
 let get_test_files =
   let open Cmdliner in
@@ -92,30 +96,37 @@ let parsetest fi =
   (fi.name, `Quick, test)
 
 let printtest update fi =
-  if fi.syntax_error then Option.none
-  else
-    Option.some
-      ( ensure_parsed fi;
-        let pr_path = Filename.remove_extension fi.path ^ parse_ext in
-        let expr =
-          get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name)
-        in
-        let pr_real = string_of_expr expr in
-        let test _ =
-          match update with
-          | true -> writefi pr_path pr_real
-          | false ->
-              let pr_expect = readfi pr_path in
-              Alcotest.(check string) fi.name pr_expect pr_real
-        in
-        (fi.name, `Quick, test) )
+  ensure_parsed fi;
+  let pr_path = Filename.remove_extension fi.path ^ parse_ext in
+  let expr_real =
+    get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name)
+  in
+  let pr_real = string_of_expr expr_real in
+  let pr_expect = ref pr_real in
+  let test _ =
+    match update with
+    | true -> writefi pr_path pr_real
+    | false ->
+        pr_expect := readfi pr_path;
+        Alcotest.(check string) fi.name !pr_expect pr_real
+    (* let expr_expect = parse @@ lex !pr_expect in
+       Alcotest.(check testable_expr) fi.name expr_expect expr_real *)
+  in
+  (fi.name, `Quick, test)
 
 let () =
   let tests, update_goldens = cmd in
+  let lexer_tests, tests = (List.map lextest tests, tests) in
+  let parser_tests, tests =
+    (List.map parsetest tests, List.filter (fun fi -> not fi.syntax_error) tests)
+  in
+  let printer_tests, _tests =
+    (List.map (printtest update_goldens) tests, tests)
+  in
   let fakeargv = Array.make 1 "compiler_tests" in
   Alcotest.run "compiler_tests" ~argv:fakeargv
     [
-      ("lexer tests", List.map lextest tests);
-      ("parser tests", List.map parsetest tests);
-      ("printer tests", List.filter_map (printtest update_goldens) tests);
+      ("lexer tests", lexer_tests);
+      ("parser tests", parser_tests);
+      ("printer tests", printer_tests);
     ]

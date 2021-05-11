@@ -1,1 +1,7 @@
-let var a := rectype {  } in 0
+let
+  var a := rectype {
+    
+  }
+in
+  0
+end

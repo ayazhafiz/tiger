@@ -1,1 +1,5 @@
-let var a : int := " " in a
+let
+  var a : int := " "
+in
+  a
+end

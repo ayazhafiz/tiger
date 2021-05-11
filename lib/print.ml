@@ -3,66 +3,75 @@ open Symbol
 
 let string_of_symbol = name
 
-let rec string_of_var = function
+let reflow indent what =
+  let pre = String.make indent ' ' in
+  String.split_on_char '\n' what |> List.map (( ^ ) pre) |> String.concat "\n"
+
+let rec string_of_var (ind : int) = function
   | SimpleVar s -> string_of_symbol s
   | FieldVar (v, s) ->
-      Printf.sprintf "%s.%s" (string_of_var v) (string_of_symbol s)
+      Printf.sprintf "%s.%s" (string_of_var ind v) (string_of_symbol s)
   | SubscriptVar (v, s) ->
-      Printf.sprintf "%s[%s]" (string_of_var v) (string_of_expr s)
+      Printf.sprintf "%s[%s]" (string_of_var ind v) (string_of_ex ind s)
 
-and string_of_expr = function
+and string_of_ex (ind : int) = function
   | NilExpr -> "nil"
-  | VarExpr v -> string_of_var v
+  | VarExpr v -> string_of_var ind v
   | IntExpr n -> string_of_int n
   | StringExpr s -> Printf.sprintf "\"%s\"" (String.escaped s)
   | CallExpr { func; args } ->
       Printf.sprintf "%s(%s)" (string_of_symbol func)
-        (List.map string_of_expr args |> String.concat ", ")
+        (List.map (string_of_ex ind) args |> String.concat ", ")
   | OpExpr { left; oper; right } ->
-      Printf.sprintf "%s %s %s" (string_of_expr left) (string_of_oper oper)
-        (string_of_expr right)
+      Printf.sprintf "%s %s %s" (string_of_ex ind left) (string_of_oper oper)
+        (string_of_ex ind right)
   | RecordExpr { typ; fields } ->
-      Printf.sprintf "%s { %s }" (string_of_symbol typ)
-        (List.map string_of_field fields |> String.concat ", ")
-  | SeqExpr exprs -> List.map string_of_expr exprs |> String.concat "; "
+      Printf.sprintf "%s {\n%s\n}" (string_of_symbol typ)
+        ( List.map (string_of_field ind) fields
+        |> String.concat ",\n" |> reflow ind )
+  | SeqExpr exprs -> List.map (string_of_ex ind) exprs |> String.concat ";\n"
   | AssignExpr { var; expr } ->
-      Printf.sprintf "%s := %s" (string_of_var var) (string_of_expr expr)
+      Printf.sprintf "%s := %s" (string_of_var ind var) (string_of_ex ind expr)
   | IfExpr { test; then'; else' = None } ->
-      Printf.sprintf "if %s then %s" (string_of_expr test)
-        (string_of_expr then')
+      Printf.sprintf "if %s then\n%s" (string_of_ex ind test)
+        (string_of_ex ind then' |> reflow ind)
   | IfExpr { test; then'; else' = Some else' } ->
-      Printf.sprintf "if %s then %s else %s" (string_of_expr test)
-        (string_of_expr then') (string_of_expr else')
+      Printf.sprintf "if %s then\n%s\nelse\n%s" (string_of_ex ind test)
+        (string_of_ex ind then' |> reflow ind)
+        (string_of_ex ind else' |> reflow ind)
   | WhileExpr { test; body } ->
-      Printf.sprintf "while %s do %s" (string_of_expr test)
-        (string_of_expr body)
+      Printf.sprintf "while %s do\n%s" (string_of_ex ind test)
+        (string_of_ex ind body |> reflow ind)
   | ForExpr { var; lo; hi; body; _ } ->
-      Printf.sprintf "for %s := %s to %s do %s" (string_of_symbol var)
-        (string_of_expr lo) (string_of_expr hi) (string_of_expr body)
+      Printf.sprintf "for %s := %s to %s do\n%s" (string_of_symbol var)
+        (string_of_ex ind lo) (string_of_ex ind hi)
+        (string_of_ex ind body |> reflow ind)
   | BreakExpr -> "break"
   | LetExpr { decls; body } ->
-      Printf.sprintf "let %s in %s"
-        (List.map string_of_decl decls |> String.concat "\n")
-        (string_of_expr body)
+      Printf.sprintf "let\n%s\nin\n%s\nend"
+        (List.map (string_of_decl ind) decls |> String.concat "\n" |> reflow ind)
+        (string_of_ex ind body |> reflow ind)
   | ArrayExpr { typ; size; init } ->
-      Printf.sprintf "%s[%s] of %s" (string_of_symbol typ) (string_of_expr size)
-        (string_of_expr init)
+      Printf.sprintf "%s[%s] of %s" (string_of_symbol typ)
+        (string_of_ex ind size) (string_of_ex ind init)
 
-and string_of_decl = function
-  | FunctionDecl decls -> List.map string_of_fun decls |> String.concat "\n"
+and string_of_decl ind = function
+  | FunctionDecl decls ->
+      List.map (string_of_fun ind) decls |> String.concat "\n"
   | VarDecl { name; typ = None; init; _ } ->
       Printf.sprintf "var %s := %s" (string_of_symbol name)
-        (string_of_expr init)
+        (string_of_ex ind init)
   | VarDecl { name; typ = Some typ; init; _ } ->
       Printf.sprintf "var %s : %s := %s" (string_of_symbol name)
-        (string_of_symbol typ) (string_of_expr init)
-  | TypeDecl sigs -> List.map string_of_sig sigs |> String.concat "\n"
+        (string_of_symbol typ) (string_of_ex ind init)
+  | TypeDecl sigs -> List.map (string_of_sig ind) sigs |> String.concat "\n"
 
-and string_of_ty = function
+and string_of_ty ind = function
   | NameTy sym -> string_of_symbol sym
   | RecordTy fields ->
-      Printf.sprintf "{ %s }"
-        (List.map string_of_field_ty fields |> String.concat ", ")
+      Printf.sprintf "{\n%s\n}"
+        ( List.map (string_of_field_ty ind) fields
+        |> String.concat ",\n" |> reflow ind )
   | ArrayTy sym -> Printf.sprintf "array of %s" (string_of_symbol sym)
 
 and string_of_oper = function
@@ -77,21 +86,26 @@ and string_of_oper = function
   | GtOp -> ">"
   | GeOp -> ">="
 
-and string_of_sig { name; ty } =
-  Printf.sprintf "type %s = %s" (string_of_symbol name) (string_of_ty ty)
+and string_of_sig (ind : int) { name; ty } =
+  Printf.sprintf "type %s = %s" (string_of_symbol name) (string_of_ty ind ty)
 
-and string_of_field (fld, expr) =
-  Printf.sprintf "%s=%s" (string_of_symbol fld) (string_of_expr expr)
+and string_of_field (ind : int) (fld, expr) =
+  Printf.sprintf "%s=%s" (string_of_symbol fld) (string_of_ex ind expr)
 
-and string_of_field_ty { fld_name; typ; _ } =
+and string_of_field_ty _ind { fld_name; typ; _ } =
   Printf.sprintf "%s: %s" (string_of_symbol fld_name) (string_of_symbol typ)
 
-and string_of_fun = function
+and string_of_fun (ind : int) = function
   | { fn_name; params; result = None; body } ->
-      Printf.sprintf "function %s(%s) = %s" (string_of_symbol fn_name)
-        (List.map string_of_field_ty params |> String.concat ", ")
-        (string_of_expr body)
+      Printf.sprintf "function %s(%s) =\n%s" (string_of_symbol fn_name)
+        (List.map (string_of_field_ty ind) params |> String.concat ", ")
+        (string_of_ex ind body |> reflow ind)
   | { fn_name; params; result = Some result; body } ->
-      Printf.sprintf "function %s(%s): %s = %s" (string_of_symbol fn_name)
-        (List.map string_of_field_ty params |> String.concat ", ")
-        (string_of_symbol result) (string_of_expr body)
+      Printf.sprintf "function %s(%s): %s =\n%s" (string_of_symbol fn_name)
+        (List.map (string_of_field_ty ind) params |> String.concat ", ")
+        (string_of_symbol result)
+        (string_of_ex ind body |> reflow ind)
+
+let string_of_expr = string_of_ex 2
+
+let fmt_expr fmt e = Format.pp_print_string fmt (string_of_expr e)

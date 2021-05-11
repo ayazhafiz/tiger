@@ -1,3 +1,16 @@
-let type rectype1 = { name: string, id: int }
-type rectype2 = { name: string, id: int }
-var rec1 : rectype1 := rectype2 { name="Name", id=0 } in rec1
+let
+  type rectype1 = {
+    name: string,
+    id: int
+  }
+  type rectype2 = {
+    name: string,
+    id: int
+  }
+  var rec1 : rectype1 := rectype2 {
+    name="Name",
+    id=0
+  }
+in
+  rec1
+end
