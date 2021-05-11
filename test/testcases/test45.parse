@@ -1,0 +1,2 @@
+let type rectype = { name: string, id: int }
+var a := nil in a
