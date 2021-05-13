@@ -1,4 +1,4 @@
-/* error : procedure returns value  and procedure is used in arexpr */
+/* error: mismatched types (int vs ()): arithmetic of incompatible types */
 let
 
 /* calculate n! */

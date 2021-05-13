@@ -1,4 +1,4 @@
-/* error : procedure returns value */
+/* error: mismatched types (int vs ()): procedure must not return a value */
 let
 	function g(a:int) = a
 in 

@@ -19,11 +19,11 @@ let
       printboard()
     else
       for r := 0 to N - 1 do
-        if row[r] = if 0 then
-          diag1[r + c] = if 0 then
-            diag2[r + 7 - c] = 0
-          else
-            0
+        if if if row[r] = 0 then
+          diag1[r + c] = 0
+        else
+          0 then
+          diag2[r + 7 - c] = 0
         else
           0 then
           row[r] := 1;

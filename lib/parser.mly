@@ -49,6 +49,8 @@
 %token OR
 %token EOF
 
+%left OR
+%left AND
 %nonassoc ASSIGN
 %nonassoc EQ NEQ GT LT GEQ LEQ
 %left PLUS MINUS

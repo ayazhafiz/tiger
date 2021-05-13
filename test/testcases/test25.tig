@@ -1,4 +1,4 @@
-/* error : variable not record */
+/* error: field access "f" must be on a record type */
 let 
 	var d:=0
 in

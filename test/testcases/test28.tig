@@ -1,4 +1,5 @@
-/* error : different record types */
+/* error: mismatched types ({name: string, id: int} vs {name: string, id: int}): initializer does not match declared type */
+/* TODO: improve error message */
 
 let
 	type rectype1 = {name:string , id:int}

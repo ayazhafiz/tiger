@@ -1,4 +1,4 @@
-/* error : initializing exp and array type differ */
+/* error: mismatched types (string vs int): array initializer must match array element type */
 
 let
 	type arrayty = array of int

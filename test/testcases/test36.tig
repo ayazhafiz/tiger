@@ -1,4 +1,4 @@
-/* error : formals are fewer then actuals */
+/* error: number of arguments differs from formal parameters */
 let
 	function g (a:int , b:string):int = a
 in

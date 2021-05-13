@@ -1,4 +1,4 @@
-/* error : unknown type */
+/* error: undeclared type rectype (if this a forward declaration, uses must be sequential) */
 let
 	var a:= rectype {}
 in

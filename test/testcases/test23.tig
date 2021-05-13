@@ -1,4 +1,4 @@
-/* error : type mismatch */
+/* error: mismatched types (int vs string): rhs of assignment does not match declared type */
 
 let 
 	type rectype = {name:string , id:int}

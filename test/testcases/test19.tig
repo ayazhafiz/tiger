@@ -1,4 +1,4 @@
-/* error : second function uses variables local to the first one, undeclared variable */
+/* error: undeclared variable a */
 let
 
 function do_nothing1(a: int, b: string):int=

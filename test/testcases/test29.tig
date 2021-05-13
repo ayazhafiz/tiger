@@ -1,4 +1,5 @@
-/* error : different array types */
+/* error: mismatched types ([int] vs [int]): initializer does not match declared type */
+/* TODO: improve error message */
 
 let
 	type arrtype1 = array of int

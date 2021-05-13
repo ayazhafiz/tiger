@@ -1,4 +1,4 @@
-/* error : compare rec with array */
+/* error: mismatched types ({name: string, id: int} vs [int]): arguments to comparison operators must be both ints, strings, records, or arrays */
 
 let
 

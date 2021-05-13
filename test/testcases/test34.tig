@@ -1,4 +1,4 @@
-/* error : formals and actuals have different types */
+/* error: mismatched types (string vs int): argument type differs from formal parameter */
 let
 	function g (a:int , b:string):int = a
 in

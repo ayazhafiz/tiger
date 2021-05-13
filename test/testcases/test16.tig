@@ -1,4 +1,4 @@
-/* error: mutually recursive types thet do not pass through record or array */
+/* error: unfolded cycle in declaration of type a */
 let 
 
 type a=c

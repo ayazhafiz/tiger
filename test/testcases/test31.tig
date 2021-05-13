@@ -1,4 +1,4 @@
-/* error : type constraint and init value differ */
+/* error: mismatched types (string vs int): initializer does not match declared type */
 let 
 	var a:int := " "
 in

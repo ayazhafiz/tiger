@@ -1,4 +1,5 @@
-/* error: initializing nil expressions not constrained by record type */
+/* error: mismatched types (nil vs nil): nil-initialization must include a type annotation */
+
 let 
 	type rectype = {name:string, id:int}
 

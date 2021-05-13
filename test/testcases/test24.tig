@@ -1,4 +1,4 @@
-/* error : variable not array */
+/* error: subscript access must be on an array type, saw int */
 let 
 	var d:=0
 in

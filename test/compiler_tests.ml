@@ -1,6 +1,7 @@
 open Tiger
 open Tiger.Language
 open Tiger.Print
+open Tiger.Semantic
 
 let ext = ".tig"
 
@@ -11,6 +12,7 @@ type fi = {
   path : string;
   content : string;
   syntax_error : bool;
+  semantic_error : string option;
   mutable lexed : Lexing.lexbuf option;
   mutable parse : expr option;
 }
@@ -30,12 +32,20 @@ let mkfi dir name =
   let path = Filename.concat dir name in
   let content = readfi path in
   let re_syntax_err = Str.regexp {|/\* error: syntax error|} in
+  let re_semantic_err = Str.regexp {|/\* error: \(.*\) \*/|} in
   let syntax_error = Str.string_match re_syntax_err content 0 in
+  let semantic_error = Str.string_match re_semantic_err content 0 in
+  let semantic_error =
+    if semantic_error && not syntax_error then
+      Some (Str.matched_group 1 content |> String.trim)
+    else None
+  in
   {
     name = Filename.remove_extension name;
     path;
     content;
     syntax_error;
+    semantic_error;
     lexed = Option.none;
     parse = Option.none;
   }
@@ -81,7 +91,7 @@ let cmd =
 
 let lextest fi =
   let test _ = ensure_lexed fi in
-  (fi.name, `Quick, test)
+  ((fi.name, `Quick, test), true)
 
 let parsetest fi =
   let test _ =
@@ -93,17 +103,17 @@ let parsetest fi =
         with _ -> () )
     | false -> ensure_parsed fi
   in
-  (fi.name, `Quick, test)
+  ((fi.name, `Quick, test), not fi.syntax_error)
 
 let printtest update fi =
-  ensure_parsed fi;
-  let pr_path = Filename.remove_extension fi.path ^ parse_ext in
-  let expr_real =
-    get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name)
-  in
-  let pr_real = string_of_expr expr_real in
-  let pr_expect = ref pr_real in
   let test _ =
+    ensure_parsed fi;
+    let pr_path = Filename.remove_extension fi.path ^ parse_ext in
+    let expr_real =
+      get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name)
+    in
+    let pr_real = string_of_expr expr_real in
+    let pr_expect = ref pr_real in
     match update with
     | true -> writefi pr_path pr_real
     | false ->
@@ -112,21 +122,47 @@ let printtest update fi =
     (* let expr_expect = parse @@ lex !pr_expect in
        Alcotest.(check testable_expr) fi.name expr_expect expr_real *)
   in
-  (fi.name, `Quick, test)
+  ((fi.name, `Quick, test), true)
+
+let sematest fi =
+  let test _ =
+    ensure_parsed fi;
+    let expr = get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name) in
+    match fi.semantic_error with
+    | Some expect_err -> (
+        try
+          let _ = tr_prog expr in
+          Alcotest.fail ("Expected semantic error: " ^ expect_err)
+        with SemanticError msg ->
+          if not (Str.string_match (Str.regexp msg) expect_err 0) then
+            Alcotest.(check string) fi.name expect_err msg )
+    | None ->
+        let _ = tr_prog expr in
+        ()
+  in
+  ((fi.name, `Quick, test), Option.is_some fi.semantic_error)
+
+let mktests factory cases =
+  List.fold_right
+    (fun case (tests, cases) ->
+      let test, keep = factory case in
+      let tests' = test :: tests in
+      match keep with
+      | true -> (tests', case :: cases)
+      | false -> (tests', cases))
+    cases ([], [])
 
 let () =
-  let tests, update_goldens = cmd in
-  let lexer_tests, tests = (List.map lextest tests, tests) in
-  let parser_tests, tests =
-    (List.map parsetest tests, List.filter (fun fi -> not fi.syntax_error) tests)
-  in
-  let printer_tests, _tests =
-    (List.map (printtest update_goldens) tests, tests)
-  in
+  let cases, update_goldens = cmd in
+  let lexer_tests, cases = mktests lextest cases in
+  let parser_tests, cases = mktests parsetest cases in
+  let printer_tests, cases = mktests (printtest update_goldens) cases in
+  let semantic_tests, _cases = mktests sematest cases in
   let fakeargv = Array.make 1 "compiler_tests" in
   Alcotest.run "compiler_tests" ~argv:fakeargv
     [
       ("lexer tests", lexer_tests);
       ("parser tests", parser_tests);
       ("printer tests", printer_tests);
+      ("semantic tests", semantic_tests);
     ]

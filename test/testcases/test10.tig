@@ -1,2 +1,2 @@
-/* error : body of while not unit */
+/* error: mismatched types (() vs int): body of while not unit */
 while(10 > 5) do 5+6

@@ -7,12 +7,12 @@ let
     let
       var i := 0
       function isdigit(s: string): int =
-        ord(buffer) >= if ord("0") then
+        if ord(buffer) >= ord("0") then
           ord(buffer) <= ord("9")
         else
           0
       function skipto() =
-        while buffer = if " " then
+        while if buffer = " " then
           1
         else
           buffer = "\n" do

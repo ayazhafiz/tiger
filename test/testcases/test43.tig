@@ -1,4 +1,4 @@
-/* initialize with unit and causing type mismatch in addition */
+/* error: mismatched types (int vs ()): arithmetic of incompatible types */
 
 let 
 	var a := ()
