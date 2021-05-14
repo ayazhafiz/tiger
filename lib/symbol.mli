@@ -14,11 +14,8 @@ module Table : sig
   val singleton : unit -> 'a t
   (** Creates an empty symbol table with one scope. *)
 
-  val enter : 'a t -> unit
-  (** Enters a scope. *)
-
-  val exit : 'a t -> unit
-  (** Exits a scope. *)
+  val scoped : 'a t -> ('a t -> 'b) -> 'b
+  (** [scoped tbl go] evaluates [go tbl] in a new scope. *)
 
   val add : 'a t -> symbol -> 'a -> unit
   (** Adds a value to the table. *)

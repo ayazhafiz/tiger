@@ -42,6 +42,12 @@ module Table = struct
       | [] -> failwith "Inconsistent state: symbol table has no scopes"
       | _ :: rest -> rest )
 
+  let scoped t go =
+    enter t;
+    let result = go t in
+    exit t;
+    result
+
   let add { tbls } sym v =
     match tbls with
     | [] -> failwith "Inconsistent state: symbol table has no scopes"

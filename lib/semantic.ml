@@ -15,12 +15,7 @@ exception SemanticError of string
 let err why = raise (SemanticError why)
 
 let scoped venv tenv go =
-  Tbl.enter venv;
-  Tbl.enter tenv;
-  let res = go venv tenv in
-  Tbl.exit venv;
-  Tbl.exit tenv;
-  res
+  Tbl.scoped venv (fun venv -> Tbl.scoped tenv (fun tenv -> go venv tenv))
 
 let getid ?(hint = "") tbl what sym =
   match Tbl.find tbl sym with

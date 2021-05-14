@@ -1,9 +1,11 @@
 open Symbol
+open Translate
 open Type
 
 type ventry =
-  | VarEntry of ty
-  | FunEntry of ty list * ty  (** params + return ty *)
+  | VarEntry of ty * access  (** ty, access kind *)
+  | FunEntry of ty list * ty * level * label
+      (** params, return ty, nesting level, fn label *)
 
 let string_of_ventry = function
   | VarEntry ty -> string_of_ty ty
