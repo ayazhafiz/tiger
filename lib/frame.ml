@@ -2,8 +2,8 @@
 module type FRAME = sig
   type frame
 
-  type access
   (** Denotes the access location of a variable in this frame. *)
+  type access
 
   (** Fragment types. *)
   type frag =

@@ -17,9 +17,11 @@ module MipsCodegen : Codegen.CODEGEN = struct
     let alloc gen =
       let t = newtemp () in
       gen t;
-      t in
+      t
+    in
     let alloc_oper assem src jmp =
-      alloc (fun d -> emit (A.Oper {assem; dst = [d]; src; jmp})) in
+      alloc (fun d -> emit (A.Oper {assem; dst = [d]; src; jmp}))
+    in
     (* Maximal Munch *)
     let rec munch_stmt = function
       | Ir.Label lab -> emit (A.Label {assem = string_of_label lab ^ ":"; lab})
@@ -78,7 +80,6 @@ module MipsCodegen : Codegen.CODEGEN = struct
       | Ir.Const n -> alloc_oper ("li `d0, " ^ string_of_int n) [] None
       | Ir.Name lab -> alloc_oper ("la `d0, " ^ string_of_label lab) [] None
       | Ir.Temp t -> t
-      | Ir.Mem addr
     in
     munch_stmt stmt;
     List.rev !ilist

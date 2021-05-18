@@ -1,0 +1,5 @@
+profile=compact
+field-space=loose
+break-sequences=true
+sequence-style=terminator
+break-before-in=fit-or-vertical

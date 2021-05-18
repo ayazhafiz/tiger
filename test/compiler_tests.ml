@@ -5,19 +5,17 @@ open Tiger.Semantic
 open Tiger.Desugar
 
 let ext = ".tig"
-
 let parse_ext = ".parse"
 
-type fi = {
-  name : string;
-  path : string;
-  content : string;
-  syntax_error : bool;
-  semantic_error : string option;
-  mutable lexed : Lexing.lexbuf option;
-  mutable parse : expr option;
-  mutable desugar : desugared_expr option;
-}
+type fi =
+  { name : string
+  ; path : string
+  ; content : string
+  ; syntax_error : bool
+  ; semantic_error : string option
+  ; mutable lexed : Lexing.lexbuf option
+  ; mutable parse : expr option
+  ; mutable desugar : desugared_expr option }
 
 let readfi path =
   let ch = open_in path in
@@ -42,23 +40,18 @@ let mkfi dir name =
       Some (Str.matched_group 1 content |> String.trim)
     else None
   in
-  {
-    name = Filename.remove_extension name;
-    path;
-    content;
-    syntax_error;
-    semantic_error;
-    lexed = Option.none;
-    parse = Option.none;
-    desugar = Option.none;
-  }
+  { name = Filename.remove_extension name
+  ; path
+  ; content
+  ; syntax_error
+  ; semantic_error
+  ; lexed = Option.none
+  ; parse = Option.none
+  ; desugar = Option.none }
 
 let get opt err = match opt with Some v -> v | None -> failwith err
-
 let lex = Lexing.from_string ~with_positions:true
-
 let parse = Parser.toplevel Lexer.read
-
 let testable_expr = Alcotest.testable Print.fmt_expr ( = )
 
 let ensure_lexed fi =
@@ -78,7 +71,7 @@ let ensure_desugar fi =
 let get_test_files =
   let open Cmdliner in
   let res =
-    Arg.(value & opt string "testcases" & info [ "p" ] ~doc:"Path to tests")
+    Arg.(value & opt string "testcases" & info ["p"] ~doc:"Path to tests")
   in
   Term.app
     (Term.const (fun dir ->
@@ -89,7 +82,7 @@ let get_test_files =
 
 let update_goldens =
   let open Cmdliner in
-  Arg.(value & flag & info [ "u" ] ~doc:"Update goldens")
+  Arg.(value & flag & info ["u"] ~doc:"Update goldens")
 
 let cmd =
   let open Cmdliner in
@@ -113,10 +106,10 @@ let parsetest fi =
   let test _ =
     match fi.syntax_error with
     | true -> (
-        try
-          ensure_parsed fi;
-          Alcotest.fail "Expected syntax error"
-        with _ -> () )
+      try
+        ensure_parsed fi;
+        Alcotest.fail "Expected syntax error"
+      with _ -> () )
     | false -> ensure_parsed fi
   in
   ((fi.name, `Quick, wrap test), not fi.syntax_error)
@@ -146,15 +139,15 @@ let sematest fi =
     let expr = get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name) in
     match fi.semantic_error with
     | Some expect_err -> (
-        match check_prog expr with
-        | Ok _ -> Alcotest.fail ("Expected semantic error: " ^ expect_err)
-        | Error msg ->
-            if not (Str.string_match (Str.regexp msg) expect_err 0) then
-              Alcotest.(check string) fi.name expect_err msg )
+      match check_prog expr with
+      | Ok _ -> Alcotest.fail ("Expected semantic error: " ^ expect_err)
+      | Error msg ->
+          if not (Str.string_match (Str.regexp msg) expect_err 0) then
+            Alcotest.(check string) fi.name expect_err msg )
     | None -> (
-        match check_prog expr with
-        | Ok _ -> ()
-        | Error msg -> Alcotest.fail ("Unexpected semantic error: " ^ msg) )
+      match check_prog expr with
+      | Ok _ -> ()
+      | Error msg -> Alcotest.fail ("Unexpected semantic error: " ^ msg) )
   in
   ((fi.name, `Quick, test), Option.is_none fi.semantic_error)
 
@@ -188,10 +181,6 @@ let () =
   let lowering_tests, _cases = mktests lowertest cases in
   let fakeargv = Array.make 1 "compiler_tests" in
   Alcotest.run "compiler_tests" ~argv:fakeargv
-    [
-      ("lexer tests", lexer_tests);
-      ("parser tests", parser_tests);
-      ("printer tests", printer_tests);
-      ("semantic tests", semantic_tests);
-      ("lowering tests", lowering_tests);
-    ]
+    [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
+    ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
+    ; ("lowering tests", lowering_tests) ]

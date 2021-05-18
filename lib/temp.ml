@@ -8,12 +8,13 @@ let newtemp =
 
 type label = string
 
+let string_of_label l = l
+
 (** TODO: figure out how to deal with externals better *)
 let stringEqual = "stringEqual"
 
 let initArray = "initArray"
-
-let externals = [ stringEqual; initArray ]
+let externals = [stringEqual; initArray]
 
 let label_store =
   List.map (fun n -> (n, ())) externals |> List.to_seq |> Hashtbl.of_seq

@@ -3,14 +3,6 @@ module MipsFrame : Frame.FRAME = struct
     | InReg of Temp.temp
     | InFrame of int  (** offset from frame pointer *)
 
-  type frame = {
-    name : Temp.label;
-    formals : access list;
-    mutable sp_offset : int;
-        (** current offset from frame pointer, where all memory addresses
-            between (fp+sp_offset) and (fp) are being used for variables
-            in the frame. *)
-  }
   (** See page 127 for Appel's suggested stack layout.
                              ...higher addr
                |-----------|
@@ -43,13 +35,19 @@ module MipsFrame : Frame.FRAME = struct
                              next frame
                              ...lower addr
    *)
+  type frame =
+    { name : Temp.label
+    ; formals : access list
+    ; mutable sp_offset : int
+          (** current offset from frame pointer, where all memory addresses
+            between (fp+sp_offset) and (fp) are being used for variables
+            in the frame. *)
+    }
 
   type frag = Proc of frame * Ir.stmt | String of Temp.label * string
 
   let fp = Temp.newtemp ()
-
   let rv = Temp.newtemp ()
-
   let wordsize = 4
 
   let expr_of_access = function
@@ -74,11 +72,10 @@ module MipsFrame : Frame.FRAME = struct
       | false :: rest, nfregs, offset ->
           InReg (Temp.newtemp ()) :: alloc rest (nfregs - 1) offset
     in
-    { name; formals = alloc formals max_formals_registers 0; sp_offset = 0 }
+    {name; formals = alloc formals max_formals_registers 0; sp_offset = 0}
 
-  let name { name; _ } = name
-
-  let formals { formals; _ } = formals
+  let name {name; _} = name
+  let formals {formals; _} = formals
 
   let alloc_local f = function
     | false -> InReg (Temp.newtemp ()) (* doesn't escape *)
@@ -93,6 +90,5 @@ module MipsFrame : Frame.FRAME = struct
         InFrame f.sp_offset
 
   let external_call fn args = Ir.Call (Ir.Name fn, args)
-
   let proc_entry_exit1 _ body = body
 end

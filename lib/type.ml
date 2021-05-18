@@ -1,7 +1,7 @@
 open Symbol
 
-type uniq = unit ref
 (** Provides a unique symbol for nominal types *)
+type uniq = unit ref
 
 let uniq () = ref ()
 

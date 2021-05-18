@@ -58,23 +58,23 @@ and do_stmt = function
         | f :: args -> Ir.Expr (Ir.Call (f, args))
         | _ -> ice "bad args")
   | Ir.Expr e ->
-      reorder_stmt [ e ] (function [ e ] -> Ir.Expr e | _ -> ice "bad args")
+      reorder_stmt [e] (function [e] -> Ir.Expr e | _ -> ice "bad args")
   | Ir.Mov (Ir.Temp t, Ir.Call (f, args)) ->
       (* Keep call on toplevel *)
       reorder_stmt (f :: args) (function
         | f :: args -> Ir.Mov (Ir.Temp t, Ir.Call (f, args))
         | _ -> ice "bad args")
   | Ir.Mov (t, v) ->
-      reorder_stmt [ t; v ] (function
-        | [ t; v ] -> Ir.Mov (t, v)
+      reorder_stmt [t; v] (function
+        | [t; v] -> Ir.Mov (t, v)
         | _ -> ice "bad args")
   | Ir.Jmp (e, labs) ->
-      reorder_stmt [ e ] (function
-        | [ e ] -> Ir.Jmp (e, labs)
+      reorder_stmt [e] (function
+        | [e] -> Ir.Jmp (e, labs)
         | _ -> ice "bad args")
   | Ir.CJmp (op, e1, e2, t, f) ->
-      reorder_stmt [ e1; e2 ] (function
-        | [ e1; e2 ] -> Ir.CJmp (op, e1, e2, t, f)
+      reorder_stmt [e1; e2] (function
+        | [e1; e2] -> Ir.CJmp (op, e1, e2, t, f)
         | _ -> ice "bad args")
   | Ir.Seq (s1, s2) -> seq (do_stmt s1) (do_stmt s2)
   | Ir.Label lab -> Ir.Label lab
@@ -84,11 +84,11 @@ and do_expr = function
   | Ir.Name lab -> (nop, Ir.Name lab)
   | Ir.Temp t -> (nop, Ir.Temp t)
   | Ir.BinOp (op, l, r) ->
-      reorder_expr [ l; r ] (function
-        | [ l; r ] -> Ir.BinOp (op, l, r)
+      reorder_expr [l; r] (function
+        | [l; r] -> Ir.BinOp (op, l, r)
         | _ -> ice "bad args")
   | Ir.Mem e ->
-      reorder_expr [ e ] (function [ e ] -> Ir.Mem e | _ -> ice "bad args")
+      reorder_expr [e] (function [e] -> Ir.Mem e | _ -> ice "bad args")
   | Ir.Call (t, args) ->
       reorder_expr (t :: args) (function
         | t :: args -> Ir.Call (t, args)
@@ -112,14 +112,12 @@ let linearize stmt =
 let basic_blocks stmts =
   let finish = Temp.newlabel "done" in
   let rec partition curblock = function
-    | [ Ir.Jmp _ ] | [ Ir.CJmp _ ] ->
+    | [Ir.Jmp _] | [Ir.CJmp _] ->
         ice "unexpected jump at end of final basic block"
     | [] ->
         (* End of stmts, add jump to [finish] *)
-        let block =
-          List.rev (Ir.Jmp (Ir.Name finish, [ finish ]) :: curblock)
-        in
-        [ block ]
+        let block = List.rev (Ir.Jmp (Ir.Name finish, [finish]) :: curblock) in
+        [block]
     | ((Ir.Jmp _ as fin) | (Ir.CJmp _ as fin)) :: rest ->
         (* Finish current basic block.
            Reverse because we appended stmts to front. *)
@@ -127,10 +125,10 @@ let basic_blocks stmts =
         block :: partition [] rest
     | Ir.Label lab :: _ as stmts when curblock <> [] ->
         (* Current basic block has no terminating jump; add one. *)
-        partition curblock (Ir.Jmp (Ir.Name lab, [ lab ]) :: stmts)
+        partition curblock (Ir.Jmp (Ir.Name lab, [lab]) :: stmts)
     | (Ir.Label _ as hd) :: rest when curblock = [] ->
         (* Start of new basic block *)
-        partition [ hd ] rest
+        partition [hd] rest
     | stmts when curblock = [] ->
         (* Start of new basic block has no label; add one. *)
         partition [] (Ir.Label (Temp.newlabel "basic_block") :: stmts)
@@ -144,7 +142,7 @@ let basic_blocks stmts =
 
 let rec splitlast = function
   | [] -> ice "empty list"
-  | [ x ] -> ([], x)
+  | [x] -> ([], x)
   | h :: rest ->
       let hd, last = splitlast rest in
       (h :: hd, last)
@@ -161,30 +159,30 @@ let trace_schedule (basic_blocks, finish) =
     Hashtbl.remove todo lab;
     match splitlast block with
     | front, Ir.Jmp (_, nextlabs) -> (
-        match
-          (List.length nextlabs, List.find_map (Hashtbl.find_opt todo) nextlabs)
-        with
-        | _, None -> block
-        (* If this is the only label we can jump to, the jump can be eliminated
-           in favor of a fall-through. *)
-        | 1, Some nextblock -> front @ trace nextblock
-        | _, Some nextblock -> block @ trace nextblock )
+      match
+        (List.length nextlabs, List.find_map (Hashtbl.find_opt todo) nextlabs)
+      with
+      | _, None -> block
+      (* If this is the only label we can jump to, the jump can be eliminated
+         in favor of a fall-through. *)
+      | 1, Some nextblock -> front @ trace nextblock
+      | _, Some nextblock -> block @ trace nextblock )
     | front, Ir.CJmp (op, e1, e2, t, f) -> (
-        match (Hashtbl.find_opt todo t, Hashtbl.find_opt todo f) with
-        (* Arrange so that false label follows cjump *)
-        | _, Some falseblock -> block @ trace falseblock
-        (* False label can never follow cjump, but true label can;
-           negate the conditional, so that the true label is now the false label. *)
-        | Some trueblock, _ ->
-            let cjmp' = Ir.CJmp (Ir.not_relop op, e1, e2, f, t) in
-            front @ [ cjmp' ] @ trace trueblock
-        (* We can't find a false or true label to schedule.
-           Instead, make up a dummy "false bridge" that will jump immediately to
-           the real false label. *)
-        | _, _ ->
-            let f' = Temp.newlabel "false_bridge" in
-            let cjmp' = Ir.CJmp (op, e1, e2, t, f') in
-            front @ [ cjmp'; Ir.Label f'; Ir.Jmp (Ir.Name f, [ f ]) ] )
+      match (Hashtbl.find_opt todo t, Hashtbl.find_opt todo f) with
+      (* Arrange so that false label follows cjump *)
+      | _, Some falseblock -> block @ trace falseblock
+      (* False label can never follow cjump, but true label can;
+         negate the conditional, so that the true label is now the false label. *)
+      | Some trueblock, _ ->
+          let cjmp' = Ir.CJmp (Ir.not_relop op, e1, e2, f, t) in
+          front @ [cjmp'] @ trace trueblock
+      (* We can't find a false or true label to schedule.
+         Instead, make up a dummy "false bridge" that will jump immediately to
+         the real false label. *)
+      | _, _ ->
+          let f' = Temp.newlabel "false_bridge" in
+          let cjmp' = Ir.CJmp (op, e1, e2, t, f') in
+          front @ [cjmp'; Ir.Label f'; Ir.Jmp (Ir.Name f, [f])] )
     | _, _ -> ice "mishaped basic block: doesn't end with label"
   in
   let rec schedule = function
@@ -194,4 +192,4 @@ let trace_schedule (basic_blocks, finish) =
         curtrace @ schedule rest
     | _ :: rest -> schedule rest
   in
-  schedule basic_blocks @ [ Ir.Label finish ]
+  schedule basic_blocks @ [Ir.Label finish]
