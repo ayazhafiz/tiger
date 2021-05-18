@@ -67,6 +67,11 @@ module Table = struct
 
   let find_opt t sym = try Some (find t sym) with Not_found -> None
 
+  let keys { tbls } =
+    List.concat_map
+      (fun tbl -> SymbolHashtbl.to_seq_keys tbl |> List.of_seq)
+      tbls
+
   let copy { tbls } = { tbls = List.map SymbolHashtbl.copy tbls }
 
   let string_of { tbls } fmtv =

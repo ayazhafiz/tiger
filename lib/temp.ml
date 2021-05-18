@@ -15,16 +15,20 @@ let initArray = "initArray"
 
 let externals = [ stringEqual; initArray ]
 
+let label_store =
+  List.map (fun n -> (n, ())) externals |> List.to_seq |> Hashtbl.of_seq
+
 let newlabel =
-  let store =
-    List.map (fun n -> (n, ())) externals |> List.to_seq |> Hashtbl.of_seq
-  in
   let rec find name ext =
     let cand = if ext = 0 then name else name ^ string_of_int ext in
-    match Hashtbl.find_opt store cand with
+    match Hashtbl.find_opt label_store cand with
     | None ->
-        Hashtbl.add store cand ();
+        Hashtbl.add label_store cand ();
         cand
     | Some _ -> find name (ext + 1)
   in
   fun name -> find name 0
+
+let strlabel name =
+  Hashtbl.add label_store name ();
+  name

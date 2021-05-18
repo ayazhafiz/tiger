@@ -1,3 +1,4 @@
+open Env
 open Language
 open Symbol
 module P = Print
@@ -6,35 +7,7 @@ module Ty = Type
 
 exception SemanticError of string
 
-type ventry =
-  | VarEntry of Ty.ty  (** ty *)
-  | FunEntry of Ty.ty list * Ty.ty  (** params, return ty *)
-
-let base_tenv =
-  let open Symbol.Table in
-  let open Ty in
-  let t = singleton () in
-  add t (symbol "int") Int;
-  add t (symbol "string") String;
-  fun () -> copy t
-
-let base_venv =
-  let open Symbol.Table in
-  let open Ty in
-  let t = singleton () in
-  add t (symbol "print") (FunEntry ([ String ], Unit));
-  add t (symbol "flush") (FunEntry ([], Unit));
-  add t (symbol "getchar") (FunEntry ([], String));
-  add t (symbol "ord") (FunEntry ([ String ], Int));
-  add t (symbol "chr") (FunEntry ([ Int ], String));
-  add t (symbol "size") (FunEntry ([ String ], Int));
-  add t (symbol "substring") (FunEntry ([ String; Int; Int ], String));
-  add t (symbol "concat") (FunEntry ([ String; String ], String));
-  add t (symbol "not") (FunEntry ([ Int ], Int));
-  add t (symbol "exit") (FunEntry ([ Int ], Unit));
-  fun () -> copy t
-
-let err why = raise (SemanticError why)
+let ice why = raise (SemanticError why)
 
 let scoped venv tenv go =
   Tbl.scoped venv (fun venv -> Tbl.scoped tenv (fun tenv -> go venv tenv))
@@ -45,7 +18,7 @@ let getid ?(hint = "") tbl what sym =
       let hint =
         if String.length hint == 0 then "" else Printf.sprintf " (%s)" hint
       in
-      err (Printf.sprintf "undeclared %s %s%s" what (name sym) hint)
+      ice (Printf.sprintf "undeclared %s %s%s" what (name sym) hint)
   | Some v -> v
 
 let simplifyty ty =
@@ -53,10 +26,10 @@ let simplifyty ty =
     | Ty.Name (n, ity) -> (
         match !ity with
         | None ->
-            err ("Inconsistent state: type name " ^ name n ^ " not defined")
+            ice ("Inconsistent state: type name " ^ name n ^ " not defined")
         | Some ty ->
             if List.mem n seen then
-              err ("unfolded cycle in declaration of type " ^ name n);
+              ice ("unfolded cycle in declaration of type " ^ name n);
             walk (n :: seen) ty )
     | ty -> ty
   in
@@ -72,7 +45,7 @@ let tyeq t1 t2 =
       u1 == u2
   | Ty.Record _, Ty.Nil | Ty.Nil, Ty.Record _ -> true (* we'll allow it *)
   | Ty.Name (t1, _), Ty.Name (t2, _) ->
-      err
+      ice
         (Printf.sprintf "Inconsistent state: type names %s, %s not resolved"
            (name t1) (name t2))
   | _ -> false
@@ -88,7 +61,7 @@ let getty ?(resolve = true) tbl sym =
 
 let expect_ty2 check t1 t2 msg =
   if not (check t1 t2) then
-    err
+    ice
       (Printf.sprintf "mismatched types (%s vs %s): %s" (Ty.string_of_ty t1)
          (Ty.string_of_ty t2) msg)
 
@@ -97,7 +70,7 @@ let rec ck_var venv tenv = function
       let ty =
         match getid venv "variable" v with
         | VarEntry ty -> ty
-        | FunEntry _ -> err "functions may not be treated as lvalues"
+        | FunEntry _ -> ice "functions may not be treated as lvalues"
       in
       realty := Some ty;
       ty
@@ -105,23 +78,24 @@ let rec ck_var venv tenv = function
       match simplifyty (ck_var venv tenv v) with
       | Ty.Record (fields, _) -> (
           match List.assoc_opt f fields with
-          | None -> err ("no field " ^ name f)
+          | None -> ice ("no field " ^ name f)
           | Some ty ->
               realty := Some ty;
               ty )
       | _ ->
-          err
+          ice
             (Printf.sprintf "field access \"%s\" must be on a record type"
                (name f)) )
   | SubscriptVar (v, idx, realty) -> (
       match simplifyty (ck_var venv tenv v) with
       | Ty.Array (elty, _) ->
+          let elty = simplifyty elty in
           let tidx = ck_expr venv tenv idx in
           expect_ty2 tyeq Ty.Int tidx "index must be an int";
           realty := Some elty;
           elty
       | ty ->
-          err
+          ice
             ( "subscript access must be on an array type, saw "
             ^ Ty.string_of_ty ty ) )
 
@@ -136,10 +110,10 @@ and ck_expr venv tenv = function
   | CallExpr { func; args; ty = realty } -> (
       let ck_args = List.map (ck_expr venv tenv) args in
       match getid venv "function" func with
-      | VarEntry _ -> err "only functions may be called"
+      | VarEntry _ -> ice "only functions may be called"
       | FunEntry (param_tys, out_ty) ->
           if List.length param_tys <> List.length ck_args then
-            err "number of arguments differs from formal parameters";
+            ice "number of arguments differs from formal parameters";
           List.iter2
             (fun ety rty ->
               expect_ty2 tyeq rty ety
@@ -148,17 +122,17 @@ and ck_expr venv tenv = function
           realty := Some out_ty;
           out_ty )
   | OpExpr { left; oper; right; ty = realty } ->
-      let ck_l = ck_expr venv tenv left in
-      let ck_r = ck_expr venv tenv right in
+      let ty_l = ck_expr venv tenv left in
+      let ty_r = ck_expr venv tenv right in
       let ty =
         match oper with
         | PlusOp | MinusOp | TimesOp | DivideOp ->
-            expect_ty2 tyeq Ty.Int ck_l "arithmetic of incompatible types";
-            expect_ty2 tyeq Ty.Int ck_r "arithmetic of incompatible types";
+            expect_ty2 tyeq Ty.Int ty_l "arithmetic of incompatible types";
+            expect_ty2 tyeq Ty.Int ty_r "arithmetic of incompatible types";
             Ty.Int
         | LtOp | LeOp | GtOp | GeOp ->
-            expect_ty2 tyeq Ty.Int ck_l "comparison of incompatible types";
-            expect_ty2 tyeq Ty.Int ck_r "comparison of incompatible types";
+            expect_ty2 tyeq Ty.Int ty_l "comparison of incompatible types";
+            expect_ty2 tyeq Ty.Int ty_r "comparison of incompatible types";
             Ty.Int
         | EqOp | NeqOp ->
             expect_ty2
@@ -173,7 +147,7 @@ and ck_expr venv tenv = function
                 | Ty.Array _, Ty.Array _ ->
                     tyeq t1 t2
                 | _ -> false)
-              ck_l ck_r
+              ty_l ty_r
               "arguments to comparison operators must be both ints, strings, \
                records, or arrays";
             Ty.Int
@@ -184,11 +158,11 @@ and ck_expr venv tenv = function
       match getty tenv typ with
       | Ty.Record (field_tys, _) as rcd ->
           if List.length fields <> List.length field_tys then
-            err "number of fields differs from record declaration";
+            ice "number of fields differs from record declaration";
           List.iter2
             (fun (fname, fty) (rname, rexpr) ->
               if name fname <> name rname then
-                err
+                ice
                   ( name rname ^ " is not a field of " ^ name typ
                   ^ ", or is out of order" );
               let rty = ck_expr venv tenv rexpr in
@@ -197,7 +171,7 @@ and ck_expr venv tenv = function
             field_tys fields;
           realty := Some rcd;
           rcd
-      | _ -> err "records must be initialized from record type" )
+      | _ -> ice "records must be initialized from record type" )
   | SeqExpr (seq, realty) ->
       let ty =
         List.map (ck_expr venv tenv) seq |> List.rev |> function
@@ -216,8 +190,8 @@ and ck_expr venv tenv = function
       let test_ty = ck_expr venv tenv test in
       let then_ty = ck_expr venv tenv then' in
       if test_ty <> Ty.Int then
-        err (Printf.sprintf "test %s must be int" (P.string_of_expr test));
-      if then_ty <> Ty.Unit then err "if-then not unitary";
+        ice (Printf.sprintf "test %s must be int" (P.string_of_expr test));
+      if then_ty <> Ty.Unit then ice "if-then not unitary";
       realty := Some Ty.Unit;
       Ty.Unit
   | IfExpr { test; then'; else' = Some else'; ty = realty } as e ->
@@ -225,7 +199,7 @@ and ck_expr venv tenv = function
       let tthen = ck_expr venv tenv then' in
       let telse = ck_expr venv tenv else' in
       if test_ty <> Ty.Int then
-        err (Printf.sprintf "test %s must be int" (P.string_of_expr e));
+        ice (Printf.sprintf "test %s must be int" (P.string_of_expr e));
       expect_ty2 tyeq tthen telse "branches of if expr differ";
       realty := Some tthen;
       tthen
@@ -252,7 +226,8 @@ and ck_expr venv tenv = function
           let tbody = ck_expr venv tenv body in
           realty := Some tbody;
           tbody)
-  | ArrayExpr { typ; init; ty = realty; _ } -> (
+  | ArrayExpr { typ; size; init; ty = realty } -> (
+      expect_ty2 tyeq (ck_expr venv tenv size) Ty.Int "array size must be int";
       match getty tenv typ with
       | Ty.Array (elty, _) as arr_ty ->
           let tinit = ck_expr venv tenv init in
@@ -261,7 +236,7 @@ and ck_expr venv tenv = function
           realty := Some arr_ty;
           arr_ty
       | ty ->
-          err
+          ice
             ("can only create array from array type, saw " ^ Ty.string_of_ty ty)
       )
 

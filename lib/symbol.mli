@@ -29,6 +29,9 @@ module Table : sig
   val find_opt : 'a t -> symbol -> 'a option
   (** Looks up a key in the table. *)
 
+  val keys : 'a t -> symbol list
+  (** Retrieves the keys in the table, unique but in no particular order. *)
+
   val copy : 'a t -> 'a t
   (** Deep copy of the symbol table. *)
 

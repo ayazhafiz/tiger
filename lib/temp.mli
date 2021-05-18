@@ -12,3 +12,6 @@ val stringEqual : label
 val initArray : label
 
 val newlabel : string -> label
+
+val strlabel : string -> label
+(** [strlabel mand] returns a label corresponding exactly to [mand]. *)

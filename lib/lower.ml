@@ -5,6 +5,11 @@ module Ast = Language
 module Tbl = Symbol.Table
 module Ty = Type
 
+let ice why = failwith ("ICE (lower): " ^ why)
+
+(** Expression representation for use during lowering.
+    Characterizes expressions in different ways so as to ease flexibility and
+    efficiency of lowered code. See also [unEx], [unNx], [unCx]. *)
 type expr =
   | Ex of Ir.expr  (** a true expression *)
   | Nx of Ir.stmt  (** valueless expression, for example [Ast.WhileExpr] *)
@@ -21,11 +26,12 @@ type expr =
                                                      CJump(Lt, c, d, t, f))))]
                given a fresh label [z]. *)
 
-let ice why = failwith ("ICE (lower): " ^ why)
-
 let seq lst =
-  let fst = List.hd lst in
-  List.fold_left (fun sq next -> Ir.Seq (sq, next)) fst (List.tl lst)
+  match lst with
+  | [] -> Ir.Expr (Ir.Const 0)
+  | lst ->
+      let fst = List.hd lst in
+      List.fold_left (fun sq next -> Ir.Seq (sq, next)) fst (List.tl lst)
 
 (** [unEx expr] "unwraps" a lowered expression into a pure [Ir.expr],
     regardless of its true form. *)
@@ -85,35 +91,40 @@ let sanitize_label str =
   in
   walk 0 0 str
 
-let unravel ty = match !ty with Some ty -> ty | None -> ice "type not checked"
+let unravel ty what =
+  match !ty with
+  | Some ty -> ty
+  | None -> ice ("type of " ^ what ^ " not checked")
 
-let ty_of_var =
+let ty_of_var v =
   let open Language in
-  function
-  | SimpleVar (_, ty) -> unravel ty
-  | FieldVar (_, _, ty) -> unravel ty
-  | SubscriptVar (_, _, ty) -> unravel ty
+  let vs = Print.string_of_var v in
+  match v with
+  | SimpleVar (_, ty) -> unravel ty vs
+  | FieldVar (_, _, ty) -> unravel ty vs
+  | SubscriptVar (_, _, ty) -> unravel ty vs
 
-let ty_of_expr =
+let ty_of_expr expr =
   let open Language in
-  function
+  let es = Print.string_of_expr expr in
+  match expr with
   | NilExpr -> Ty.Nil
-  | VarExpr (_, ty) -> unravel ty
+  | VarExpr (_, ty) -> unravel ty es
   | IntExpr _ -> Ty.Int
   | StringExpr _ -> Ty.String
-  | CallExpr { ty; _ } -> unravel ty
-  | OpExpr { ty; _ } -> unravel ty
-  | RecordExpr { ty; _ } -> unravel ty
-  | SeqExpr (_, ty) -> unravel ty
+  | CallExpr { ty; _ } -> unravel ty es
+  | OpExpr { ty; _ } -> unravel ty es
+  | RecordExpr { ty; _ } -> unravel ty es
+  | SeqExpr (_, ty) -> unravel ty es
   | AssignExpr _ -> Ty.Unit
-  | IfExpr { ty; _ } -> unravel ty
+  | IfExpr { ty; _ } -> unravel ty es
   | WhileExpr _ -> Ty.Unit
   | ForExpr _ -> Ty.Unit
   | BreakExpr -> Ty.Unit
-  | LetExpr { ty; _ } -> unravel ty
-  | ArrayExpr { ty; _ } -> unravel ty
+  | LetExpr { ty; _ } -> unravel ty es
+  | ArrayExpr { ty; _ } -> unravel ty es
 
-module LOWER (F : FRAME) = struct
+module TRANSLATE (F : FRAME) = struct
   type level =
     | Toplevel
     | Nest of { frame : F.frame; parent : level; uuid : int }
@@ -140,6 +151,7 @@ module LOWER (F : FRAME) = struct
         List.map (fun a -> (lvl, a)) (F.formals frame)
         |> (* drop static link *) List.tl
 
+  (** Allocates a fresh local variable in a level. *)
   let alloc_local level escapes =
     match (level, escapes) with
     | Toplevel, _ -> ice "cannot allocate locals on toplevel "
@@ -366,12 +378,12 @@ module LOWER (F : FRAME) = struct
            Ir.Label finish;
          ])
 
-  (** [ir_call caller target args] calls a function at level [target] with
-      [args] from level [caller]. *)
-  let ir_call caller target args =
+  (** [ir_call caller target target_label args] calls a function at level
+      [target] with [args] from level [caller]. *)
+  let ir_call caller target target_label args =
     let args = List.map unEx args in
     match target with
-    | Toplevel -> ice "callee has no level"
+    | Toplevel -> Ex (F.external_call target_label args)
     | Nest { parent = Toplevel; _ } -> ice "cannot call function on toplevel"
     | Nest { parent; frame; _ } ->
         (* Need to pass static link to the parent level of the function level we
@@ -408,23 +420,41 @@ module LOWER (F : FRAME) = struct
         let body'' = F.proc_entry_exit1 frame body' in
         fragments := F.Proc (frame, body'') :: !fragments
 
+  (****************)
+  (* Lowering Env *)
+  (****************)
+
   type ventry =
     | VarEntry of level * F.access  (** level declared in, underlying access *)
     | FunEntry of level * label
 
   let getvar venv sym =
-    match Tbl.find venv sym with
-    | VarEntry (lvl, a) -> (lvl, a)
-    | _ -> ice (name sym ^ "not a VarEntry")
+    match Tbl.find_opt venv sym with
+    | Some (VarEntry (lvl, a)) -> (lvl, a)
+    | None -> ice ("no entry " ^ name sym)
+    | _ -> ice (name sym ^ " not a VarEntry")
 
   let getfn venv sym =
-    match Tbl.find venv sym with
-    | FunEntry (lvl, lab) -> (lvl, lab)
-    | _ -> ice (name sym ^ "not a FunEntry")
+    match Tbl.find_opt venv sym with
+    | Some (FunEntry (lvl, lab)) -> (lvl, lab)
+    | None -> ice ("no entry " ^ name sym)
+    | _ -> ice (name sym ^ " not a FunEntry")
+
+  let base_venv =
+    let t = Tbl.singleton () in
+    List.iter
+      (fun extern ->
+        Tbl.add t extern (FunEntry (Toplevel, strlabel (name extern))))
+      (Tbl.keys (Env.base_venv ()));
+    fun () -> Tbl.copy t
 
   let br = function
     | Some break -> break
     | None -> ice "attempting to access break in bad scope"
+
+  (**************************)
+  (* Lowering: Main Drivers *)
+  (**************************)
 
   let rec lower_var ctx =
     let venv, usage_lvl, _break = ctx in
@@ -437,7 +467,10 @@ module LOWER (F : FRAME) = struct
         match ty_of_var v with
         | Ty.Record (fields, _) ->
             ir_field_var (lower_var ctx v) (List.map fst fields) f
-        | _ -> ice "field receiver not checked as record" )
+        | t ->
+            ice
+              ("field receiver checked as " ^ Ty.string_of_ty t ^ ", not record")
+        )
     | SubscriptVar (v, idx, _) ->
         ir_subscript_var (lower_var ctx v) (lower_expr ctx idx)
 
@@ -450,9 +483,9 @@ module LOWER (F : FRAME) = struct
     | IntExpr n -> Ex (Ir.Const n)
     | StringExpr s -> ir_strlit s
     | CallExpr { func; args; _ } ->
-        let target_lvl, _ = getfn venv func in
+        let target_lvl, target_label = getfn venv func in
         let args = List.map (lower_expr ctx) args in
-        ir_call usage_lvl target_lvl args
+        ir_call usage_lvl target_lvl target_label args
     | OpExpr { left; oper; right; _ } -> (
         let left' = lower_expr ctx left in
         let right' = lower_expr ctx right in
@@ -465,8 +498,10 @@ module LOWER (F : FRAME) = struct
         | _ -> ir_binop oper left' right' )
     | RecordExpr { fields; _ } ->
         List.map snd fields |> List.map (lower_expr ctx) |> ir_record
-    | SeqExpr (exprs, ty) ->
-        ir_seq (List.map (lower_expr ctx) exprs) (unravel ty = Ty.Unit)
+    | SeqExpr (exprs, ty) as e ->
+        ir_seq
+          (List.map (lower_expr ctx) exprs)
+          (unravel ty (Print.string_of_expr e) = Ty.Unit)
     | AssignExpr { var; expr } ->
         let lv = unEx (lower_var ctx var) in
         let rv = unEx (lower_expr ctx expr) in
@@ -481,17 +516,22 @@ module LOWER (F : FRAME) = struct
         let break' = Temp.newlabel "break" in
         let body = lower_expr (venv, usage_lvl, Some break') body in
         ir_while test body break'
-    | ForExpr _ -> ice "for must be desugared by this point"
+    | ForExpr _ as f ->
+        ice
+          ( "for (" ^ Print.string_of_expr f
+          ^ ") must be desugared by this point" )
     | BreakExpr ->
         let break = br break in
         Nx (Ir.Jmp (Ir.Name break, [ break ]))
-    | LetExpr { decls; body; ty } ->
+    | LetExpr { decls; body; ty } as e ->
         Tbl.scoped venv (fun venv ->
             let ctx = (venv, usage_lvl, break) in
             let decls = List.concat_map (lower_decl ctx) decls in
             let body = lower_expr ctx body in
             (* This is effectively a sequence in the IR, so translate it as such. *)
-            ir_seq (List.concat [ decls; [ body ] ]) (unravel ty = Ty.Unit))
+            ir_seq
+              (List.concat [ decls; [ body ] ])
+              (unravel ty (Print.string_of_expr e) = Ty.Unit))
     | ArrayExpr { size; init; _ } ->
         ir_array (lower_expr ctx size) (lower_expr ctx init)
 
@@ -533,7 +573,7 @@ module LOWER (F : FRAME) = struct
     clear_frags ();
     let expr = Desugar.expr_of_desugared expr in
     let mainlvl = newlevel toplevel (Temp.newlabel "main") [] in
-    let main = lower_expr (Tbl.singleton (), mainlvl, None) expr in
+    let main = lower_expr (base_venv (), mainlvl, None) expr in
     proc_entry_exit mainlvl main;
     get_frags ()
 end

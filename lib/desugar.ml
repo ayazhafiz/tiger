@@ -75,7 +75,8 @@ and desugar_expr = function
   | WhileExpr { test : expr; body : expr } ->
       WhileExpr { test = desugar_expr test; body = desugar_expr body }
   | ForExpr { var = i; escape; lo; hi; body } ->
-      while_of_for i escape lo hi body
+      while_of_for i escape (desugar_expr lo) (desugar_expr hi)
+        (desugar_expr body)
   | BreakExpr -> BreakExpr
   | LetExpr { decls; body; ty } ->
       LetExpr

@@ -107,6 +107,12 @@ and string_of_fun (ind : int) = function
         (string_of_symbol result)
         (string_of_ex ind body |> reflow ind)
 
+let string_of_var = string_of_var 2
+
 let string_of_expr = string_of_ex 2
+
+let string_of_decl = string_of_decl 2
+
+let string_of_ty = string_of_ty 2
 
 let fmt_expr fmt e = Format.pp_print_string fmt (string_of_expr e)

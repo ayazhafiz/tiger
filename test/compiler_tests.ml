@@ -2,6 +2,7 @@ open Tiger
 open Tiger.Language
 open Tiger.Print
 open Tiger.Semantic
+open Tiger.Desugar
 
 let ext = ".tig"
 
@@ -15,6 +16,7 @@ type fi = {
   semantic_error : string option;
   mutable lexed : Lexing.lexbuf option;
   mutable parse : expr option;
+  mutable desugar : desugared_expr option;
 }
 
 let readfi path =
@@ -48,6 +50,7 @@ let mkfi dir name =
     semantic_error;
     lexed = Option.none;
     parse = Option.none;
+    desugar = Option.none;
   }
 
 let get opt err = match opt with Some v -> v | None -> failwith err
@@ -65,6 +68,12 @@ let ensure_parsed fi =
   ensure_lexed fi;
   let lexed = get fi.lexed "Lexing incomplete" in
   if Option.is_none fi.parse then fi.parse <- Option.some (parse lexed)
+
+let ensure_desugar fi =
+  ensure_parsed fi;
+  let parsed = get fi.parse "Parsing incomplete" in
+  if Option.is_none fi.desugar then
+    fi.desugar <- Option.some (desugar_expr parsed)
 
 let get_test_files =
   let open Cmdliner in
@@ -89,9 +98,16 @@ let cmd =
   let result = Term.eval (cmdline, Term.info "Test Options") in
   match result with `Ok r -> r | _ -> exit (Term.exit_status_of_result result)
 
+let wrap test =
+  Printexc.record_backtrace true;
+  try test
+  with _ as e ->
+    Printexc.record_backtrace false;
+    Alcotest.fail (Printexc.to_string e ^ "\n" ^ Printexc.get_backtrace ())
+
 let lextest fi =
   let test _ = ensure_lexed fi in
-  ((fi.name, `Quick, test), true)
+  ((fi.name, `Quick, wrap test), true)
 
 let parsetest fi =
   let test _ =
@@ -103,7 +119,7 @@ let parsetest fi =
         with _ -> () )
     | false -> ensure_parsed fi
   in
-  ((fi.name, `Quick, test), not fi.syntax_error)
+  ((fi.name, `Quick, wrap test), not fi.syntax_error)
 
 let printtest update fi =
   let test _ =
@@ -122,7 +138,7 @@ let printtest update fi =
     (* let expr_expect = parse @@ lex !pr_expect in
        Alcotest.(check testable_expr) fi.name expr_expect expr_real *)
   in
-  ((fi.name, `Quick, test), true)
+  ((fi.name, `Quick, wrap test), true)
 
 let sematest fi =
   let test _ =
@@ -140,7 +156,18 @@ let sematest fi =
         | Ok _ -> ()
         | Error msg -> Alcotest.fail ("Unexpected semantic error: " ^ msg) )
   in
-  ((fi.name, `Quick, test), Option.is_some fi.semantic_error)
+  ((fi.name, `Quick, test), Option.is_none fi.semantic_error)
+
+module MipsTranslate = Lower.TRANSLATE (Mips_frame.MipsFrame)
+
+let lowertest fi =
+  let test _ =
+    ensure_desugar fi;
+    let expr = get fi.desugar "Desugar incomplete" in
+    let _ = MipsTranslate.lower expr in
+    ()
+  in
+  ((fi.name, `Quick, wrap test), true)
 
 let mktests factory cases =
   List.fold_right
@@ -157,7 +184,8 @@ let () =
   let lexer_tests, cases = mktests lextest cases in
   let parser_tests, cases = mktests parsetest cases in
   let printer_tests, cases = mktests (printtest update_goldens) cases in
-  let semantic_tests, _cases = mktests sematest cases in
+  let semantic_tests, cases = mktests sematest cases in
+  let lowering_tests, _cases = mktests lowertest cases in
   let fakeargv = Array.make 1 "compiler_tests" in
   Alcotest.run "compiler_tests" ~argv:fakeargv
     [
@@ -165,4 +193,5 @@ let () =
       ("parser tests", parser_tests);
       ("printer tests", printer_tests);
       ("semantic tests", semantic_tests);
+      ("lowering tests", lowering_tests);
     ]
