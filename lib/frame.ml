@@ -1,16 +1,21 @@
 (** An architecture-specific representation of a stack frame. *)
-module type Frame = sig
+module type FRAME = sig
   type frame
 
   type access
   (** Denotes the access location of a variable in this frame. *)
 
-  type frag
   (** Fragment types. *)
+  type frag =
+    | Proc of frame * Ir.stmt  (** A procedure *)
+    | String of Temp.label * string  (** A string literal *)
 
   val fp : Temp.temp
   (** The frame pointer of the present frame.
       Should be stored in a constant location. *)
+
+  val rv : Temp.temp
+  (** Return value location; should be constant. *)
 
   val wordsize : int
   (** Native word size of the architecture this frame represents. *)
@@ -35,9 +40,8 @@ module type Frame = sig
   (** [allocLocal frame escape] allocates a local variable with a given [escape]
       qualifier in [frame]. *)
 
-  val frag_of_string : Temp.label -> string -> frag
-  (** [frag_of_string label strlit] creates a string fragment. *)
-
-  val external_call : string -> Ir.expr list -> Ir.expr
+  val external_call : Temp.label -> Ir.expr list -> Ir.expr
   (** [external_call name args] performs a call to an external procedure. *)
+
+  val proc_entry_exit1 : frame -> Ir.stmt -> Ir.stmt
 end

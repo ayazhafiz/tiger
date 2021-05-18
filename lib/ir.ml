@@ -1,3 +1,5 @@
+(** The Tiger intermediate representation. *)
+
 open Temp
 
 type expr =
@@ -9,7 +11,7 @@ type expr =
       (** Memory address. As an rvalue, this refers to a fetch from the address;
           as an lvalue, it is a store into the memory address. *)
   | Call of expr * expr list
-  | Eseq of stmt * expr  (** side-effectful sequence followed by [expr] *)
+  | ESeq of stmt * expr  (** [Seq] followed by [expr] *)
 
 and stmt =
   | Expr of expr

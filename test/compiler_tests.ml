@@ -130,15 +130,15 @@ let sematest fi =
     let expr = get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name) in
     match fi.semantic_error with
     | Some expect_err -> (
-        try
-          let _ = tr_prog expr in
-          Alcotest.fail ("Expected semantic error: " ^ expect_err)
-        with SemanticError msg ->
-          if not (Str.string_match (Str.regexp msg) expect_err 0) then
-            Alcotest.(check string) fi.name expect_err msg )
-    | None ->
-        let _ = tr_prog expr in
-        ()
+        match check_prog expr with
+        | Ok _ -> Alcotest.fail ("Expected semantic error: " ^ expect_err)
+        | Error msg ->
+            if not (Str.string_match (Str.regexp msg) expect_err 0) then
+              Alcotest.(check string) fi.name expect_err msg )
+    | None -> (
+        match check_prog expr with
+        | Ok _ -> ()
+        | Error msg -> Alcotest.fail ("Unexpected semantic error: " ^ msg) )
   in
   ((fi.name, `Quick, test), Option.is_some fi.semantic_error)
 

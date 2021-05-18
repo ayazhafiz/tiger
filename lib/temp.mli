@@ -7,4 +7,8 @@ val newtemp : unit -> temp
 
 type label
 
+val stringEqual : label
+
+val initArray : label
+
 val newlabel : string -> label

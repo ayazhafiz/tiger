@@ -4,6 +4,8 @@ val nextsym : int ref
 
 val symbol : string -> symbol
 
+val symeq : symbol -> symbol -> bool
+
 val name : symbol -> string
 
 (** A mutable symbol table. To make copies of the table, use [Table.copy]. *)
@@ -20,8 +22,12 @@ module Table : sig
   val add : 'a t -> symbol -> 'a -> unit
   (** Adds a value to the table. *)
 
-  val find : 'a t -> symbol -> 'a option
-  (** Looks up a value in the table. *)
+  val find : 'a t -> symbol -> 'a
+  (** Looks up a key in the table.
+      Raises [Not_found] if the key does not exist. *)
+
+  val find_opt : 'a t -> symbol -> 'a option
+  (** Looks up a key in the table. *)
 
   val copy : 'a t -> 'a t
   (** Deep copy of the symbol table. *)

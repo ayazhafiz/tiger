@@ -1,21 +1,24 @@
 open Symbol
 
+type realty = Type.ty option ref
+(** A resolved type after typecheck. *)
+
 type var =
-  | SimpleVar of symbol
-  | FieldVar of var * symbol
-  | SubscriptVar of var * expr
+  | SimpleVar of symbol * realty
+  | FieldVar of var * symbol * realty
+  | SubscriptVar of var * expr * realty
 
 and expr =
   | NilExpr
-  | VarExpr of var
+  | VarExpr of var * realty
   | IntExpr of int
   | StringExpr of string
-  | CallExpr of { func : symbol; args : expr list }
-  | OpExpr of { left : expr; oper : oper; right : expr }
-  | RecordExpr of { typ : symbol; fields : (symbol * expr) list }
-  | SeqExpr of expr list
+  | CallExpr of { func : symbol; args : expr list; ty : realty }
+  | OpExpr of { left : expr; oper : oper; right : expr; ty : realty }
+  | RecordExpr of { typ : symbol; fields : (symbol * expr) list; ty : realty }
+  | SeqExpr of expr list * realty
   | AssignExpr of { var : var; expr : expr }
-  | IfExpr of { test : expr; then' : expr; else' : expr option }
+  | IfExpr of { test : expr; then' : expr; else' : expr option; ty : realty }
   | WhileExpr of { test : expr; body : expr }
   | ForExpr of {
       var : symbol;
@@ -25,8 +28,8 @@ and expr =
       body : expr;
     }
   | BreakExpr
-  | LetExpr of { decls : decl list; body : expr }
-  | ArrayExpr of { typ : symbol; size : expr; init : expr }
+  | LetExpr of { decls : decl list; body : expr; ty : realty }
+  | ArrayExpr of { typ : symbol; size : expr; init : expr; ty : realty }
 
 and decl =
   | FunctionDecl of fundecl list

@@ -1,6 +1,4 @@
-open Tiger.Frame
-
-module MipsFrame : Frame = struct
+module MipsFrame : Frame.FRAME = struct
   type access =
     | InReg of Temp.temp
     | InFrame of int  (** offset from frame pointer *)
@@ -46,7 +44,11 @@ module MipsFrame : Frame = struct
                              ...lower addr
    *)
 
+  type frag = Proc of frame * Ir.stmt | String of Temp.label * string
+
   let fp = Temp.newtemp ()
+
+  let rv = Temp.newtemp ()
 
   let wordsize = 4
 
@@ -89,4 +91,8 @@ module MipsFrame : Frame = struct
         *)
         f.sp_offset <- f.sp_offset - wordsize;
         InFrame f.sp_offset
+
+  let external_call fn args = Ir.Call (Ir.Name fn, args)
+
+  let proc_entry_exit1 _ body = body
 end

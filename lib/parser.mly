@@ -67,21 +67,21 @@ expr:
   | STRING      { StringExpr $1 }
   | INT         { IntExpr $1 }
   | NIL         { NilExpr }
-  | lvalue      { VarExpr $1 }
-  | MINUS expr  { OpExpr { left=IntExpr 0; oper=MinusOp; right=$2 } }
+  | lvalue      { VarExpr ($1, ref None) }
+  | MINUS expr  { OpExpr { left=IntExpr 0; oper=MinusOp; right=$2; ty=ref None } }
   | binary_expr { $1 }
   | symbol LPAREN expr_list RPAREN
-      { CallExpr { func=$1; args=$3 } }
+      { CallExpr { func=$1; args=$3; ty=ref None } }
   | LPAREN expr_seq RPAREN
-      { SeqExpr $2 }
+      { SeqExpr ($2, ref None) }
   | symbol LBRACE field_list RBRACE
-      { RecordExpr { typ=$1; fields=$3 } }
+      { RecordExpr { typ=$1; fields=$3; ty=ref None } }
   | symbol LBRACKET expr RBRACKET OF expr
-      { ArrayExpr { typ=$1; size=$3; init=$6 } }
+      { ArrayExpr { typ=$1; size=$3; init=$6; ty=ref None } }
   | IF expr THEN expr
-      { IfExpr { test=$2; then'=$4; else'=Option.none } }
+      { IfExpr { test=$2; then'=$4; else'=Option.none; ty=ref None } }
   | IF expr THEN expr ELSE expr
-      { IfExpr { test=$2; then'=$4; else'=Option.some $6 } }
+      { IfExpr { test=$2; then'=$4; else'=Option.some $6; ty=ref None } }
   | WHILE expr DO expr
       { WhileExpr { test=$2; body=$4 } }
   | FOR symbol ASSIGN expr TO expr DO expr
@@ -89,7 +89,7 @@ expr:
   | BREAK
       { BreakExpr }
   | LET decl_list IN expr_seq END
-      { LetExpr { decls=$2; body=SeqExpr $4 } }
+      { LetExpr { decls=$2; body=SeqExpr ($4, ref None); ty=ref None } }
 
 expr_seq:
   | { [] }
@@ -110,11 +110,12 @@ symbol:
   | IDENT { symbol $1 }
 
 lvalue:
-  | symbol { SimpleVar $1 } 
-  | symbol DOT symbol { FieldVar (SimpleVar $1, $3) }
-  | lvalue DOT symbol { FieldVar ($1, $3) }
-  | symbol LBRACKET expr RBRACKET { SubscriptVar (SimpleVar $1, $3) }
-  | lvalue LBRACKET expr RBRACKET { SubscriptVar ($1, $3) }
+  | symbol { SimpleVar ($1, ref None) } 
+  | symbol DOT symbol { FieldVar (SimpleVar ($1, ref None), $3, ref None) }
+  | lvalue DOT symbol { FieldVar ($1, $3, ref None) }
+  | symbol LBRACKET expr RBRACKET
+      { SubscriptVar (SimpleVar ($1, ref None), $3, ref None) }
+  | lvalue LBRACKET expr RBRACKET { SubscriptVar ($1, $3, ref None) }
 
 decl_list:
   | decl { [$1] }
@@ -165,26 +166,26 @@ binary_expr:
   | lvalue ASSIGN expr
       { AssignExpr { var=$1; expr=$3 } }
   | expr TIMES expr
-      { OpExpr { left=$1; oper=TimesOp; right=$3 } }
+      { OpExpr { left=$1; oper=TimesOp; right=$3; ty=ref None } }
   | expr DIVIDE expr
-      { OpExpr { left=$1; oper=DivideOp; right=$3 } }
+      { OpExpr { left=$1; oper=DivideOp; right=$3; ty=ref None } }
   | expr PLUS expr
-      { OpExpr { left=$1; oper=PlusOp; right=$3 } }
+      { OpExpr { left=$1; oper=PlusOp; right=$3; ty=ref None } }
   | expr MINUS expr
-      { OpExpr { left=$1; oper=MinusOp; right=$3 } }
+      { OpExpr { left=$1; oper=MinusOp; right=$3; ty=ref None } }
   | expr EQ expr
-      { OpExpr { left=$1; oper=EqOp; right=$3 } }
+      { OpExpr { left=$1; oper=EqOp; right=$3; ty=ref None } }
   | expr NEQ expr
-      { OpExpr { left=$1; oper=NeqOp; right=$3 } }
+      { OpExpr { left=$1; oper=NeqOp; right=$3; ty=ref None } }
   | expr LEQ expr
-      { OpExpr { left=$1; oper=LeOp; right=$3 } }
+      { OpExpr { left=$1; oper=LeOp; right=$3; ty=ref None } }
   | expr GEQ expr
-      { OpExpr { left=$1; oper=GeOp; right=$3 } }
+      { OpExpr { left=$1; oper=GeOp; right=$3; ty=ref None } }
   | expr LT expr
-      { OpExpr { left=$1; oper=LtOp; right=$3 } }
+      { OpExpr { left=$1; oper=LtOp; right=$3; ty=ref None } }
   | expr GT expr
-      { OpExpr { left=$1; oper=GtOp; right=$3 } }
+      { OpExpr { left=$1; oper=GtOp; right=$3; ty=ref None } }
   | expr AND expr
-      { IfExpr { test=$1; then'=$3; else'=Option.some (IntExpr 0) } }
+      { IfExpr { test=$1; then'=$3; else'=Option.some (IntExpr 0); ty=ref None } }
   | expr OR expr
-      { IfExpr { test=$1; then'=IntExpr 1; else'=Option.some $3 } }
+      { IfExpr { test=$1; then'=IntExpr 1; else'=Option.some $3; ty=ref None } }

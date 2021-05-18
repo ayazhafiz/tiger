@@ -8,34 +8,35 @@ let reflow indent what =
   String.split_on_char '\n' what |> List.map (( ^ ) pre) |> String.concat "\n"
 
 let rec string_of_var (ind : int) = function
-  | SimpleVar s -> string_of_symbol s
-  | FieldVar (v, s) ->
+  | SimpleVar (s, _) -> string_of_symbol s
+  | FieldVar (v, s, _) ->
       Printf.sprintf "%s.%s" (string_of_var ind v) (string_of_symbol s)
-  | SubscriptVar (v, s) ->
+  | SubscriptVar (v, s, _) ->
       Printf.sprintf "%s[%s]" (string_of_var ind v) (string_of_ex ind s)
 
 and string_of_ex (ind : int) = function
   | NilExpr -> "nil"
-  | VarExpr v -> string_of_var ind v
+  | VarExpr (v, _) -> string_of_var ind v
   | IntExpr n -> string_of_int n
   | StringExpr s -> Printf.sprintf "\"%s\"" (String.escaped s)
-  | CallExpr { func; args } ->
+  | CallExpr { func; args; _ } ->
       Printf.sprintf "%s(%s)" (string_of_symbol func)
         (List.map (string_of_ex ind) args |> String.concat ", ")
-  | OpExpr { left; oper; right } ->
+  | OpExpr { left; oper; right; _ } ->
       Printf.sprintf "%s %s %s" (string_of_ex ind left) (string_of_oper oper)
         (string_of_ex ind right)
-  | RecordExpr { typ; fields } ->
+  | RecordExpr { typ; fields; _ } ->
       Printf.sprintf "%s {\n%s\n}" (string_of_symbol typ)
         ( List.map (string_of_field ind) fields
         |> String.concat ",\n" |> reflow ind )
-  | SeqExpr exprs -> List.map (string_of_ex ind) exprs |> String.concat ";\n"
+  | SeqExpr (exprs, _) ->
+      List.map (string_of_ex ind) exprs |> String.concat ";\n"
   | AssignExpr { var; expr } ->
       Printf.sprintf "%s := %s" (string_of_var ind var) (string_of_ex ind expr)
-  | IfExpr { test; then'; else' = None } ->
+  | IfExpr { test; then'; else' = None; _ } ->
       Printf.sprintf "if %s then\n%s" (string_of_ex ind test)
         (string_of_ex ind then' |> reflow ind)
-  | IfExpr { test; then'; else' = Some else' } ->
+  | IfExpr { test; then'; else' = Some else'; _ } ->
       Printf.sprintf "if %s then\n%s\nelse\n%s" (string_of_ex ind test)
         (string_of_ex ind then' |> reflow ind)
         (string_of_ex ind else' |> reflow ind)
@@ -47,11 +48,11 @@ and string_of_ex (ind : int) = function
         (string_of_ex ind lo) (string_of_ex ind hi)
         (string_of_ex ind body |> reflow ind)
   | BreakExpr -> "break"
-  | LetExpr { decls; body } ->
+  | LetExpr { decls; body; _ } ->
       Printf.sprintf "let\n%s\nin\n%s\nend"
         (List.map (string_of_decl ind) decls |> String.concat "\n" |> reflow ind)
         (string_of_ex ind body |> reflow ind)
-  | ArrayExpr { typ; size; init } ->
+  | ArrayExpr { typ; size; init; _ } ->
       Printf.sprintf "%s[%s] of %s" (string_of_symbol typ)
         (string_of_ex ind size) (string_of_ex ind init)
 

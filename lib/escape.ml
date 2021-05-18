@@ -2,7 +2,7 @@ open Language
 module Tbl = Symbol.Table
 
 let mark_above env d' sym =
-  match Tbl.find env sym with
+  match Tbl.find_opt env sym with
   | None (* variable not declared, we'll catch this during sema anyway *) -> ()
   | Some (d, _) when d = d' -> ()
   | Some (d, _) when d > d' ->
@@ -10,11 +10,11 @@ let mark_above env d' sym =
   | Some (_, escape) -> escape := true
 
 let rec walk_var env d = function
-  | SimpleVar sym -> mark_above env d sym
-  | FieldVar (v, _) | SubscriptVar (v, _) -> walk_var env d v
+  | SimpleVar (sym, _) -> mark_above env d sym
+  | FieldVar (v, _, _) | SubscriptVar (v, _, _) -> walk_var env d v
 
 and walk_expr env d = function
-  | VarExpr v -> walk_var env d v
+  | VarExpr (v, _) -> walk_var env d v
   | NilExpr | IntExpr _ | StringExpr _ | BreakExpr -> ()
   | CallExpr { args; _ } -> List.iter (walk_expr env d) args
   | OpExpr { left; right; _ } ->
@@ -22,13 +22,13 @@ and walk_expr env d = function
       walk_expr env d right
   | RecordExpr { fields; _ } ->
       List.map snd fields |> List.iter (walk_expr env d)
-  | SeqExpr exprs -> List.iter (walk_expr env d) exprs
+  | SeqExpr (exprs, _) -> List.iter (walk_expr env d) exprs
   | AssignExpr { var; expr } ->
       walk_expr env d expr;
       walk_var env d var
-  | IfExpr { test; then'; else' = None } ->
+  | IfExpr { test; then'; else' = None; _ } ->
       List.iter (walk_expr env d) [ test; then' ]
-  | IfExpr { test; then'; else' = Some else' } ->
+  | IfExpr { test; then'; else' = Some else'; _ } ->
       List.iter (walk_expr env d) [ test; then'; else' ]
   | WhileExpr { test; body } -> List.iter (walk_expr env d) [ test; body ]
   | ForExpr { var; escape; lo; hi; body } ->
@@ -37,7 +37,7 @@ and walk_expr env d = function
       Tbl.scoped env (fun env ->
           Tbl.add env var (d', escape);
           List.iter (walk_expr env d') [ lo; hi; body ])
-  | LetExpr { decls; body } ->
+  | LetExpr { decls; body; _ } ->
       (* TODO: I don't actually think we need to descend here, but it depends
           how we compile down. Check later. *)
       let d' = d + 1 in

@@ -13,6 +13,8 @@ let symbol name =
       Hashtbl.add interner name i;
       (name, i)
 
+let symeq (_, s1) (_, s2) = s1 = s2
+
 let name (s, _) = s
 
 module Table = struct
@@ -55,13 +57,15 @@ module Table = struct
 
   let find { tbls } sym =
     let rec walk = function
-      | [] -> None
+      | [] -> raise Not_found
       | t :: rest -> (
           match SymbolHashtbl.find_opt t sym with
           | None -> walk rest
-          | Some v -> Some v )
+          | Some v -> v )
     in
     walk tbls
+
+  let find_opt t sym = try Some (find t sym) with Not_found -> None
 
   let copy { tbls } = { tbls = List.map SymbolHashtbl.copy tbls }
 

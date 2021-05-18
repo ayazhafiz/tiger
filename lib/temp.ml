@@ -9,7 +9,11 @@ let newtemp =
 type label = string
 
 (** TODO: figure out how to deal with externals better *)
-let externals = [ "stringEqual"; "initArray" ]
+let stringEqual = "stringEqual"
+
+let initArray = "initArray"
+
+let externals = [ stringEqual; initArray ]
 
 let newlabel =
   let store =
