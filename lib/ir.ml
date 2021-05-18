@@ -34,3 +34,15 @@ and binop =
   | Xor
 
 and relop = Eq | Neq | Lt | Gt | Leq | Geq | Ult | Ule | Ugt | Uge
+
+let not_relop = function
+  | Eq -> Neq
+  | Neq -> Eq
+  | Lt -> Geq
+  | Gt -> Leq
+  | Leq -> Gt
+  | Geq -> Lt
+  | Ult -> Uge
+  | Ule -> Ugt
+  | Ugt -> Ule
+  | Uge -> Ult
