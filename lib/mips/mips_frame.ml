@@ -45,9 +45,53 @@ module MipsFrame : Frame.FRAME = struct
     }
 
   type frag = Proc of frame * Ir.stmt | String of Temp.label * string
+  type proc = {prolog : string; body : Assem.instr list; epilog : string}
 
-  let fp = Temp.newtemp ()
-  let rv = Temp.newtemp ()
+  (** https://en.wikipedia.org/wiki/MIPS_architecture#Calling_conventions
+      Name     Number   Use                           Callee must preserve?
+      $zero    $0       constant 0                    N/A
+      $at      $1       assembler temporary           No
+      $v0–$v1  $2–$3    values for function returns   No
+                        and expression evaluation
+      $a0–$a3  $4–$7    function arguments            No
+      $t0–$t7  $8–$15	  temporaries                   No
+      $s0–$s7  $16–$23  saved temporaries             Yes
+      $t8–$t9  $24–$25  temporaries                   No
+      $k0–$k1  $26–$27  reserved for OS kernel        N/A
+      $gp      $28      global pointer                Yes
+      $sp	     $29      stack pointer                 Yes
+      $fp	     $30      frame pointer                 Yes
+      $ra	     $31      return address                N/A *)
+  let registers =
+    List.map (fun reg -> (reg, Temp.newtemp ())) [
+    "$zero"; "$at";
+    "$v0"; "$v1"; (* returns, expr evals *)
+    "$a0"; "$a1"; "$a2"; "$a3"; (* fn args *)
+    "$t0"; "$t1"; "$t2"; "$t3"; "$t4"; "$t5"; "$t6"; "$t7"; "$t8"; "$t9"; (* caller-save temps *)
+    "$s0"; "$s1"; "$s2"; "$s3"; "$s4"; "$s5"; "$s6"; "$s7"; (* callee-save temps *)
+    "$k0"; "$k1"; (* kernel reserved *)
+    "$gp"; "$sp"; "$fp"; "$ra" (* etc globals *)
+    ] [@ocamlformat "disable"]
+
+  let temp_map = List.map (fun (r, t) -> (t, r)) registers
+  let temp_of_reg reg = List.assoc reg registers
+  let fp = List.assoc "$fp" registers
+  let rv = List.assoc "$v0" registers
+  let ra = List.assoc "$ra" registers
+  let sp = List.assoc "$sp" registers
+  let zero = List.assoc "$zero" registers
+  let special_regs = [fp; rv; ra; sp; zero]
+  let arg_regs = ["$a0"; "$a1"; "$a2"; "$a3"] |> List.map temp_of_reg
+
+  let callee_saves =
+    List.filter (fun (r, _) -> String.sub r 0 2 = "$s") registers
+    |> List.map snd
+
+  let caller_saves =
+    ( List.filter (fun (r, _) -> String.sub r 0 2 = "$t") registers
+    |> List.map snd )
+    @ arg_regs
+
   let wordsize = 4
 
   let expr_of_access = function
@@ -91,4 +135,18 @@ module MipsFrame : Frame.FRAME = struct
 
   let external_call fn args = Ir.Call (Ir.Name fn, args)
   let proc_entry_exit1 _ body = body
+
+  let proc_entry_exit2 _ body =
+    body
+    @ [ Assem.Oper
+          { assem = ""
+          ; (* Mark registers as still being live (necessary) at procedure exit. *)
+            src = [zero; ra; sp] @ callee_saves
+          ; dst = []
+          ; jmp = None } ]
+
+  let proc_entry_exit3 {name; _} body =
+    { prolog = "PROCEDURE " ^ Temp.string_of_label name ^ "\n"
+    ; body
+    ; epilog = "END " ^ Temp.string_of_label name ^ "\n" }
 end

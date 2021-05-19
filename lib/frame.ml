@@ -10,12 +10,30 @@ module type FRAME = sig
     | Proc of frame * Ir.stmt  (** A procedure *)
     | String of Temp.label * string  (** A string literal *)
 
+  type proc = {prolog : string; body : Assem.instr list; epilog : string}
+
   val fp : Temp.temp
   (** The frame pointer of the present frame.
       Should be stored in a constant location. *)
 
   val rv : Temp.temp
   (** Return value location; should be constant. *)
+
+  val ra : Temp.temp
+  (** Return address location. *)
+
+  val special_regs : Temp.temp list
+  (** "Special-purpose" registers. *)
+
+  val callee_saves : Temp.temp list
+  (** Registers the callee of a function is required to save. *)
+
+  val caller_saves : Temp.temp list
+  (** Registers the caller of a function is required to save, as the callee is
+      free to use them arbitrarily. *)
+
+  val temp_map : (Temp.temp * string) list
+  (** A mapping of a register to its machine name. *)
 
   val wordsize : int
   (** Native word size of the architecture this frame represents. *)
@@ -44,4 +62,6 @@ module type FRAME = sig
   (** [external_call name args] performs a call to an external procedure. *)
 
   val proc_entry_exit1 : frame -> Ir.stmt -> Ir.stmt
+  val proc_entry_exit2 : frame -> Assem.instr list -> Assem.instr list
+  val proc_entry_exit3 : frame -> Assem.instr list -> proc
 end
