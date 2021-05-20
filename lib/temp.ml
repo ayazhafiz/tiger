@@ -33,3 +33,9 @@ let newlabel =
 let strlabel name =
   Hashtbl.add label_store name ();
   name
+
+module TempSet = Set.Make (struct
+  type t = temp
+
+  let compare = compare
+end)

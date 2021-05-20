@@ -8,6 +8,7 @@ module GraphCollection : sig
   val eq : 'a node -> 'a node -> bool
   val add_data : 'a node -> 'a -> unit
   val get_data : 'a node -> 'a
+  val map : 'a graph -> ('a -> 'b) -> 'b graph
 end
 
 (** A mutable directed graph. *)

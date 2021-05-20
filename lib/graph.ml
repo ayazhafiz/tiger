@@ -40,6 +40,14 @@ module GraphCollection = struct
   let add_data (n, {data; _}) = Hashtbl.add data n
   let get_data (n, {data; _}) = Hashtbl.find data n
 
+  let map {adjlist; next_node; data} mapper =
+    { adjlist
+    ; next_node
+    ; data =
+        Hashtbl.to_seq data
+        |> Seq.map (fun (k, v) -> (k, mapper v))
+        |> Hashtbl.of_seq }
+
   let directed_add_edge (n1, g1) (n2, g2) =
     check g1 g2;
     let edges1 = Hashtbl.find g1.adjlist n1 in
