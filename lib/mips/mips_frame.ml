@@ -46,6 +46,7 @@ module MipsFrame : Frame.FRAME = struct
 
   type frag = Proc of frame * Ir.stmt | String of Temp.label * string
   type proc = {prolog : string; body : Assem.instr list; epilog : string}
+  type register = string
 
   (** https://en.wikipedia.org/wiki/MIPS_architecture#Calling_conventions
       Name     Number   Use                           Callee must preserve?

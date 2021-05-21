@@ -1,4 +1,4 @@
-(test
-  (name compiler_tests)
+(tests
+  (names compiler_tests flow_live_test)
   (libraries Tiger alcotest)
   (deps (glob_files testcases/*)))

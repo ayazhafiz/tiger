@@ -12,6 +12,9 @@ module type FRAME = sig
 
   type proc = {prolog : string; body : Assem.instr list; epilog : string}
 
+  (** The type of a register. *)
+  type register
+
   val fp : Temp.temp
   (** The frame pointer of the present frame.
       Should be stored in a constant location. *)

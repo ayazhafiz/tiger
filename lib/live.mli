@@ -1,28 +1,25 @@
 open Flow
+open Graph
 open Temp
 
-(** A control flow graph, extended with liveness data. *)
-type liveflowgraph
-
-(** A node in a [liveflowgraph] *)
-type liveflownode
+(** A node in an [ifgraph]. *)
+type ifnode = temp Graph.node
 
 (** An interference graph. *)
-type ifgraph
-
-(** A node in an [ifgraph]. *)
-type ifnode
+type ifgraph =
+  { graph : temp Graph.graph
+        (** Graph with information of the temporary corresponding to that node. *)
+  ; ifnode_of_temp : temp -> ifnode
+  ; temp_of_ifnode : ifnode -> temp
+  ; moves : (ifnode * ifnode) list }
 
 (** A mapping of [flownode]s to the temporaries that are live-out at that
     [flownode]. *)
-type liveout_of_node = liveflownode -> TempSet.t
+type liveout_of_node = flownode -> TempSet.t
 
-val interference_graph : flowgraph -> ifgraph * liveflowgraph * liveout_of_node
-(** Given a [flowgraph], produces a tuple [(ifgraph, lgraph, liveout_of_node)]
+val interference_graph : flowgraph -> ifgraph * liveout_of_node
+(** Given a [flowgraph], produces a tuple [(ifgraph, liveout_of_node)]
     with the following properties:
-      - [lgraph] is a graph with the same node mappings as [flowgraph], extended
-        with liveness analysis.
-      - [nodes lgraph = nodes flowgraph]
       - [ifgraph] is a graph with temporary interference analysis, constructed
         from [lgraph].
       - [liveout_of_node] is a mapping of nodes N in [lgraph] to the temporaries

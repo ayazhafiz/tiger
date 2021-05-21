@@ -1,15 +1,16 @@
 open Flow
 open Graph
 open Temp
+module G = Graph
 module DG = DirectedGraph
+module UDG = DirectedGraph
 
 let ice why = failwith ("ICE (live): " ^ why)
 
-type ifnode = temp DG.node
+type ifnode = temp G.node
 
 type ifgraph =
-  { graph : temp DG.graph
-        (** DGraph with information of the temporary corresponding to that node. *)
+  { graph : temp G.graph
   ; ifnode_of_temp : temp -> ifnode
   ; temp_of_ifnode : ifnode -> temp
   ; moves : (ifnode * ifnode) list }
@@ -23,15 +24,12 @@ type liveflow_data =
   ; uses : TempSet.t
   ; is_mov : bool }
 
-type liveflownode = liveflow_data DG.node
-type liveflowgraph = liveflow_data DG.graph
-type liveout_of_node = liveflownode -> TempSet.t
+type liveout_of_node = flownode -> TempSet.t
 
-let interference_graph (flowgraph : flowgraph) :
-    ifgraph * liveflowgraph * liveout_of_node =
+let interference_graph (flowgraph : flowgraph) : ifgraph * liveout_of_node =
   (* TODO: this function should really be modularized... *)
-  let lgraph =
-    DG.map flowgraph (fun ({defs; uses; is_mov} : instr_data) ->
+  let lgraph, liveflownode_of_flownode =
+    G.map flowgraph (fun ({defs; uses; is_mov} : instr_data) ->
         { live_in = TempSet.empty
         ; live_out = TempSet.empty
         ; defs = TempSet.of_list defs
@@ -43,7 +41,7 @@ let interference_graph (flowgraph : flowgraph) :
     let fixedpoint = ref true in
     List.iter
       (fun node ->
-        let data = DG.get_data node in
+        let data = G.get_data node in
         let live_in1 = data.live_in in
         let live_out1 = data.live_out in
         (* If a temporary
@@ -55,7 +53,7 @@ let interference_graph (flowgraph : flowgraph) :
         (* If a temporary
              - is live-in at any successor to this node
            then it is live-in at this node. *)
-        let successors = DG.succ node |> List.map DG.get_data in
+        let successors = DG.succ node |> List.map G.get_data in
         data.live_out <-
           List.fold_left
             (fun live_out succ -> TempSet.union live_out succ.live_in)
@@ -64,7 +62,7 @@ let interference_graph (flowgraph : flowgraph) :
           !fixedpoint
           && TempSet.equal live_in1 data.live_in
           && TempSet.equal live_out1 data.live_out)
-      (DG.nodes lgraph);
+      (G.nodes lgraph);
     if not !fixedpoint then solve ()
   in
   (* Solve dataflow equations *)
@@ -74,27 +72,27 @@ let interference_graph (flowgraph : flowgraph) :
   let alltemps =
     List.fold_left
       (fun all node ->
-        let {defs; uses; _} = DG.get_data node in
+        let {defs; uses; _} = G.get_data node in
         TempSet.(union all (union defs uses)))
-      TempSet.empty (DG.nodes lgraph)
+      TempSet.empty (G.nodes lgraph)
   in
-  let ifgraph = DG.new_graph () in
+  let ifgraph = G.new_graph () in
   let ifnode_of_temp = Hashtbl.create (TempSet.cardinal alltemps) in
   TempSet.iter
     (fun temp ->
-      let ifnode = DG.new_node ifgraph in
-      DG.add_data ifnode temp;
+      let ifnode = G.new_node ifgraph temp in
       Hashtbl.add ifnode_of_temp temp ifnode)
     alltemps;
   (* Time to populate the graph. *)
   let moves = ref [] in
   List.iter
     (fun node ->
-      let data = DG.get_data node in
-      let movein_lab =
+      let data = G.get_data node in
+      (* Is this a move, and if so what temp does it use? *)
+      let move_use =
         match (data.is_mov, data.uses |> TempSet.to_seq |> List.of_seq) with
         | true, [lab] -> Some lab
-        | true, _ -> ice "move doesn't have exactly one label"
+        | true, _ -> ice "move doesn't have exactly one use"
         | _ -> None
       in
       (* When is there an intereference? If a temp d is defined at a node, it
@@ -105,21 +103,26 @@ let interference_graph (flowgraph : flowgraph) :
       |> TempSet.iter (fun d ->
              let d = Hashtbl.find ifnode_of_temp d in
              data.live_out
-             |> TempSet.iter (fun ttemp ->
-                    let t = Hashtbl.find ifnode_of_temp ttemp in
-                    match movein_lab with
-                    (* Unless the instruction we detect the interference in is a
-                       move, and the source t of the move is live out of this
-                       node. This is okay because d is now equal to t! *)
-                    | Some source when source = ttemp ->
-                        moves := (d, t) :: !moves
-                    | _ -> DG.add_edge d t)))
-    (DG.nodes lgraph);
+             |> TempSet.iter (fun t ->
+                    let t' = Hashtbl.find ifnode_of_temp t in
+                    (* Don't mark self-interference. *)
+                    if t' <> d then
+                      match move_use with
+                      (* Unless the instruction we detect the interference in
+                         is a move, and the source t of the move is live out of
+                         this node. This is okay because d is now equal to t! *)
+                      | Some source when source = t ->
+                          moves := (d, t') :: !moves
+                      | _ -> UDG.add_edge d t')))
+    (G.nodes lgraph);
   let ifgraph =
     { graph = ifgraph
     ; ifnode_of_temp = Hashtbl.find ifnode_of_temp
-    ; temp_of_ifnode = DG.get_data
+    ; temp_of_ifnode = G.get_data
     ; moves = !moves }
   in
-  let liveout_of_node node = (DG.get_data node).live_out in
-  (ifgraph, lgraph, liveout_of_node)
+  let liveout_of_node node =
+    let data = liveflownode_of_flownode node |> G.get_data in
+    data.live_out
+  in
+  (ifgraph, liveout_of_node)

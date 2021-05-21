@@ -3,8 +3,8 @@ open Graph
 let ice why = failwith ("ICE (graph): " ^ why)
 
 type instr_data = {defs : Temp.temp list; uses : Temp.temp list; is_mov : bool}
-type flowgraph = instr_data DirectedGraph.graph
-type flownode = instr_data DirectedGraph.node
+type flowgraph = instr_data Graph.graph
+type flownode = instr_data Graph.node
 
 let flownode_of_instr = function
   | Assem.Oper {dst; src; _} -> {defs = dst; uses = src; is_mov = false}
@@ -23,13 +23,12 @@ let jumps_of_instr = function
   | Assem.Mov _ | Assem.Label _ -> ice "moves, labels have no jumps"
 
 let flowgraph_of_instrs instrs =
-  let graph = DirectedGraph.new_graph () in
+  let graph = Graph.new_graph () in
   (* 1. allocate all nodes *)
   let flownodes =
     List.map
       (fun i ->
-        let node = DirectedGraph.new_node graph in
-        DirectedGraph.add_data node (flownode_of_instr i);
+        let node = Graph.new_node graph (flownode_of_instr i) in
         (i, node))
       instrs
   in

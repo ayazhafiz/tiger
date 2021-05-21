@@ -8,10 +8,10 @@ type instr_data =
   ; is_mov : bool  (** Is this a move instruction? *) }
 
 (** A control flow graph. *)
-type flowgraph = instr_data DirectedGraph.graph
+type flowgraph = instr_data Graph.graph
 
 (** A node in a [flowgraph] *)
-type flownode = instr_data DirectedGraph.node
+type flownode = instr_data Graph.node
 
 val flowgraph_of_instrs : Assem.instr list -> flowgraph * flownode list
 (** Constructs a [flowgraph] from a list of instructions, returning the
