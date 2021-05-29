@@ -25,8 +25,6 @@ module MipsCodegen : Codegen.CODEGEN = struct
     let emit_jmp assem src jmp =
       emit (A.Oper {assem; dst = []; src; jmp = Some jmp})
     in
-    (* Registers trashed (definitely used) by a function inside a call. *)
-    let calldefs = Frame.rv :: Frame.ra :: Frame.caller_saves in
     (* Maximal Munch *)
     let rec munch_stmt = function
       | Ir.Label lab -> emit (A.Label {assem = string_of_label lab ^ ":"; lab})
@@ -43,20 +41,20 @@ module MipsCodegen : Codegen.CODEGEN = struct
                { assem = Printf.sprintf "li `d0, %d" what
                ; dst = [where]
                ; src = []
-               ; jmp = None })
+               ; jmp = None } )
       | Ir.Mov (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, s0, Ir.Const off)))
        |Ir.Mov (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, s0))) ->
           emit
             (A.Mov
                { assem = Printf.sprintf "lw `d0, %d(`s0)" off
                ; dst = where
-               ; src = munch_expr s0 })
+               ; src = munch_expr s0 } )
       | Ir.Mov (where, what) ->
           emit
             (A.Mov
                { assem = "move `d0, `s0"
                ; dst = munch_expr where
-               ; src = munch_expr what })
+               ; src = munch_expr what } )
       (********)
       (* Jump *)
       (********)
@@ -172,8 +170,8 @@ module MipsCodegen : Codegen.CODEGEN = struct
             (A.Oper
                { assem = "jalr `s0"
                ; src = fn :: munch_args args
-               ; dst = calldefs
-               ; jmp = None });
+               ; dst = Frame.calldefs
+               ; jmp = None } );
           (* Restore caller-save registers *)
           List.iter (fun (save, reg) -> munch_stmt (mov reg save)) temp_store;
           Frame.rv

@@ -15,6 +15,11 @@ module type FRAME = sig
   (** The type of a register. *)
   type register
 
+  module RegisterSet : Set.S with type elt = register
+
+  val registers : register list
+  (** All registers on this machine. *)
+
   val fp : Temp.temp
   (** The frame pointer of the present frame.
       Should be stored in a constant location. *)
@@ -22,11 +27,11 @@ module type FRAME = sig
   val rv : Temp.temp
   (** Return value location; should be constant. *)
 
-  val ra : Temp.temp
-  (** Return address location. *)
+  val arg_regs : Temp.temp list
+  (** Registers available for arguments. *)
 
   val special_regs : Temp.temp list
-  (** "Special-purpose" registers. *)
+  (** "Special-purpose" or reserved registers that should be constantly preserved. *)
 
   val callee_saves : Temp.temp list
   (** Registers the callee of a function is required to save. *)
@@ -35,7 +40,10 @@ module type FRAME = sig
   (** Registers the caller of a function is required to save, as the callee is
       free to use them arbitrarily. *)
 
-  val temp_map : (Temp.temp * string) list
+  val calldefs : Temp.temp list
+  (** Registers trashed (definitely used) by a function inside a call. *)
+
+  val temp_map : (Temp.temp * register) list
   (** A mapping of a register to its machine name. *)
 
   val wordsize : int
@@ -59,7 +67,8 @@ module type FRAME = sig
 
   val alloc_local : frame -> bool -> access
   (** [allocLocal frame escape] allocates a local variable with a given [escape]
-      qualifier in [frame]. *)
+      qualifier in [frame]. If [escape] is true, the local variable is
+      guaranteed to be put on the stack. *)
 
   val external_call : Temp.label -> Ir.expr list -> Ir.expr
   (** [external_call name args] performs a call to an external procedure. *)

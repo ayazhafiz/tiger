@@ -3,13 +3,13 @@ let ice why = failwith ("ICE (graph): " ^ why)
 module Graph = struct
   type node' = int
 
-  module NodeSet = Set.Make (struct
+  module INodeSet = Set.Make (struct
     type t = node'
 
     let compare = compare
   end)
 
-  type edges = {mutable pred : NodeSet.t; mutable succ : NodeSet.t}
+  type edges = {mutable pred : INodeSet.t; mutable succ : INodeSet.t}
 
   type 'a graph =
     { adjlist : (node', edges) Hashtbl.t
@@ -23,7 +23,7 @@ module Graph = struct
 
   let new_node graph data =
     let node = graph.next_node in
-    Hashtbl.add graph.adjlist node {pred = NodeSet.empty; succ = NodeSet.empty};
+    Hashtbl.add graph.adjlist node {pred = INodeSet.empty; succ = INodeSet.empty};
     Hashtbl.add graph.data node data;
     graph.next_node <- graph.next_node + 1;
     (node, graph)
@@ -56,28 +56,76 @@ module Graph = struct
   let directed_add_edge (n1, g1) (n2, g2) =
     check g1 g2;
     let edges1 = Hashtbl.find g1.adjlist n1 in
-    edges1.succ <- NodeSet.add n2 edges1.succ;
+    edges1.succ <- INodeSet.add n2 edges1.succ;
     let edges2 = Hashtbl.find g1.adjlist n2 in
-    edges2.pred <- NodeSet.add n1 edges2.pred
+    edges2.pred <- INodeSet.add n1 edges2.pred
 
   let directed_rm_edge (n1, g1) (n2, g2) =
     check g1 g2;
     let edges1 = Hashtbl.find g1.adjlist n1 in
-    edges1.succ <- NodeSet.remove n2 edges1.succ;
+    edges1.succ <- INodeSet.remove n2 edges1.succ;
     let edges2 = Hashtbl.find g1.adjlist n2 in
-    edges2.pred <- NodeSet.remove n1 edges2.pred
+    edges2.pred <- INodeSet.remove n1 edges2.pred
+
+  module NodeSet = struct
+    module S = INodeSet
+
+    type 'a t = S.t * 'a graph
+
+    let of_list = function
+      | (_, g) :: _ as nodes -> (List.map fst nodes |> S.of_list, g)
+      | _ -> ice "cannot create set from empty list"
+
+    let empty_with_graph g = (S.empty, g)
+    let clear (_, g) = empty_with_graph g
+
+    let add (n, g1) (s1, g2) =
+      check g1 g2;
+      (S.add n s1, g1)
+
+    let remove (n, g1) (s1, g2) =
+      check g1 g2;
+      (S.remove n s1, g1)
+
+    let inter (s1, g1) (s2, g2) =
+      check g1 g2;
+      (S.inter s1 s2, g1)
+
+    let union (s1, g1) (s2, g2) =
+      check g1 g2;
+      (S.union s1 s2, g1)
+
+    let difference (s1, g1) (s2, g2) =
+      check g1 g2;
+      (S.diff s1 s2, g1)
+
+    let choose (s, g) = (S.choose s, g)
+
+    let mem (n, g1) (s, g2) =
+      check g1 g2;
+      S.mem n s
+
+    let ( ^^ ) = inter
+    let ( ++ ) = union
+    let ( // ) = difference
+    let is_empty (s, _) = S.is_empty s
+    let iter pred (set, g) = S.iter (fun n -> pred (n, g)) set
+    let fold pred (set, g) init = S.fold (fun n v -> pred (n, g) v) set init
+    let for_all pred (set, g) = S.for_all (fun n -> pred (n, g)) set
+    let size (s, _) = S.cardinal s
+  end
 
   module DirectedGraph = struct
     let add_edge = directed_add_edge
     let rm_edge = directed_rm_edge
 
     let succ (n, g) =
-      (Hashtbl.find g.adjlist n).succ |> NodeSet.to_seq
+      (Hashtbl.find g.adjlist n).succ |> INodeSet.to_seq
       |> Seq.map (into_node g)
       |> List.of_seq
 
     let pred (n, g) =
-      (Hashtbl.find g.adjlist n).pred |> NodeSet.to_seq
+      (Hashtbl.find g.adjlist n).pred |> INodeSet.to_seq
       |> Seq.map (into_node g)
       |> List.of_seq
   end
@@ -93,8 +141,8 @@ module Graph = struct
 
     let adj (n, g) =
       let edges = Hashtbl.find g.adjlist n in
-      NodeSet.union edges.pred edges.succ
-      |> NodeSet.to_seq
+      INodeSet.union edges.pred edges.succ
+      |> INodeSet.to_seq
       |> Seq.map (into_node g)
       |> List.of_seq
   end

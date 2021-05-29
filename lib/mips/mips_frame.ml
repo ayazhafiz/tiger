@@ -48,6 +48,12 @@ module MipsFrame : Frame.FRAME = struct
   type proc = {prolog : string; body : Assem.instr list; epilog : string}
   type register = string
 
+  module RegisterSet = Set.Make (struct
+    type t = register
+
+    let compare = compare
+  end)
+
   (** https://en.wikipedia.org/wiki/MIPS_architecture#Calling_conventions
       Name     Number   Use                           Callee must preserve?
       $zero    $0       constant 0                    N/A
@@ -64,7 +70,7 @@ module MipsFrame : Frame.FRAME = struct
       $fp	     $30      frame pointer                 Yes
       $ra	     $31      return address                N/A *)
   let registers =
-    List.map (fun reg -> (reg, Temp.newtemp ())) [
+    [
     "$zero"; "$at";
     "$v0"; "$v1"; (* returns, expr evals *)
     "$a0"; "$a1"; "$a2"; "$a3"; (* fn args *)
@@ -74,25 +80,27 @@ module MipsFrame : Frame.FRAME = struct
     "$gp"; "$sp"; "$fp"; "$ra" (* etc globals *)
     ] [@ocamlformat "disable"]
 
-  let temp_map = List.map (fun (r, t) -> (t, r)) registers
-  let temp_of_reg reg = List.assoc reg registers
-  let fp = List.assoc "$fp" registers
-  let rv = List.assoc "$v0" registers
-  let ra = List.assoc "$ra" registers
-  let sp = List.assoc "$sp" registers
-  let zero = List.assoc "$zero" registers
+  let reg_temps = List.map (fun reg -> (reg, Temp.newtemp ())) registers
+  let temp_map = List.map (fun (r, t) -> (t, r)) reg_temps
+  let temp_of_reg reg = List.assoc reg reg_temps
+  let fp = List.assoc "$fp" reg_temps
+  let rv = List.assoc "$v0" reg_temps
+  let ra = List.assoc "$ra" reg_temps
+  let sp = List.assoc "$sp" reg_temps
+  let zero = List.assoc "$zero" reg_temps
   let special_regs = [fp; rv; ra; sp; zero]
   let arg_regs = ["$a0"; "$a1"; "$a2"; "$a3"] |> List.map temp_of_reg
 
   let callee_saves =
-    List.filter (fun (r, _) -> String.sub r 0 2 = "$s") registers
+    List.filter (fun (r, _) -> String.sub r 0 2 = "$s") reg_temps
     |> List.map snd
 
   let caller_saves =
-    ( List.filter (fun (r, _) -> String.sub r 0 2 = "$t") registers
+    ( List.filter (fun (r, _) -> String.sub r 0 2 = "$t") reg_temps
     |> List.map snd )
     @ arg_regs
 
+  let calldefs = rv :: ra :: caller_saves
   let wordsize = 4
 
   let expr_of_access = function
