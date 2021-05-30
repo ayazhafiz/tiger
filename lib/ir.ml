@@ -46,3 +46,10 @@ let not_relop = function
   | Ule -> Ugt
   | Ugt -> Ule
   | Uge -> Ult
+
+let seq lst =
+  match lst with
+  | [] -> Expr (Const 0)
+  | lst ->
+      let fst = List.hd lst in
+      List.fold_left (fun sq next -> Seq (sq, next)) fst (List.tl lst)

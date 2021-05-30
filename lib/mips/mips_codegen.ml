@@ -8,8 +8,8 @@ let ice why = failwith ("ICE (mips_codegen): " ^ why)
     https://www.dsi.unive.it/~gasparetto/materials/MIPS_Instruction_Set.pdf
     https://inst.eecs.berkeley.edu/~cs61c/resources/MIPS_help.html *)
 
-module MipsCodegen : Codegen.CODEGEN = struct
-  module Frame = Mips_frame.MipsFrame
+module MipsCodegen (* : Codegen.CODEGEN *) = struct
+  module F = Mips_frame.MipsFrame
 
   let codegen _f stmt =
     let ilist = ref [] in
@@ -159,9 +159,7 @@ module MipsCodegen : Codegen.CODEGEN = struct
       (* Call *)
       (********)
       | Ir.Call (fn, args) ->
-          let temp_store =
-            List.map (fun r -> (newtemp (), r)) Frame.caller_saves
-          in
+          let temp_store = List.map (fun r -> (newtemp (), r)) F.caller_saves in
           let mov where what = Ir.Mov (Ir.Temp where, Ir.Temp what) in
           (* Save caller-save registers *)
           List.iter (fun (save, reg) -> munch_stmt (mov save reg)) temp_store;
@@ -170,11 +168,11 @@ module MipsCodegen : Codegen.CODEGEN = struct
             (A.Oper
                { assem = "jalr `s0"
                ; src = fn :: munch_args args
-               ; dst = Frame.calldefs
+               ; dst = F.calldefs
                ; jmp = None } );
           (* Restore caller-save registers *)
           List.iter (fun (save, reg) -> munch_stmt (mov reg save)) temp_store;
-          Frame.rv
+          F.rv
       | Ir.ESeq _ -> ice "ESeqs should be eliminated during canonicalization"
     and munch_args args =
       (* TODO: need to actually allocate incoming args as we did on the frame. *)

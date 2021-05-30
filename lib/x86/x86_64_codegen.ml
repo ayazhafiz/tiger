@@ -6,8 +6,8 @@ let ice why = failwith ("ICE (x86_64_codegen): " ^ why)
 (** Reference:
     https://www.cs.virginia.edu/~evans/cs216/guides/x86.html *)
 
-module X86_64_Codegen : Codegen.CODEGEN = struct
-  module Frame = X86_64_frame.X86_64_Frame
+module X86_64_Codegen (* : Codegen.CODEGEN *) = struct
+  module F = X86_64_frame.X86_64_Frame
 
   let codegen _f stmt =
     let ilist = ref [] in
@@ -142,7 +142,7 @@ module X86_64_Codegen : Codegen.CODEGEN = struct
       | Ir.BinOp (Ir.Div, s0, s1) ->
           let divisor = munch_expr s1 in
           alloc (fun result ->
-              let rax = Ir.Temp Frame.rax in
+              let rax = Ir.Temp F.rax in
               (* 1. dividend must be placed in rax.
                  2. extend qword to octoword rdx:rax.
                  3. idiv divisor
@@ -152,9 +152,8 @@ module X86_64_Codegen : Codegen.CODEGEN = struct
                  allocator will make suere rax/rdx are only used in places that
                  do not interfere with this anyway. *)
               munch_stmt (Ir.Mov (rax, s0));
-              emit_oper "cqto" [Frame.rax; Frame.rdx] [Frame.rax];
-              emit_oper "idiv `s0" [Frame.rax; Frame.rdx]
-                [divisor; Frame.rax; Frame.rdx];
+              emit_oper "cqto" [F.rax; F.rdx] [F.rax];
+              emit_oper "idiv `s0" [F.rax; F.rdx] [divisor; F.rax; F.rdx];
               munch_stmt (Ir.Mov (Ir.Temp result, rax)) )
       (*********)
       (* Logic *)
@@ -224,9 +223,9 @@ module X86_64_Codegen : Codegen.CODEGEN = struct
             (A.Oper
                { assem = Printf.sprintf "call %s" (string_of_label fn)
                ; src = args
-               ; dst = Frame.calldefs
+               ; dst = F.calldefs
                ; jmp = None } );
-          Frame.rv
+          F.rv
       | Ir.Call _ -> ice "non-label calls not permitted"
       | Ir.ESeq _ -> ice "ESeqs should be eliminated during canonicalization"
     and munch_args args =
@@ -237,13 +236,12 @@ module X86_64_Codegen : Codegen.CODEGEN = struct
                  argn
                  ...
                  arg1
-               so handle rest of args first
-            *)
+               so handle rest of args first *)
             eat_stack argns;
             emit
               (A.Oper
                  { assem = "push `s0"
-                 ; dst = [Frame.rsp]
+                 ; dst = [F.rsp]
                  ; src = [munch_expr arg1]
                  ; jmp = None } )
       in
@@ -256,7 +254,7 @@ module X86_64_Codegen : Codegen.CODEGEN = struct
             munch_stmt (Ir.Mov (Ir.Temp reg, arg));
             reg :: eat_argregs (rest_args, rest_regs)
       in
-      eat_argregs (args, Frame.arg_regs)
+      eat_argregs (args, F.arg_regs)
     in
     munch_stmt stmt;
     List.rev !ilist

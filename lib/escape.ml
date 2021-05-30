@@ -1,12 +1,14 @@
 open Language
 module Tbl = Symbol.Table
 
+let ice why = failwith ("ICE (escape): " ^ why)
+
 let mark_above env d' sym =
   match Tbl.find_opt env sym with
-  | None (* variable not declared, we'll catch this during sema anyway *) -> ()
+  | None (* variable not declared, we should have caught this during sema *) ->
+      ice "variable not declared"
   | Some (d, _) when d = d' -> ()
-  | Some (d, _) when d > d' ->
-      failwith "Internal error (escape): declared depth greater than current"
+  | Some (d, _) when d > d' -> ice "declared depth greater than current"
   | Some (_, escape) -> escape := true
 
 let rec walk_var env d = function
@@ -31,18 +33,14 @@ and walk_expr env d = function
       List.iter (walk_expr env d) [test; then'; else']
   | WhileExpr {test; body} -> List.iter (walk_expr env d) [test; body]
   | ForExpr {var; escape; lo; hi; body} ->
-      let d' = d + 1 in
       escape := false;
       Tbl.scoped env (fun env ->
-          Tbl.add env var (d', escape);
-          List.iter (walk_expr env d') [lo; hi; body])
+          Tbl.add env var (d, escape);
+          List.iter (walk_expr env d) [lo; hi; body] )
   | LetExpr {decls; body; _} ->
-      (* TODO: I don't actually think we need to descend here, but it depends
-          how we compile down. Check later. *)
-      let d' = d + 1 in
       Tbl.scoped env (fun env ->
-          List.iter (walk_decl env d') decls;
-          walk_expr env d' body)
+          List.iter (walk_decl env d) decls;
+          walk_expr env d body )
   | ArrayExpr {size; init; _} -> List.iter (walk_expr env d) [size; init]
 
 and add_field env d {fld_name; escape; _} =
@@ -50,10 +48,10 @@ and add_field env d {fld_name; escape; _} =
   Tbl.add env fld_name (d, escape)
 
 and walk_fn env d {params; body; _} =
-  let d' = d + 1 in
+  let d' = succ d in
   Tbl.scoped env (fun env ->
       List.iter (add_field env d') params;
-      walk_expr env d' body)
+      walk_expr env d' body )
 
 and walk_decl env d = function
   | FunctionDecl fns -> List.iter (walk_fn env d) fns

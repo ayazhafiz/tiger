@@ -48,6 +48,8 @@ module MipsFrame : Frame.FRAME = struct
   type proc = {prolog : string; body : Assem.instr list; epilog : string}
   type register = string
 
+  let string_of_register r = r
+
   module RegisterSet = Set.Make (struct
     type t = register
 
@@ -143,6 +145,9 @@ module MipsFrame : Frame.FRAME = struct
         InFrame f.sp_offset
 
   let external_call fn args = Ir.Call (Ir.Name fn, args)
+  let assem_of_string _ = failwith "todo"
+  let assem_body_indent = "  "
+  let assem_complete _ _ = failwith "todo"
   let proc_entry_exit1 _ body = body
 
   let proc_entry_exit2 _ body =

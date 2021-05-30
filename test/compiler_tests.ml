@@ -77,7 +77,7 @@ let get_test_files =
     (Term.const (fun dir ->
          Sys.readdir dir |> Array.to_list
          |> List.filter (fun file -> Filename.extension file = ext)
-         |> List.map (mkfi dir)))
+         |> List.map (mkfi dir) ) )
     res
 
 let update_goldens =
@@ -151,7 +151,7 @@ let sematest fi =
   in
   ((fi.name, `Quick, test), Option.is_none fi.semantic_error)
 
-module MipsTranslate = Lower.TRANSLATE (Mips_frame.MipsFrame)
+module MipsTranslate = Lower.Translate (Mips_frame.MipsFrame)
 
 let lowertest fi =
   let test _ =
@@ -169,7 +169,7 @@ let mktests factory cases =
       let tests' = test :: tests in
       match keep with
       | true -> (tests', case :: cases)
-      | false -> (tests', cases))
+      | false -> (tests', cases) )
     cases ([], [])
 
 let () =

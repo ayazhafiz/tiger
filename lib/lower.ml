@@ -26,13 +26,6 @@ type expr =
                                                      CJump(Lt, c, d, t, f))))]
                given a fresh label [z]. *)
 
-let seq lst =
-  match lst with
-  | [] -> Ir.Expr (Ir.Const 0)
-  | lst ->
-      let fst = List.hd lst in
-      List.fold_left (fun sq next -> Ir.Seq (sq, next)) fst (List.tl lst)
-
 (** [unEx expr] "unwraps" a lowered expression into a pure [Ir.expr],
     regardless of its true form. *)
 let unEx = function
@@ -50,7 +43,7 @@ let unEx = function
       let f = newlabel "false" in
       let r = Ir.Temp (newtemp ()) in
       Ir.ESeq
-        ( seq
+        ( Ir.seq
             [ Ir.Mov (r, Ir.Const 1); mk_jmp t f; (* false -> r = 0 *) Ir.Label f
             ; Ir.Mov (r, Ir.Const 0); (* true -> fallthrough *) Ir.Label t ]
         , r )
@@ -119,7 +112,7 @@ let ty_of_expr expr =
 
 let is_val expr = ty_of_expr expr <> Ty.Unit
 
-module TRANSLATE (F : FRAME) = struct
+module Translate (F : FRAME) = struct
   type level = Toplevel | Nest of {frame : F.frame; parent : level; uuid : int}
 
   let fragments = ref []
@@ -233,7 +226,7 @@ module TRANSLATE (F : FRAME) = struct
     let then' = unNx then' in
     let t = newlabel "true" in
     let f = newlabel "false" in
-    Nx (seq [test t f; Ir.Label t; then'; Ir.Label f])
+    Nx (Ir.seq [test t f; Ir.Label t; then'; Ir.Label f])
 
   (** [ir_ifthen test then' else'] translates an [if test then then' else else']
       expression. *)
@@ -245,7 +238,7 @@ module TRANSLATE (F : FRAME) = struct
         let f = newlabel "false" in
         let join = newlabel "join" in
         Nx
-          (seq
+          (Ir.seq
              [ test t f; (* true *) Ir.Label t; then'
              ; Ir.Jmp (Ir.Name join, [join]); (* false *) Ir.Label f; else'
              ; Ir.Jmp (Ir.Name join, [join]); (* join *) Ir.Label join ] )
@@ -260,7 +253,7 @@ module TRANSLATE (F : FRAME) = struct
           (fun t f ->
             let if_t = newlabel "if_t" in
             let if_f = newlabel "if_f" in
-            seq
+            Ir.seq
               [ test if_t if_f; (* true branch *) Ir.Label if_t; then_test t f
               ; (* false branch *) Ir.Label if_f; else_test t f ] )
     | then', else' ->
@@ -272,7 +265,7 @@ module TRANSLATE (F : FRAME) = struct
         let join = newlabel "join" in
         Ex
           (Ir.ESeq
-             ( seq
+             ( Ir.seq
                  [ test t f; (* true *) Ir.Label t; Ir.Mov (Ir.Temp r, then')
                  ; Ir.Jmp (Ir.Name join, [join]); (* false *) Ir.Label f
                  ; Ir.Mov (Ir.Temp r, else'); Ir.Jmp (Ir.Name join, [join])
@@ -322,7 +315,7 @@ module TRANSLATE (F : FRAME) = struct
       Ir.Mov (rcdf, field)
     in
     let init_fields = List.mapi init_field fields in
-    Ex (Ir.ESeq (seq (rcd_init :: init_fields), rcd))
+    Ex (Ir.ESeq (Ir.seq (rcd_init :: init_fields), rcd))
 
   (** [ir_while test body break] creates a while loop with [test], [body], and
       break label [break]. *)
@@ -332,7 +325,7 @@ module TRANSLATE (F : FRAME) = struct
     let test = unEx test in
     let body = unNx body in
     Nx
-      (seq
+      (Ir.seq
          [ Ir.Label ltest; Ir.CJmp (Ir.Eq, test, Ir.Const 0, finish, lbody)
          ; Ir.Label lbody; body; Ir.Jmp (Ir.Name ltest, [ltest])
          ; Ir.Label finish ] )
@@ -363,7 +356,7 @@ module TRANSLATE (F : FRAME) = struct
     | [] -> Nx (Ir.Expr (Ir.Const 0))
     | exprs -> (
       match has_val with
-      | true -> Nx (seq (List.map unNx exprs))
+      | true -> Nx (Ir.seq (List.map unNx exprs))
       | false ->
           let rec split = function
             | [] -> ice "impossible state"
@@ -373,7 +366,7 @@ module TRANSLATE (F : FRAME) = struct
                 (hd :: stmts, last)
           in
           let stmts, fin = split exprs in
-          Ex (Ir.ESeq (seq (List.map unNx stmts), unEx fin)) )
+          Ex (Ir.ESeq (Ir.seq (List.map unNx stmts), unEx fin)) )
 
   (** [proc_entry_exit lvl body has_ret] stores a procedure fragment. *)
   let proc_entry_exit level body has_ret =

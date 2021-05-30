@@ -1,7 +1,7 @@
 open Frame
 
 module type CODEGEN = sig
-  module Frame : FRAME
+  module F : FRAME
 
-  val codegen : Frame.frame -> Ir.stmt -> Assem.instr list
+  val codegen : F.frame -> Ir.stmt -> Assem.instr list
 end

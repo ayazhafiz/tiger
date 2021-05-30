@@ -20,6 +20,8 @@ module type FRAME = sig
   val registers : register list
   (** All registers on this machine. *)
 
+  val string_of_register : register -> string
+
   val fp : Temp.temp
   (** The frame pointer of the present frame.
       Should be stored in a constant location. *)
@@ -72,6 +74,16 @@ module type FRAME = sig
 
   val external_call : Temp.label -> Ir.expr list -> Ir.expr
   (** [external_call name args] performs a call to an external procedure. *)
+
+  val assem_of_string : Temp.label * string -> string
+  (** Generates an assembly string for a [String]. *)
+
+  val assem_body_indent : string
+  (** Indentation of emitted instructions in a block body. *)
+
+  val assem_complete : string list -> string list -> string
+  (** [assem_complete strings frames] produces a final assembly file content for
+      the target machine. *)
 
   val proc_entry_exit1 : frame -> Ir.stmt -> Ir.stmt
   val proc_entry_exit2 : frame -> Assem.instr list -> Assem.instr list

@@ -14,9 +14,7 @@ let tbl_update tbl key default updatefn =
   let v = Hashtbl.find_opt tbl key |> Option.value ~default in
   Hashtbl.add tbl key (updatefn v)
 
-module RegisterAllocation
-    (F : FRAME)
-    (CG : Codegen.CODEGEN with module Frame = F) =
+module RegisterAllocation (F : FRAME) (CG : Codegen.CODEGEN with module F = F) =
 struct
   type allocation = (temp, F.register) Hashtbl.t
 
@@ -481,12 +479,11 @@ struct
     in
     iter instrs
 
-  let rec reg_alloc (instrs : Assem.instr list) (fr : F.frame) :
-      Assem.instr list * allocation =
+  let rec reg_alloc fr instrs =
     (* TODO: real spill cost *)
     let select_spill _ = 1 in
     let coloring, spills = color instrs select_spill in
     match spills with
     | [] -> (instrs, coloring)
-    | _ -> reg_alloc (rewrite_spills spills instrs fr) fr
+    | _ -> reg_alloc fr (rewrite_spills spills instrs fr)
 end
