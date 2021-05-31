@@ -20,8 +20,6 @@ module type FRAME = sig
   val registers : register list
   (** All registers on this machine. *)
 
-  val string_of_register : register -> string
-
   val fp : Temp.temp
   (** The frame pointer of the present frame.
       Should be stored in a constant location. *)
@@ -75,17 +73,20 @@ module type FRAME = sig
   val external_call : Temp.label -> Ir.expr list -> Ir.expr
   (** [external_call name args] performs a call to an external procedure. *)
 
-  val assem_of_string : Temp.label * string -> string
-  (** Generates an assembly string for a [String]. *)
-
-  val assem_body_indent : string
-  (** Indentation of emitted instructions in a block body. *)
-
-  val assem_complete : string list -> string list -> string
-  (** [assem_complete strings frames] produces a final assembly file content for
-      the target machine. *)
+  val codegen : frame -> Ir.stmt -> Assem.instr list
+  (** Generates [Assem]-style assembly instructions from the [Ir]. *)
 
   val proc_entry_exit1 : frame -> Ir.stmt -> Ir.stmt
   val proc_entry_exit2 : frame -> Assem.instr list -> Assem.instr list
   val proc_entry_exit3 : frame -> Assem.instr list -> proc
+
+  (** Allocation of temporaries in a program to registers. *)
+  type allocation = (Temp.temp, register) Hashtbl.t
+
+  val emit :
+       (Temp.label * string) list
+    -> (frame * Assem.instr list * allocation) list
+    -> string
+  (** [emit strings blocks] generates assembly for a program consisting of
+      strings [strings] and procedure blocks [blocks]. *)
 end

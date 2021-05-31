@@ -14,15 +14,12 @@ let tbl_update tbl key default updatefn =
   let v = Hashtbl.find_opt tbl key |> Option.value ~default in
   Hashtbl.add tbl key (updatefn v)
 
-module RegisterAllocation (F : FRAME) (CG : Codegen.CODEGEN with module F = F) =
-struct
-  type allocation = (temp, F.register) Hashtbl.t
-
+module RegisterAllocation (F : FRAME) = struct
   (*******************************)
   (* Interference Graph Coloring *)
   (*******************************)
   let color (instrs : Assem.instr list) (spill_cost : Live.ifnode -> int) :
-      allocation * temp list =
+      F.allocation * temp list =
     (* Control flow graph and list of nodes in that graph. *)
     let flowgraph, flownodes = Flow.flowgraph_of_instrs instrs in
     (* Alist in 1-1 correspondence between [instrs] and nodes in [flowgraph]. *)
@@ -464,7 +461,7 @@ struct
           | None -> fetches )
         []
     in
-    let mov dst src = Ir.Mov (dst, src) |> CG.codegen fr in
+    let mov dst src = Ir.Mov (dst, src) |> F.codegen fr in
     let me mem = F.expr_of_access (mem, Ir.Temp F.fp) in
     let te t = Ir.Temp t in
     let fetch src = gen_instr (fun t mem -> mov (te t) (me mem)) src in
