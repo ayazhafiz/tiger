@@ -44,8 +44,12 @@ let unEx = function
       let r = Ir.Temp (newtemp ()) in
       Ir.ESeq
         ( Ir.seq
-            [ Ir.Mov (r, Ir.Const 1); mk_jmp t f; (* false -> r = 0 *) Ir.Label f
-            ; Ir.Mov (r, Ir.Const 0); (* true -> fallthrough *) Ir.Label t ]
+        [ Ir.Mov (r, Ir.Const 1, "true")
+        ; mk_jmp t f
+        ; Ir.Label f (* false -> r = 0 *)
+        ; Ir.Mov (r, Ir.Const 0, "false")
+        ; Ir.Label t (* true -> fallthrough *)
+        ][@ocamlformat "disable"]
         , r )
 
 (** [unNx expr] "unwraps" a lowered expression into a pure [Ir.stmt],
@@ -60,11 +64,10 @@ let rec unNx = function
 let unCx = function
   | Ex (Ir.Const 0) -> fun _ f -> Ir.Jmp (Ir.Name f, [f])
   | Ex (Ir.Const 1) -> fun t _ -> Ir.Jmp (Ir.Name t, [t])
-  | Ex cond -> fun t f -> Ir.CJmp (Ir.Neq, cond, Ir.Const 0, t, f)
+  | Ex cond ->
+      fun t f -> Ir.CJmp (Ir.Neq, cond, Ir.Const 0, t, f, Ir.cmt_of_expr cond)
   | Nx _ -> ice "valueless expression treated as conditional"
   | Cx f -> f
-
-let memadd base off = Ir.Mem (Ir.BinOp (Ir.Plus, base, off))
 
 let sanitize_label str =
   let rec walk i n rest =
@@ -122,9 +125,10 @@ module Translate (F : FRAME) = struct
 
   let newlevel =
     let uuid = ref 0 in
-    fun parent name formals ->
+    fun parent name formal_names formals ->
       let real_formals = true :: formals (* add static link *) in
-      let frame = F.new_frame name real_formals in
+      let real_formal_names = "static link" :: formal_names in
+      let frame = F.new_frame name real_formal_names real_formals in
       uuid := !uuid + 1;
       Nest {frame; parent; uuid = !uuid}
 
@@ -135,10 +139,11 @@ module Translate (F : FRAME) = struct
         |> (* drop static link *) List.tl
 
   (** Allocates a fresh local variable in a level. *)
-  let alloc_local level escapes =
+  let alloc_local level name escapes =
     match (level, escapes) with
     | Toplevel, _ -> ice "cannot allocate locals on toplevel "
-    | (Nest {frame; _} as lvl), escapes -> (lvl, F.alloc_local frame escapes)
+    | (Nest {frame; _} as lvl), escapes ->
+        (lvl, F.alloc_local frame name escapes)
 
   (** [sl_of_from target base] retrieves a read of the static link (frame
       pointer address) of [target] from the function frame of [base]. *)
@@ -164,6 +169,10 @@ module Translate (F : FRAME) = struct
     (* Start at our current frame pointer *)
     walk base (Ir.Temp F.fp)
 
+  let frame_of = function
+    | Toplevel -> ice "toplevel has no frame"
+    | Nest {frame; _} -> frame
+
   (******************)
   (* IR translation *)
   (******************)
@@ -177,7 +186,7 @@ module Translate (F : FRAME) = struct
 
   (** [ir_subscript_var base_arr idx] returns an expression to access an
       array [base_arr] at index [idx]. *)
-  let ir_subscript_var base_arr idx =
+  let ir_subscript_var base_arr idx access_fmt =
     (* See page 159: The base address is the contents of pointer variable;
        indeed arrays are not structured/"large" in Tiger. Instead, we fetch
        the data in the memory location at [&base_arr], derefence it to a
@@ -186,11 +195,12 @@ module Translate (F : FRAME) = struct
        derefence that. *)
     let base_arr = unEx base_arr in
     let offset = Ir.BinOp (Ir.Mul, unEx idx, Ir.Const F.wordsize) in
-    Ex (memadd base_arr offset)
+    let access = Ir.Mem (Ir.BinOp (Ir.Plus, base_arr, offset), access_fmt) in
+    Ex access
 
   (** [ir_field_var base_rcd fields field] returns an expression to access a
       record [base_rcd] with [fields] at [field]. *)
-  let ir_field_var base_rcd fields field =
+  let ir_field_var base_rcd fields field access_fmt =
     (* records decay into arrays; once we find the offset of the field, we can
        defer our work. *)
     let rec walk i = function
@@ -199,15 +209,15 @@ module Translate (F : FRAME) = struct
       | _ :: rest -> walk (i + 1) rest
     in
     let field_idx = walk 0 fields in
-    ir_subscript_var base_rcd (Ex (Ir.Const field_idx))
+    ir_subscript_var base_rcd (Ex (Ir.Const field_idx)) access_fmt
 
   (** [ir_binop op left right] translates a binary operation on integers
       (or pointers). For strings, see [ir_stringeq]. *)
-  let ir_binop op left right =
+  let ir_binop op left right binop_fmt =
     let left = unEx left in
     let right = unEx right in
     let arith op = Ex (Ir.BinOp (op, left, right)) in
-    let cond op = Cx (fun t f -> Ir.CJmp (op, left, right, t, f)) in
+    let cond op = Cx (fun t f -> Ir.CJmp (op, left, right, t, f, binop_fmt)) in
     match op with
     | Ast.PlusOp -> arith Ir.Plus
     | Ast.MinusOp -> arith Ir.Minus
@@ -266,10 +276,11 @@ module Translate (F : FRAME) = struct
         Ex
           (Ir.ESeq
              ( Ir.seq
-                 [ test t f; (* true *) Ir.Label t; Ir.Mov (Ir.Temp r, then')
+                 [ test t f; (* true *) Ir.Label t
+                 ; Ir.Mov (Ir.Temp r, then', "then")
                  ; Ir.Jmp (Ir.Name join, [join]); (* false *) Ir.Label f
-                 ; Ir.Mov (Ir.Temp r, else'); Ir.Jmp (Ir.Name join, [join])
-                 ; (* join *) Ir.Label join ]
+                 ; Ir.Mov (Ir.Temp r, else', "else")
+                 ; Ir.Jmp (Ir.Name join, [join]); (* join *) Ir.Label join ]
              , Ir.Temp r ) )
 
   (** Creates a string literal. *)
@@ -288,45 +299,51 @@ module Translate (F : FRAME) = struct
         Ex (Ir.Name lab)
 
   (** String equality. *)
-  let ir_stringeq s1 s2 = Ex (F.external_call stringEqual [unEx s1; unEx s2])
+  let ir_stringeq calling_lvl s1 s2 =
+    Ex (F.external_call (frame_of calling_lvl) stringEqual [unEx s1; unEx s2])
 
   (** String inequality. *)
-  let ir_stringneq s1 s2 =
-    Ex (Ir.BinOp (Ir.Xor, unEx (ir_stringeq s1 s2), Ir.Const 1))
+  let ir_stringneq calling_lvl s1 s2 =
+    Ex (Ir.BinOp (Ir.Xor, unEx (ir_stringeq calling_lvl s1 s2), Ir.Const 1))
 
   (** [ir_array size init] creates an array with [size] elements each
       initialized to [init], and returns an address to the array. *)
-  let ir_array size init =
+  let ir_array calling_lvl size init =
     let size = Ir.BinOp (Ir.Mul, unEx size, Ir.Const F.wordsize) in
-    Ex (F.external_call initArray [size; unEx init])
+    Ex (F.external_call (frame_of calling_lvl) initArray [size; unEx init])
 
-  (** [ir_record fields] creates a record with [fields]. *)
-  let ir_record fields =
+  (** [ir_record fields creator] creates a record with [fields]. *)
+  let ir_record calling_lvl fields field_names field_exprs =
     let fields = List.map unEx fields in
     let nfields = List.length fields in
     (* Records decay to arrays; just dummy init with 0s first. *)
-    let rcd_alloc = ir_array (Ex (Ir.Const nfields)) (Ex (Ir.Const 0)) in
+    let rcd_alloc =
+      ir_array calling_lvl (Ex (Ir.Const nfields)) (Ex (Ir.Const 0))
+    in
     let rcd = Ir.Temp (Temp.newtemp ()) in
-    let rcd_init = Ir.Mov (rcd, unEx rcd_alloc) in
+    let rcd_init = Ir.Mov (rcd, unEx rcd_alloc, "" (* TODO: add info? *)) in
     let init_field idx field =
-      let rcdf =
-        memadd rcd (Ir.BinOp (Ir.Mul, Ir.Const idx, Ir.Const F.wordsize))
-      in
-      Ir.Mov (rcdf, field)
+      let offset = Ir.BinOp (Ir.Mul, Ir.Const idx, Ir.Const F.wordsize) in
+      let fname = "." ^ (List.nth field_names idx |> name) in
+      let fexpr = Print.string_of_expr (List.nth field_exprs idx) in
+      let access = Ir.Mem (Ir.BinOp (Ir.Plus, rcd, offset), fname) in
+      Ir.Mov (access, field, Printf.sprintf "%s=%s" fname fexpr)
     in
     let init_fields = List.mapi init_field fields in
     Ex (Ir.ESeq (Ir.seq (rcd_init :: init_fields), rcd))
 
   (** [ir_while test body break] creates a while loop with [test], [body], and
       break label [break]. *)
-  let ir_while test body finish =
+  let ir_while test test_expr body finish =
+    let testcmt = Print.string_of_expr test_expr in
     let ltest = newlabel "test" in
     let lbody = newlabel "body" in
     let test = unEx test in
     let body = unNx body in
     Nx
       (Ir.seq
-         [ Ir.Label ltest; Ir.CJmp (Ir.Eq, test, Ir.Const 0, finish, lbody)
+         [ Ir.Label ltest
+         ; Ir.CJmp (Ir.Eq, test, Ir.Const 0, finish, lbody, testcmt)
          ; Ir.Label lbody; body; Ir.Jmp (Ir.Name ltest, [ltest])
          ; Ir.Label finish ] )
 
@@ -335,9 +352,14 @@ module Translate (F : FRAME) = struct
       called function has a return value. *)
   let ir_call caller target target_label args has_ret =
     let args = List.map unEx args in
+    let calling_frame =
+      match caller with
+      | Toplevel -> ice "caller of function is not toplevel?"
+      | Nest {frame; _} -> frame
+    in
     let call =
       match target with
-      | Toplevel -> F.external_call target_label args
+      | Toplevel -> F.external_call calling_frame target_label args
       | Nest {parent = Toplevel; _} -> ice "cannot call function on toplevel"
       | Nest {parent; frame; _} ->
           (* Need to pass static link to the parent level of the function level
@@ -345,7 +367,11 @@ module Translate (F : FRAME) = struct
           let sl = sl_of_from parent caller in
           Ir.Call (Ir.Name (F.name frame), sl :: args)
     in
-    if has_ret then Ex (Ir.ESeq (Ir.Expr call, Ir.Temp F.rv))
+    if has_ret then
+      let rvtmp = Ir.Temp (Temp.newtemp ()) in
+      Ex
+        (Ir.ESeq (Ir.seq [Ir.Expr call; Ir.Mov (rvtmp, Ir.Temp F.rv, "")], rvtmp)
+        )
     else Nx (Ir.Expr call)
 
   (** [ir_seq exprs has_val] translates a sequence of [expr]s, conditioned on
@@ -356,8 +382,8 @@ module Translate (F : FRAME) = struct
     | [] -> Nx (Ir.Expr (Ir.Const 0))
     | exprs -> (
       match has_val with
-      | true -> Nx (Ir.seq (List.map unNx exprs))
-      | false ->
+      | false -> Nx (Ir.seq (List.map unNx exprs))
+      | true ->
           let rec split = function
             | [] -> ice "impossible state"
             | [last] -> ([], last)
@@ -368,13 +394,22 @@ module Translate (F : FRAME) = struct
           let stmts, fin = split exprs in
           Ex (Ir.ESeq (Ir.seq (List.map unNx stmts), unEx fin)) )
 
+  let ir_assign var_access expr assign_fmt =
+    Nx (Ir.Mov (unEx var_access, unEx expr, assign_fmt))
+
   (** [proc_entry_exit lvl body has_ret] stores a procedure fragment. *)
   let proc_entry_exit level body has_ret =
     match level with
     | Toplevel -> ice "cannot save toplevel fn"
     | Nest {frame; _} ->
         let body' =
-          if has_ret then Ir.Mov (Ir.Temp F.rv, unEx body) else unNx body
+          if has_ret then
+            let ret_expr = unEx body in
+            let ret_cmt =
+              Printf.sprintf "return (%s)" (Ir.cmt_of_expr ret_expr)
+            in
+            Ir.Mov (Ir.Temp F.rv, ret_expr, ret_cmt)
+          else unNx body
         in
         let body'' = F.proc_entry_exit1 frame body' in
         fragments := F.Proc (frame, body'') :: !fragments
@@ -422,15 +457,17 @@ module Translate (F : FRAME) = struct
     | SimpleVar (v, _) ->
         let decl_lvl, access = getvar venv v in
         ir_basic_var decl_lvl access usage_lvl
-    | FieldVar (v, f, _) -> (
+    | FieldVar (v, f, _) as va -> (
       match ty_of_var v with
       | Ty.Record (fields, _) ->
           ir_field_var (lower_var ctx v) (List.map fst fields) f
+            (Print.string_of_var va)
       | t ->
           ice ("field receiver checked as " ^ Ty.string_of_ty t ^ ", not record")
       )
-    | SubscriptVar (v, idx, _) ->
+    | SubscriptVar (v, idx, _) as va ->
         ir_subscript_var (lower_var ctx v) (lower_expr ctx idx)
+          (Print.string_of_var va)
 
   and lower_expr ctx =
     let venv, usage_lvl, break = ctx in
@@ -444,36 +481,37 @@ module Translate (F : FRAME) = struct
         let target_lvl, target_label = getfn venv func in
         let args = List.map (lower_expr ctx) args in
         ir_call usage_lvl target_lvl target_label args (is_val e)
-    | OpExpr {left; oper; right; _} -> (
+    | OpExpr {left; oper; right; _} as op -> (
         let left' = lower_expr ctx left in
         let right' = lower_expr ctx right in
         match ty_of_expr left with
         | Ty.String -> (
           match oper with
-          | EqOp -> ir_stringeq left' right'
-          | NeqOp -> ir_stringneq left' right'
+          | EqOp -> ir_stringeq usage_lvl left' right'
+          | NeqOp -> ir_stringneq usage_lvl left' right'
           | _ -> ice "non-equality string operator" )
-        | _ -> ir_binop oper left' right' )
+        | _ -> ir_binop oper left' right' (Print.string_of_expr op) )
     | RecordExpr {fields; _} ->
-        List.map snd fields |> List.map (lower_expr ctx) |> ir_record
-    | SeqExpr (exprs, ty) as e ->
-        ir_seq
-          (List.map (lower_expr ctx) exprs)
-          (unravel ty (Print.string_of_expr e) = Ty.Unit)
-    | AssignExpr {var; expr} ->
-        let lv = unEx (lower_var ctx var) in
-        let rv = unEx (lower_expr ctx expr) in
-        Nx (Ir.Mov (lv, rv))
+        let field_names, field_exprs = List.split fields in
+        ir_record usage_lvl
+          (List.map (lower_expr ctx) field_exprs)
+          field_names field_exprs
+    | SeqExpr (exprs, _) as e ->
+        ir_seq (List.map (lower_expr ctx) exprs) (is_val e)
+    | AssignExpr {var; expr} as ae ->
+        let lv = lower_var ctx var in
+        let rv = lower_expr ctx expr in
+        ir_assign lv rv (Print.string_of_expr ae)
     | IfExpr {test; then'; else' = None; _} ->
         ir_ifthen (lower_expr ctx test) (lower_expr ctx then')
     | IfExpr {test; then'; else' = Some else'; _} ->
         ir_ifthenelse (lower_expr ctx test) (lower_expr ctx then')
           (lower_expr ctx else')
-    | WhileExpr {test; body} ->
-        let test = lower_expr ctx test in
+    | WhileExpr {test = test_expr; body} ->
+        let test = lower_expr ctx test_expr in
         let break' = Temp.newlabel "break" in
         let body = lower_expr (venv, usage_lvl, Some break') body in
-        ir_while test body break'
+        ir_while test test_expr body break'
     | ForExpr _ as f ->
         ice
           ( "for (" ^ Print.string_of_expr f
@@ -481,17 +519,15 @@ module Translate (F : FRAME) = struct
     | BreakExpr ->
         let break = br break in
         Nx (Ir.Jmp (Ir.Name break, [break]))
-    | LetExpr {decls; body; ty} as e ->
+    | LetExpr {decls; body; _} as e ->
         Tbl.scoped venv (fun venv ->
             let ctx = (venv, usage_lvl, break) in
             let decls = List.concat_map (lower_decl ctx) decls in
             let body = lower_expr ctx body in
             (* This is effectively a sequence in the IR, so translate it as such. *)
-            ir_seq
-              (List.concat [decls; [body]])
-              (unravel ty (Print.string_of_expr e) = Ty.Unit) )
+            ir_seq (List.concat [decls; [body]]) (is_val e) )
     | ArrayExpr {size; init; _} ->
-        ir_array (lower_expr ctx size) (lower_expr ctx init)
+        ir_array usage_lvl (lower_expr ctx size) (lower_expr ctx init)
 
   and lower_decl ctx =
     let venv, usage_lvl, break = ctx in
@@ -503,7 +539,8 @@ module Translate (F : FRAME) = struct
           (fun {fn_name; params; _} ->
             let lab = newlabel (name fn_name) in
             let escapes = List.map (fun {escape; _} -> !escape) params in
-            let level = newlevel usage_lvl lab escapes in
+            let param_names = List.map (fun p -> name p.fld_name) params in
+            let level = newlevel usage_lvl lab param_names escapes in
             Tbl.add venv fn_name (FunEntry (level, lab)) )
           decls;
         (* 2. Lower body of each function, add a fragment for it. *)
@@ -521,18 +558,28 @@ module Translate (F : FRAME) = struct
                 proc_entry_exit level body has_ret ) )
           decls;
         []
-    | VarDecl {name; escape; init; _} ->
+    | VarDecl {name; escape; init; _} as vd ->
+        let lvl, access =
+          alloc_local usage_lvl (Some (Symbol.name name)) !escape
+        in
+        let var = ir_basic_var lvl access lvl in
         let init = lower_expr ctx init in
-        let lvl, access = alloc_local usage_lvl !escape in
         Tbl.add venv name (VarEntry (lvl, access));
-        [init]
+        [ir_assign var init (Print.string_of_decl vd)]
     | TypeDecl _ -> []
 
   let lower expr =
     clear_frags ();
     let expr = Desugar.expr_of_desugared expr in
-    let mainlvl = newlevel toplevel (Temp.newlabel "main") [] in
+    let mainlab = Temp.newlabel "_start" in
+    let mainlvl = newlevel toplevel mainlab [] [] in
     let main = lower_expr (base_venv (), mainlvl, None) expr in
-    proc_entry_exit mainlvl main (is_val expr);
-    get_frags ()
+    (* Add implicit return 0 if needed. *)
+    let main =
+      match is_val expr with
+      | true -> main
+      | false -> Ex (Ir.ESeq (unNx main, Ir.Const 0))
+    in
+    proc_entry_exit mainlvl main true;
+    (mainlab, get_frags ())
 end

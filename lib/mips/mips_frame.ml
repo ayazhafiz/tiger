@@ -48,6 +48,8 @@ module MipsFrame : Frame.FRAME = struct
   type proc = {prolog : string; body : Assem.instr list; epilog : string}
   type register = string
 
+  let string_of_register r = r
+
   module RegisterSet = Set.Make (struct
     type t = register
 
@@ -107,11 +109,11 @@ module MipsFrame : Frame.FRAME = struct
     | InReg reg, _ -> Ir.Temp reg (* just return the register access *)
     | InFrame offset, addr_orig_fp ->
         (* fetch the variable its true address *)
-        Ir.Mem (Ir.BinOp (Ir.Plus, addr_orig_fp, Ir.Const offset))
+        Ir.Mem (Ir.BinOp (Ir.Plus, addr_orig_fp, Ir.Const offset), "")
 
   let max_formals_registers = 4
 
-  let new_frame name formals =
+  let new_frame name _ formals =
     let rec alloc formals nfregs arg_offset =
       match (formals, nfregs, arg_offset) with
       | [], _, _ -> []
@@ -130,7 +132,7 @@ module MipsFrame : Frame.FRAME = struct
   let name {name; _} = name
   let formals {formals; _} = formals
 
-  let alloc_local f = function
+  let alloc_local f _ = function
     | false -> InReg (Temp.newtemp ()) (* doesn't escape *)
     | true ->
         (* Escapes; allocate on the stack.
@@ -142,7 +144,7 @@ module MipsFrame : Frame.FRAME = struct
         f.sp_offset <- f.sp_offset - wordsize;
         InFrame f.sp_offset
 
-  let external_call fn args = Ir.Call (Ir.Name fn, args)
+  let external_call _ fn args = Ir.Call (Ir.Name fn, args)
 
   let codegen _f stmt =
     let open Temp in
@@ -156,14 +158,15 @@ module MipsFrame : Frame.FRAME = struct
       t
     in
     let alloc_oper assem src jmp =
-      alloc (fun d -> emit (A.Oper {assem; dst = [d]; src; jmp}))
+      alloc (fun d -> emit (A.Oper {assem; dst = [d]; src; jmp; comments = []}))
     in
     let emit_jmp assem src jmp =
-      emit (A.Oper {assem; dst = []; src; jmp = Some jmp})
+      emit (A.Oper {assem; dst = []; src; jmp = Some jmp; comments = []})
     in
     (* Maximal Munch *)
     let rec munch_stmt = function
-      | Ir.Label lab -> emit (A.Label {assem = string_of_label lab ^ ":"; lab})
+      | Ir.Label lab ->
+          emit (A.Label {assem = string_of_label lab ^ ":"; lab; comments = []})
       | Ir.Expr e ->
           let _ = munch_expr e in
           ()
@@ -171,66 +174,72 @@ module MipsFrame : Frame.FRAME = struct
       (* Move *)
       (********)
       (* TODO: more analysis to detect conditional moves. *)
-      | Ir.Mov (Ir.Temp where, Ir.Const what) ->
+      | Ir.Mov (Ir.Temp where, Ir.Const what, _) ->
           emit
             (A.Oper
                { assem = Printf.sprintf "li `d0, %d" what
                ; dst = [where]
                ; src = []
-               ; jmp = None } )
-      | Ir.Mov (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, s0, Ir.Const off)))
-       |Ir.Mov (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, s0))) ->
+               ; jmp = None
+               ; comments = [] } )
+      | Ir.Mov
+          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, s0, Ir.Const off), _), _)
+       |Ir.Mov
+          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, s0), _), _)
+        ->
           emit
             (A.Mov
                { assem = Printf.sprintf "lw `d0, %d(`s0)" off
                ; dst = where
-               ; src = munch_expr s0 } )
-      | Ir.Mov (where, what) ->
+               ; src = munch_expr s0
+               ; comments = [] } )
+      | Ir.Mov (where, what, _) ->
           emit
             (A.Mov
                { assem = "move `d0, `s0"
                ; dst = munch_expr where
-               ; src = munch_expr what } )
+               ; src = munch_expr what
+               ; comments = [] } )
       (********)
       (* Jump *)
       (********)
       | Ir.Jmp (Ir.Name lab, _) -> emit_jmp "j `j0" [] [lab]
       | Ir.Jmp (e, lands) -> emit_jmp "jr `s0" [munch_expr e] lands
-      | Ir.CJmp (Ir.Lt, e1, Ir.Const 0, t, f)
-       |Ir.CJmp (Ir.Gt, Ir.Const 0, e1, t, f) ->
+      | Ir.CJmp (Ir.Lt, e1, Ir.Const 0, t, f, _)
+       |Ir.CJmp (Ir.Gt, Ir.Const 0, e1, t, f, _) ->
           (* Store both possible landing labels for flow analysis.
              During emit, only the "true" label will be filled in, and
              canonicalization has already ensured that this [CJump] is
              followed by the "false" label. *)
           emit_jmp "bltz `s0, `j0" [munch_expr e1] [t; f]
-      | Ir.CJmp (Ir.Gt, e1, Ir.Const 0, t, f)
-       |Ir.CJmp (Ir.Lt, Ir.Const 0, e1, t, f) ->
+      | Ir.CJmp (Ir.Gt, e1, Ir.Const 0, t, f, _)
+       |Ir.CJmp (Ir.Lt, Ir.Const 0, e1, t, f, _) ->
           emit_jmp "bgtz `s0, `j0" [munch_expr e1] [t; f]
-      | Ir.CJmp (Ir.Leq, e1, Ir.Const 0, t, f)
-       |Ir.CJmp (Ir.Geq, Ir.Const 0, e1, t, f) ->
+      | Ir.CJmp (Ir.Leq, e1, Ir.Const 0, t, f, _)
+       |Ir.CJmp (Ir.Geq, Ir.Const 0, e1, t, f, _) ->
           emit_jmp "blez `s0, `j0" [munch_expr e1] [t; f]
-      | Ir.CJmp (Ir.Geq, e1, Ir.Const 0, t, f)
-       |Ir.CJmp (Ir.Leq, Ir.Const 0, e1, t, f) ->
+      | Ir.CJmp (Ir.Geq, e1, Ir.Const 0, t, f, _)
+       |Ir.CJmp (Ir.Leq, Ir.Const 0, e1, t, f, _) ->
           emit_jmp "bgez `s0, `j0" [munch_expr e1] [t; f]
-      | Ir.CJmp (Ir.Neq, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Neq, e1, e2, t, f, _) ->
           emit_jmp "bne `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Eq, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Eq, e1, e2, t, f, _) ->
           emit_jmp "beq `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Lt, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Lt, e1, e2, t, f, _) ->
           emit_jmp "blt `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Gt, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Gt, e1, e2, t, f, _) ->
           emit_jmp "bgt `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Leq, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Leq, e1, e2, t, f, _) ->
           emit_jmp "ble `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Geq, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Geq, e1, e2, t, f, _) ->
           emit_jmp "bge `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Ult, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Ult, e1, e2, t, f, _) ->
           emit_jmp "bltu `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Ule, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Ule, e1, e2, t, f, _) ->
           emit_jmp "bleu `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Ugt, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Ugt, e1, e2, t, f, _) ->
           emit_jmp "bgtu `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
-      | Ir.CJmp (Ir.Uge, e1, e2, t, f) ->
+      | Ir.CJmp (Ir.Uge, e1, e2, t, f, _) ->
           emit_jmp "bgeu `s0, `s1, `j0" [munch_expr e1; munch_expr e2] [t; f]
       | Ir.Seq _ -> ice "Seqs should be destroyed during canonicalization"
     and munch_expr = function
@@ -287,16 +296,16 @@ module MipsFrame : Frame.FRAME = struct
       | Ir.Temp t -> t
       | Ir.Const n -> alloc_oper ("li `d0, " ^ string_of_int n) [] None
       | Ir.Name lab -> alloc_oper ("la `d0, " ^ string_of_label lab) [] None
-      | Ir.Mem (Ir.BinOp (Ir.Plus, s0, Ir.Const off))
-       |Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, s0)) ->
+      | Ir.Mem (Ir.BinOp (Ir.Plus, s0, Ir.Const off), _)
+       |Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, s0), _) ->
           alloc_oper (Printf.sprintf "lw `d0, %d(`s0)" off) [munch_expr s0] None
-      | Ir.Mem s0 -> alloc_oper "lw `d0, 0(`s0)" [munch_expr s0] None
+      | Ir.Mem (s0, _) -> alloc_oper "lw `d0, 0(`s0)" [munch_expr s0] None
       (********)
       (* Call *)
       (********)
       | Ir.Call (fn, args) ->
           let temp_store = List.map (fun r -> (newtemp (), r)) caller_saves in
-          let mov where what = Ir.Mov (Ir.Temp where, Ir.Temp what) in
+          let mov where what = Ir.Mov (Ir.Temp where, Ir.Temp what, "") in
           (* Save caller-save registers *)
           List.iter (fun (save, reg) -> munch_stmt (mov save reg)) temp_store;
           let fn = munch_expr fn in
@@ -305,7 +314,8 @@ module MipsFrame : Frame.FRAME = struct
                { assem = "jalr `s0"
                ; src = fn :: munch_args args
                ; dst = calldefs
-               ; jmp = None } );
+               ; jmp = None
+               ; comments = [] } );
           (* Restore caller-save registers *)
           List.iter (fun (save, reg) -> munch_stmt (mov reg save)) temp_store;
           rv
@@ -326,7 +336,8 @@ module MipsFrame : Frame.FRAME = struct
           ; (* Mark registers as still being live (necessary) at procedure exit. *)
             src = [zero; ra; sp] @ callee_saves
           ; dst = []
-          ; jmp = None } ]
+          ; jmp = None
+          ; comments = [] } ]
 
   let proc_entry_exit3 {name; _} body =
     { prolog = "PROCEDURE " ^ Temp.string_of_label name ^ "\n"
@@ -336,4 +347,9 @@ module MipsFrame : Frame.FRAME = struct
   type allocation = (Temp.temp, register) Hashtbl.t
 
   let emit _ _ = failwith "todo"
+  let reserved_temps = [] (* TODO *)
+
+  let reserved_labels = [] (* TODO *)
+
+  module Debug = struct let emit_debug _ _ _ = failwith "todo" end
 end

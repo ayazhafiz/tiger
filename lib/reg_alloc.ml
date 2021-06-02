@@ -7,11 +7,15 @@ module G = Graph.Graph
 module UDG = Graph.UndirectedGraph
 module NS = G.NodeSet
 
-let ice why = failwith ("ICE (reg_alloc):" ^ why)
+let ice why = failwith ("ICE (reg_alloc): " ^ why)
 let pair a b = (a, b)
+let find_or tbl key default = Hashtbl.find_opt tbl key |> Option.value ~default
+
+let find tbl key err =
+  match Hashtbl.find_opt tbl key with Some v -> v | None -> ice (err ())
 
 let tbl_update tbl key default updatefn =
-  let v = Hashtbl.find_opt tbl key |> Option.value ~default in
+  let v = find_or tbl key default in
   Hashtbl.add tbl key (updatefn v)
 
 module RegisterAllocation (F : FRAME) = struct
@@ -32,7 +36,9 @@ module RegisterAllocation (F : FRAME) = struct
           : Live.ifgraph * _ =
       Live.interference_graph flowgraph
     in
+    let ifnode_of_temp_opt t = try Some (ifnode_of_temp t) with _ -> None in
     let ifnodes = G.nodes ifgraph in
+    let empty_ifnodes_set = NS.empty_with_graph ifgraph in
     let n_ifnodes = List.length ifnodes in
     let n_ifgraph_moves = List.length moves in
     (* Number of registers. *)
@@ -40,28 +46,36 @@ module RegisterAllocation (F : FRAME) = struct
     (* Registers that are pre-assigned a color. *)
     let precolored, precolored_nodes =
       let fixed = F.temp_map |> List.map fst in
-      (TempSet.of_list fixed, List.map ifnode_of_temp fixed |> NS.of_list)
+      ( TempSet.of_list fixed
+      , List.filter_map (fun t -> ifnode_of_temp_opt t) fixed |> NS.of_list )
+    in
+    let find_or_assert_precolored tbl node default_precolored =
+      match Hashtbl.find_opt tbl node with
+      | Some v -> v
+      | None ->
+          assert (NS.mem node precolored_nodes);
+          default_precolored
     in
     (* Temporary registers not precolored and not yet processed. *)
     let initial = ref NS.(of_list ifnodes // precolored_nodes) in
     (* Low-degree, non-move-related nodes. Available for simplification. *)
-    let wl_simplify = ref (NS.empty_with_graph ifgraph) in
+    let wl_simplify = ref empty_ifnodes_set in
     (* Low-degree, move-related nodes. Available for possible coalescing, or
        freezing into [wl_simplify] if coalescing is not possible. *)
-    let wl_freeze = ref (NS.empty_with_graph ifgraph) in
+    let wl_freeze = ref empty_ifnodes_set in
     (* High-degree nodes that cannot (yet) be used to simplify an interference
        graph. These nodes may have to be spilled. *)
-    let wl_spill = ref (NS.empty_with_graph ifgraph) in
+    let wl_spill = ref empty_ifnodes_set in
     (* Nodes marked for spilling in an allocation round. *)
     let spilled_nodes = ref [] in
     (* Nodes that have been coalesced. This only contains redundant nodes; that
        is, if the move [u<-v] is coalesced, then [v] is in this container, and
        [u] is in a worklist. *)
-    let coalesced_nodes = ref (NS.empty_with_graph ifgraph) in
+    let coalesced_nodes = ref empty_ifnodes_set in
     (* Nodes successfully colored. *)
-    let colored_nodes = ref (NS.empty_with_graph ifgraph) in
+    let colored_nodes = ref empty_ifnodes_set in
     (* Stack containing temporaries removed from the graph. *)
-    let select_stack = ref ([], NS.empty_with_graph ifgraph) in
+    let select_stack = ref ([], empty_ifnodes_set) in
     let select_stack_push n =
       select_stack :=
         let stk, set = !select_stack in
@@ -81,23 +95,57 @@ module RegisterAllocation (F : FRAME) = struct
     let active_moves = ref (NS.empty_with_graph flowgraph) in
     (* Set of interference edges between temporaries among [ifgraph]. *)
     let adj_set = Hashtbl.create n_ifnodes in
-    (* Adjacency list of interference edges. *)
+    (* Adjacency list of interference edges; for each non-precolored temporary
+       u, adj_list[u] is the set of nodes that interfere with u. *)
     let adj_list = Hashtbl.create n_ifnodes in
+    let get_adj n = find_or_assert_precolored adj_list n empty_ifnodes_set in
+    let print_adj_list () =
+      Hashtbl.iter
+        (fun t adj ->
+          Printf.eprintf "adj %s: %s\n"
+            (string_of_temp (temp_of_ifnode t))
+            (NS.fold
+               (fun t s -> s ^ " " ^ string_of_temp (temp_of_ifnode t))
+               adj "" ) )
+        adj_list
+    in
     (* Mapping of nodes to their current interference degree. *)
     let degree = Hashtbl.create n_ifnodes in
-    let degree_of = Hashtbl.find degree in
+    let degree_of n = find_or_assert_precolored degree n 0 in
     (* Mapping of nodes to the moves they are involved in. *)
-    let move_list = Hashtbl.create (n_ifgraph_moves * 2) in
+    let move_list =
+      (* Init as empty for every node *)
+      let empty_instrs_set = NS.empty_with_graph flowgraph in
+      ifnodes
+      |> List.map (fun n -> (n, empty_instrs_set))
+      |> List.to_seq |> Hashtbl.of_seq
+    in
     (* Mapping of coalesced nodes to the target of the coalescing.
        For example when [u<-v] is coalesced, [v] is put in [coalesced_moves] and
        [alias{v}=u]. *)
     let alias = Hashtbl.create n_ifgraph_moves in
+    let print_aliases () =
+      Printf.eprintf "===ALIASES===\n";
+      Hashtbl.iter
+        (fun t a ->
+          Printf.eprintf "%s->%s\n"
+            (string_of_temp (temp_of_ifnode t))
+            (string_of_temp (temp_of_ifnode a)) )
+        alias;
+      Printf.eprintf "===END ALIASES===\n"
+    in
     (* Color chosen for a node. *)
     let color =
       let t = Hashtbl.create n_ifnodes in
       (* init precolored nodes *)
       List.to_seq F.temp_map |> Hashtbl.add_seq t;
       t
+    in
+    let tstr n =
+      let t = temp_of_ifnode n in
+      match List.assoc_opt t F.temp_map with
+      | Some reg -> F.string_of_register reg
+      | None -> Temp.string_of_temp t
     in
     let color_of = Hashtbl.find color in
     (* Invariants that hold after build. {{{ *)
@@ -156,17 +204,20 @@ module RegisterAllocation (F : FRAME) = struct
         Hashtbl.add adj_set (u, v) ();
         Hashtbl.add adj_set (v, u) ();
         if not (TempSet.mem (temp_of_ifnode u) precolored) then (
-          tbl_update adj_list u (NS.empty_with_graph ifgraph) (NS.add v);
+          tbl_update adj_list u empty_ifnodes_set (NS.add v);
           tbl_update degree u 0 succ );
         if not (TempSet.mem (temp_of_ifnode v) precolored) then (
-          tbl_update adj_list v (NS.empty_with_graph ifgraph) (NS.add u);
+          tbl_update adj_list v empty_ifnodes_set (NS.add u);
           tbl_update degree v 0 succ ) )
     in
     (* *)
     let build () =
       let movelist_add temp move =
         let tnode = ifnode_of_temp temp in
-        tbl_update move_list tnode (NS.empty_with_graph flowgraph) (NS.add move)
+        let node_moves =
+          find move_list tnode (fun _ -> "move_list not init for " ^ tstr tnode)
+        in
+        Hashtbl.add move_list tnode (NS.add move node_moves)
       in
       List.iter
         (fun (i, n) ->
@@ -177,11 +228,15 @@ module RegisterAllocation (F : FRAME) = struct
               worklist_moves := NS.add n !worklist_moves
           | _ -> () )
         instrs_join_flownodes;
-      List.iter (fun u -> List.iter (fun v -> add_edge u v) (UDG.adj u)) ifnodes
+      List.iter (fun u -> List.iter (fun v -> add_edge u v) (UDG.adj u)) ifnodes;
+      print_adj_list ()
     in
     (* *)
     let node_moves n =
-      NS.(Hashtbl.find move_list n ^^ (!active_moves ++ !worklist_moves))
+      let assoc_moves =
+        find move_list n (fun _ -> tstr n ^ " not in move_list")
+      in
+      NS.(assoc_moves ^^ (!active_moves ++ !worklist_moves))
     in
     (* *)
     let move_related n = not (node_moves n |> NS.is_empty) in
@@ -198,8 +253,7 @@ module RegisterAllocation (F : FRAME) = struct
     (* *)
     let adjacent n =
       let _, select_set = !select_stack in
-      let adj = Hashtbl.find adj_list n in
-      NS.(adj // (select_set ++ !coalesced_nodes))
+      NS.(get_adj n // (select_set ++ !coalesced_nodes))
     in
     (* *)
     let enable_moves =
@@ -273,6 +327,14 @@ module RegisterAllocation (F : FRAME) = struct
     in
     (* *)
     let combine u v =
+      Printf.eprintf "now aliasing %s<-%s...\n"
+        (string_of_temp (temp_of_ifnode u))
+        (string_of_temp (temp_of_ifnode v));
+      Printf.eprintf "ifs of %s: %s"
+        (string_of_temp (temp_of_ifnode v))
+        (NS.fold
+           (fun t s -> s ^ " " ^ string_of_temp (temp_of_ifnode t))
+           (adjacent v) "" );
       if NS.mem v !wl_freeze then wl_freeze := NS.remove v !wl_freeze
       else (
         assert (NS.mem v !wl_spill);
@@ -283,6 +345,9 @@ module RegisterAllocation (F : FRAME) = struct
         NS.(Hashtbl.find move_list u ++ Hashtbl.find move_list v);
       NS.iter
         (fun t ->
+          Printf.eprintf "\tadding edge %s-%s\n"
+            (string_of_temp (temp_of_ifnode u))
+            (string_of_temp (temp_of_ifnode t));
           add_edge t u;
           decrement_degree t )
         (adjacent v);
@@ -383,31 +448,37 @@ module RegisterAllocation (F : FRAME) = struct
       let rec iter = function
         | [] -> ()
         | n :: rest ->
-            ((* NB: this should only be registers that we are actually permitted
-                to use. Prior passes of the compiler should have made sure that
-                registers that are always reserved always force an interference,
-                and so we will we find during assignment that those registers
-                are not available for any uncolored temporary.
-                TODO: we still may up end up using registers that we shouldn't
-                (or is a bad idea to), for example if we spill a node and have
-                to use [rsp] for a short interval. Resolve this by making the
-                cost for this very high or eliminating its ability to be used
-                entirely. *)
-             let ok_colors =
-               NS.fold
-                 (fun w colors ->
-                   let w = get_alias w in
-                   if NS.(mem w (!colored_nodes ++ precolored_nodes)) then
-                     F.RegisterSet.remove (color_of (temp_of_ifnode w)) colors
-                   else colors )
-                 (adjacent n)
-                 (F.RegisterSet.of_list F.registers)
-             in
-             match F.RegisterSet.choose_opt ok_colors with
-             | None -> spilled_nodes := temp_of_ifnode n :: !spilled_nodes
-             | Some c ->
-                 colored_nodes := NS.add n !colored_nodes;
-                 Hashtbl.add color (temp_of_ifnode n) c );
+            ( (* NB: this should only be registers that we are actually permitted
+                 to use. Prior passes of the compiler should have made sure that
+                 registers that are always reserved always force an interference,
+                 and so we will we find during assignment that those registers
+                 are not available for any uncolored temporary.
+                 TODO: we still may up end up using registers that we shouldn't
+                 (or is a bad idea to), for example if we spill a node and have
+                 to use [rsp] for a short interval. Resolve this by making the
+                 cost for this very high or eliminating its ability to be used
+                 entirely. *)
+              Printf.eprintf "\nnow coloring %s ...\n"
+                (string_of_temp (temp_of_ifnode n));
+              let ok_colors =
+                NS.fold
+                  (fun w colors ->
+                    let w = get_alias w in
+                    if NS.(mem w (!colored_nodes ++ precolored_nodes)) then (
+                      let color_w = color_of (temp_of_ifnode w) in
+                      Printf.eprintf "\telim %s due to if with %s\n"
+                        (F.string_of_register color_w)
+                        (string_of_temp (temp_of_ifnode w));
+                      F.RegisterSet.remove color_w colors )
+                    else colors )
+                  (get_adj n)
+                  (F.RegisterSet.of_list F.registers)
+              in
+              match F.RegisterSet.choose_opt ok_colors with
+              | None -> spilled_nodes := temp_of_ifnode n :: !spilled_nodes
+              | Some c ->
+                  colored_nodes := NS.add n !colored_nodes;
+                  Hashtbl.add color (temp_of_ifnode n) c );
             iter rest
       in
       iter (fst !select_stack);
@@ -415,7 +486,9 @@ module RegisterAllocation (F : FRAME) = struct
         (fun n ->
           let a = temp_of_ifnode (get_alias n) in
           let n = temp_of_ifnode n in
-          Hashtbl.add color n (Hashtbl.find color a) )
+          match Hashtbl.find_opt color a with
+          | Some c -> Hashtbl.add color n c
+          | None -> assert (List.mem a !spilled_nodes) )
         !coalesced_nodes
     in
     (*************)
@@ -440,47 +513,110 @@ module RegisterAllocation (F : FRAME) = struct
           solve ()) )
     in
     solve ();
+    print_aliases ();
     assign_colors ();
     (color, !spilled_nodes)
 
   let rewrite_spills (spills : temp list) (instrs : Assem.instr list)
       (fr : F.frame) : Assem.instr list =
     let open Assem in
-    let mem_of_temp =
-      List.map
-        (fun v ->
-          let vmem = F.alloc_local fr (* escapes: put on stack *) true in
-          (v, vmem) )
-        spills
+    (* Allocate memory locations for each v e spilledNodes *)
+    let mem_of_spill =
+      let map =
+        List.map
+          (fun v ->
+            let vmem = F.alloc_local fr None (* put on stack *) true in
+            (v, vmem) )
+          spills
+      in
+      fun spilltemp -> F.expr_of_access (List.assoc spilltemp map, Ir.Temp F.fp)
     in
-    let gen_instr gen =
-      List.fold_left
-        (fun fetches t ->
-          match List.assoc_opt t mem_of_temp with
-          | Some mem -> gen t mem @ fetches
-          | None -> fetches )
-        []
+    let cgen = F.codegen fr in
+    let fetch spilled_temp newtemp =
+      let cmt = "fetch spilled " ^ string_of_temp spilled_temp in
+      let i =
+        Ir.Mov (Ir.Temp newtemp, mem_of_spill spilled_temp, cmt) |> cgen
+      in
+      List.iter (add_comment cmt) i;
+      i
     in
-    let mov dst src = Ir.Mov (dst, src) |> F.codegen fr in
-    let me mem = F.expr_of_access (mem, Ir.Temp F.fp) in
-    let te t = Ir.Temp t in
-    let fetch src = gen_instr (fun t mem -> mov (te t) (me mem)) src in
-    let store src = gen_instr (fun t mem -> mov (me mem) (te t)) src in
-    let rec iter = function
-      | [] -> []
-      | Oper {assem; dst; src; jmp} :: rest ->
-          fetch src @ [Oper {assem; dst; src; jmp}] @ store dst @ iter rest
-      | Mov {assem; dst; src} :: rest ->
-          fetch [src] @ [Mov {assem; dst; src}] @ store [dst] @ iter rest
-      | (Label _ as lab) :: rest -> lab :: iter rest
+    let store spilled_temp newtemp =
+      let cmt = "store spilled " ^ string_of_temp spilled_temp in
+      let i =
+        Ir.Mov (mem_of_spill spilled_temp, Ir.Temp newtemp, cmt) |> cgen
+      in
+      List.iter (add_comment cmt) i;
+      i
     in
-    iter instrs
+    let process dsts srcs =
+      let dstsrc = TempSet.(union (of_list dsts) (of_list srcs)) in
+      (* Create a new temporary v_i for each definition and each use. *)
+      let newtemps =
+        TempSet.to_seq dstsrc |> List.of_seq
+        |> List.map (fun t ->
+               if List.mem t spills then (t, newtemp ()) else (t, t) )
+      in
+      let handle_spill handler spilled_temp =
+        match List.mem spilled_temp spills with
+        | false -> []
+        | true ->
+            let newtemp = List.assoc spilled_temp newtemps in
+            handler spilled_temp newtemp
+      in
+      let newdsts = List.map (fun s -> List.assoc s newtemps) dsts in
+      let newsrcs = List.map (fun s -> List.assoc s newtemps) srcs in
+      (* Insert a store after each definition of a v_i. *)
+      let store_spilled_dst = List.concat_map (handle_spill store) dsts in
+      (* Insert a fetch before each use of a v_i. *)
+      let fetch_spilled_src = List.concat_map (handle_spill fetch) srcs in
+      (newdsts, store_spilled_dst, newsrcs, fetch_spilled_src)
+    in
+    (* Insert fetch/stores for all instructions. *)
+    let transform_instr = function
+      | Oper ({dst; src; _} as oper) ->
+          let newdsts, store_spilled_dst, newsrcs, fetch_spilled_src =
+            process dst src
+          in
+          let new_oper = Oper {oper with dst = newdsts; src = newsrcs} in
+          fetch_spilled_src @ [new_oper] @ store_spilled_dst
+      | Mov ({dst; src; _} as mov) ->
+          let newdsts, store_spilled_dst, newsrcs, fetch_spilled_src =
+            process [dst] [src]
+          in
+          let newsrc, newdst =
+            match (newsrcs, newdsts) with
+            | [s], [d] -> (s, d)
+            | _ -> ice "impossible"
+          in
+          let new_mov = Mov {mov with dst = newdst; src = newsrc} in
+          fetch_spilled_src @ [new_mov] @ store_spilled_dst
+      | Label _ as lab -> [lab]
+    in
+    List.concat_map transform_instr instrs
 
-  let rec reg_alloc fr instrs =
+  let rec reg_alloc1 fr instrs n =
+    if n > 1 then (
+      Printf.eprintf "Attempt %d...\n" n;
+      flush_all () );
+    if n > 10 then failwith "bye";
     (* TODO: real spill cost *)
     let select_spill _ = 1 in
     let coloring, spills = color instrs select_spill in
+    Printf.eprintf "assem:\n";
+    List.iter (fun a -> Printf.eprintf "%s\n" (Assem.string_of_instr a)) instrs;
+    (*
+    Printf.eprintf "coloring:\n";
+    Hashtbl.iter
+      (fun t r ->
+        Printf.eprintf "\t%s : %s\n" (string_of_temp t) (F.string_of_register r)
+        )
+      coloring;
+    *)
+    Printf.eprintf "spills:\n";
+    List.iter (fun t -> Printf.eprintf "\t%s\n" (string_of_temp t)) spills;
     match spills with
     | [] -> (instrs, coloring)
-    | _ -> reg_alloc fr (rewrite_spills spills instrs fr)
+    | _ -> reg_alloc1 fr (rewrite_spills spills instrs fr) (n + 1)
+
+  let reg_alloc fr instrs = reg_alloc1 fr instrs 1
 end

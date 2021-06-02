@@ -30,3 +30,8 @@ val trace_schedule : Ir.stmt list list * Temp.label -> Ir.stmt list
     The final block [F] returned from [basic_blocks] is also cleaned up by
     attaching an [Ir.Label] of fresh label jumped to at the end of [F] to the
     scheduled sequence of statements. *)
+
+val simplify : Ir.stmt list -> Ir.stmt list
+(** [simplify stmts] performs the following simplifications/optimizations:
+      - Removes unused labels.
+      - Removes jumps whose target is the immedate next instruction. *)

@@ -1,0 +1,184 @@
+str__sdf:
+  "sdf"
+
+str__sfd:
+  "sfd"
+
+str__kati:
+  "kati"
+
+str__Allos:
+  "Allos"
+
+str__Kapou:
+  "Kapou"
+
+str__Kapoios:
+  "Kapoios"
+
+str__:
+  ""
+
+str__somewhere:
+  "somewhere"
+
+str__aname:
+  "aname"
+
+_start:
+  Mov(t25,                                
+      rbx)                                
+  Mov(t26,                                
+      r12)                                
+  Mov(t27,                                
+      r13)                                
+  Mov(t28,                                
+      r14)                                
+  Mov(t29,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t17,                                var arr1 := arrtype1[10] of 0
+      Call(initArray,                     
+           *(10,                          
+             8),                          
+           0))                            
+  Mov(t32,                                push stmt up
+      *(5,                                
+        8))                               
+  Mov(t19,                                
+      Call(initArray,                     
+           *(4,                           
+             8),                          
+           0))                            
+  Mov(Mem(+(t19,                          .name  .name="aname"
+            *(0,                          
+              8))),                       
+      str__aname)                         
+  Mov(Mem(+(t19,                          .address  .address="somewhere"
+            *(1,                          
+              8))),                       
+      str__somewhere)                     
+  Mov(Mem(+(t19,                          .id  .id=0
+            *(2,                          
+              8))),                       
+      0)                                  
+  Mov(Mem(+(t19,                          .age  .age=0
+            *(3,                          
+              8))),                       
+      0)                                  
+  Mov(t18,                                var arr2 := arrtype2[5] of rectype1 {
+      Call(initArray,                       name="aname",
+           t32,                             address="somewhere",
+           t19))                            id=0,
+                                            age=0
+                                          }
+  Mov(t20,                                var arr3 : arrtype3 := arrtype3[100] of ""
+      Call(initArray,                     
+           *(100,                         
+             8),                          
+           str__))                        
+  Mov(t22,                                
+      Call(initArray,                     
+           *(4,                           
+             8),                          
+           0))                            
+  Mov(Mem(+(t22,                          .name  .name="Kapoios"
+            *(0,                          
+              8))),                       
+      str__Kapoios)                       
+  Mov(Mem(+(t22,                          .address  .address="Kapou"
+            *(1,                          
+              8))),                       
+      str__Kapou)                         
+  Mov(Mem(+(t22,                          .id  .id=2432
+            *(2,                          
+              8))),                       
+      2432)                               
+  Mov(Mem(+(t22,                          .age  .age=44
+            *(3,                          
+              8))),                       
+      44)                                 
+  Mov(t21,                                var rec1 := rectype1 {
+      t22)                                  name="Kapoios",
+                                            address="Kapou",
+                                            id=2432,
+                                            age=44
+                                          }
+  Mov(t24,                                
+      Call(initArray,                     
+           *(2,                           
+             8),                          
+           0))                            
+  Mov(Mem(+(t24,                          .name  .name="Allos"
+            *(0,                          
+              8))),                       
+      str__Allos)                         
+  Mov(t31,                                push stmt up
+      +(t24,                              
+        *(1,                              
+          8)))                            
+  Mov(t30,                                push call up
+      Call(initArray,                     
+           *(3,                           
+             8),                          
+           1900))                         
+  Mov(Mem(t31)                            .dates  .dates=arrtype1[3] of 1900
+      t30)                                
+  Mov(t23,                                var rec2 := rectype2 {
+      t24)                                  name="Allos",
+                                            dates=arrtype1[3] of 1900
+                                          }
+  Mov(Mem(+(t17,                          arr1[0]  arr1[0] := 1
+            *(0,                          
+              8))),                       
+      1)                                  
+  Mov(Mem(+(t17,                          arr1[9]  arr1[9] := 3
+            *(9,                          
+              8))),                       
+      3)                                  
+  Mov(Mem(+(Mem(+(t18,                    arr2[3]  arr2[3].name  arr2[3].name := "kati"
+                  *(3,                    
+                    8))),                 
+            *(0,                          
+              8))),                       
+      str__kati)                          
+  Mov(Mem(+(Mem(+(t18,                    arr2[1]  arr2[1].age  arr2[1].age := 23
+                  *(1,                    
+                    8))),                 
+            *(3,                          
+              8))),                       
+      23)                                 
+  Mov(Mem(+(t20,                          arr3[34]  arr3[34] := "sfd"
+            *(34,                         
+              8))),                       
+      str__sfd)                           
+  Mov(Mem(+(t21,                          rec1.name  rec1.name := "sdf"
+            *(0,                          
+              8))),                       
+      str__sdf)                           
+  Mov(Mem(+(Mem(+(t23,                    rec2.dates  rec2.dates[0]  rec2.dates[0] := 2323
+                  *(1,                    
+                    8))),                 
+            *(0,                          
+              8))),                       
+      2323)                               
+  Mov(Mem(+(Mem(+(t23,                    rec2.dates  rec2.dates[2]  rec2.dates[2] := 2323
+                  *(1,                    
+                    8))),                 
+            *(2,                          
+              8))),                       
+      2323)                               
+  Mov(rax,                                return ()
+      0)
+  Mov(rbx,
+      t25)
+  Mov(r12,
+      t26)
+  Mov(r13,
+      t27)
+  Mov(r14,
+      t28)
+  Mov(r15,
+      t29)

@@ -15,14 +15,14 @@ let symbol name =
 let symeq (_, s1) (_, s2) = s1 = s2
 let name (s, _) = s
 
+module SymbolHashtbl = Hashtbl.Make (struct
+  type t = symbol
+
+  let equal (_, i) (_, j) = i = j
+  let hash (_, i) = i
+end)
+
 module Table = struct
-  module SymbolHashtbl = Hashtbl.Make (struct
-    type t = symbol
-
-    let equal (_, i) (_, j) = i = j
-    let hash (_, i) = i
-  end)
-
   type 'a t =
     { mutable tbls : 'a SymbolHashtbl.t list
           (** Scoped list of symbol tables. First table

@@ -1,0 +1,369 @@
+str__1:
+  "\n"
+
+str__O:
+  " O"
+
+str__:
+  " ."
+
+_start:
+  Mov(t38,                                          
+      rbx)                                          
+  Mov(t39,                                          
+      r12)                                          
+  Mov(t40,                                          
+      r13)                                          
+  Mov(t41,                                          
+      r14)                                          
+  Mov(t42,                                          
+      r15)                                          
+  Mov(Mem(-(rbp,                                    static link  static link
+            8)),                                    
+      rdi)                                          
+  Mov(Mem(-(rbp,                                    N  var N := 8
+            16)),                                   
+      8)                                            
+  Mov(t50,                                          push stmt up
+      -(rbp,                                        
+        24))                                        
+  Mov(t49,                                          push call up
+      Call(initArray,                       
+           *(Mem(-(rbp,                             N
+                   16)),                            
+             8),                                    
+           0))                                      
+  Mov(Mem(t50)                                      row  var row := intArray[N] of 0
+      t49)                                          
+  Mov(t48,                                          push stmt up
+      -(rbp,                                        
+        32))                                        
+  Mov(t47,                                          push call up
+      Call(initArray,                       
+           *(Mem(-(rbp,                             N
+                   16)),                            
+             8),                                    
+           0))                                      
+  Mov(Mem(t48)                                      col  var col := intArray[N] of 0
+      t47)                                          
+  Mov(t46,                                          push stmt up
+      -(rbp,                                        
+        40))                                        
+  Mov(t45,                                          push call up
+      Call(initArray,                       
+           *(-(+(Mem(-(rbp,                         N
+                       16)),                
+                 Mem(-(rbp,                         N
+                       16))),                       
+               1),                                  
+             8),                                    
+           0))                                      
+  Mov(Mem(t46)                                      diag1  var diag1 := intArray[N + N - 1] of 0
+      t45)                                          
+  Mov(t44,                                          push stmt up
+      -(rbp,                                        
+        48))                                        
+  Mov(t43,                                          push call up
+      Call(initArray,                       
+           *(-(+(Mem(-(rbp,                         N
+                       16)),                
+                 Mem(-(rbp,                         N
+                       16))),                       
+               1),                                  
+             8),                                    
+           0))                                      
+  Mov(Mem(t44)                                      diag2  var diag2 := intArray[N + N - 1] of 0
+      t43)                                          
+  Call(try,                                         
+       rbp,                                         
+       0)                                           
+  Mov(rax,                                          return ()
+      0)
+  Mov(rbx,
+      t38)
+  Mov(r12,
+      t39)
+  Mov(r13,
+      t40)
+  Mov(r14,
+      t41)
+  Mov(r15,
+      t42)
+
+try:
+  Mov(t33,                                          
+      rbx)                                          
+  Mov(t34,                                          
+      r12)                                          
+  Mov(t35,                                          
+      r13)                                          
+  Mov(t36,                                          
+      r14)                                          
+  Mov(t37,                                          
+      r15)                                          
+  Mov(Mem(-(rbp,                                    static link  static link
+            8)),                                    
+      rdi)                                          
+  Mov(t17,                                          c
+      rsi)                                          
+  CJmp(=,                                           c = N
+      t17,                                  
+      Mem(-(Mem(-(rbp,                              static link  N
+                  8)),                              
+            16)),                                   
+      true5,                                        
+      false5)                                       
+  false5:                                           
+  Mov(t30,                                          var r := 0
+      0)                                            
+  Mov(t31,                                          var limit := N - 1
+      -(Mem(-(Mem(-(rbp,                            static link  N
+                    8)),                            
+              16)),                                 
+        1))                                         
+  test2:                                            
+  Mov(t32,                                          true
+      1)                                            
+  CJmp(<=,                                          r <= limit
+      t30,                                          
+      t31,                                          
+      true4,                                        
+      false4)                                       
+  false4:                                           
+  Mov(t32,                                          false
+      0)                                            
+  true4:                                            
+  CJmp(=,                                           r <= limit
+      t32,                                          
+      0,                                            
+      break2,                                       
+      body2)                                        
+  body2:                                            
+  CJmp(=,                                           row[r] = 0
+      Mem(+(Mem(-(Mem(-(rbp,                        static link  row  row[r]
+                        8)),                        
+                  24)),                             
+            *(t30,                                  
+              8))),                                 
+      0,                                            
+      if_t1,                                        
+      if_f1)                                        
+  if_f1:                                            
+  if_f:                                             
+  false3:                                           
+  Mov(t30,                                          r := r + 1
+      +(t30,                                        
+        1))                                         
+  Jmp(test2,                                        
+      [test2])                                      
+  true5:                                            
+  Call(printboard,                                  
+       Mem(-(rbp,                                   static link
+             8)))                                   
+  join1:                                            
+  Mov(rbx,                                          
+      t33)                                          
+  Mov(r12,                                          
+      t34)                                          
+  Mov(r13,                                          
+      t35)                                          
+  Mov(r14,                                          
+      t36)                                          
+  Mov(r15,                                          
+      t37)                                          
+  Jmp(done1,                                        
+      [done1])                                      
+  if_t1:                                            
+  CJmp(!=,                                          !(diag1[r + c] = 0)
+      Mem(+(Mem(-(Mem(-(rbp,                        static link  diag1  diag1[r + c]
+                        8)),                        
+                  40)),                             
+            *(+(t30,                                
+                t17),                               
+              8))),                                 
+      0,                                            
+      if_f,                                         
+      if_t)                                         
+  if_t:                                             
+  CJmp(!=,                                          !(diag2[r + 7 - c] = 0)
+      Mem(+(Mem(-(Mem(-(rbp,                        static link  diag2  diag2[r + 7 - c]
+                        8)),                        
+                  48)),                             
+            *(-(+(t30,                              
+                  7),                               
+                t17),                               
+              8))),                                 
+      0,                                            
+      false3,                                       
+      true3)                                        
+  true3:                                            
+  Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  row  row[r]  row[r] := 1
+                        8)),                        
+                  24)),                             
+            *(t30,                                  
+              8))),                                 
+      1)                                            
+  Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag1  diag1[r + c]  diag1[r + c] := 1
+                        8)),                        
+                  40)),                             
+            *(+(t30,                                
+                t17),                               
+              8))),                                 
+      1)                                            
+  Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag2  diag2[r + 7 - c]  diag2[r + 7 - c] := 1
+                        8)),                        
+                  48)),                             
+            *(-(+(t30,                              
+                  7),                               
+                t17),                               
+              8))),                                 
+      1)                                            
+  Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  col  col[c]  col[c] := r
+                        8)),                        
+                  32)),                             
+            *(t17,                                  
+              8))),                                 
+      t30)                                          
+  Call(try,                                         
+       Mem(-(rbp,                                   static link
+             8)),                                   
+       +(t17,                                       
+         1))                                        
+  Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  row  row[r]  row[r] := 0
+                        8)),                        
+                  24)),                             
+            *(t30,                                  
+              8))),                                 
+      0)                                            
+  Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag1  diag1[r + c]  diag1[r + c] := 0
+                        8)),                        
+                  40)),                             
+            *(+(t30,                                
+                t17),                               
+              8))),                                 
+      0)                                            
+  Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag2  diag2[r + 7 - c]  diag2[r + 7 - c] := 0
+                        8)),
+                  48)),
+            *(-(+(t30,
+                  7),
+                t17),
+              8))),
+      0)
+  Jmp(false3,
+      [false3])
+  break2:
+  Jmp(join1,
+      [join1])
+  done1:
+
+printboard:
+  Mov(t25,                                
+      rbx)                                
+  Mov(t26,                                
+      r12)                                
+  Mov(t27,                                
+      r13)                                
+  Mov(t28,                                
+      r14)                                
+  Mov(t29,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t18,                                var i := 0
+      0)                                  
+  Mov(t19,                                var limit := N - 1
+      -(Mem(-(Mem(-(rbp,                  static link  N
+                    8)),                  
+              16)),                       
+        1))                               
+  test1:                                  
+  Mov(t24,                                true
+      1)                                  
+  CJmp(<=,                                i <= limit
+      t18,                                
+      t19,                                
+      true2,                              
+      false2)                             
+  false2:                                 
+  Mov(t24,                                false
+      0)                                  
+  true2:                                  
+  CJmp(=,                                 i <= limit
+      t24,                                
+      0,                                  
+      break,                              
+      body1)                              
+  body1:                                  
+  Mov(t20,                                var j := 0
+      0)                                  
+  Mov(t21,                                var limit := N - 1
+      -(Mem(-(Mem(-(rbp,                  static link  N
+                    8)),                  
+              16)),                       
+        1))                               
+  test:                                   
+  Mov(t23,                                true
+      1)                                  
+  CJmp(<=,                                j <= limit
+      t20,                                
+      t21,                                
+      true1,                              
+      false1)                             
+  false1:                                 
+  Mov(t23,                                false
+      0)                                  
+  true1:                                  
+  CJmp(=,                                 j <= limit
+      t23,                                
+      0,                                  
+      break1,                             
+      body)                               
+  body:                                   
+  CJmp(=,                                 col[i] = j
+      Mem(+(Mem(-(Mem(-(rbp,              static link  col  col[i]
+                        8)),              
+                  32)),                   
+            *(t18,                        
+              8))),                       
+      t20,                                
+      true,                               
+      false)                              
+  false:                                  
+  Mov(t22,                                else
+      str__)                              
+  join:                                   
+  Call(print,                             
+       t22)                               
+  Mov(t20,                                j := j + 1
+      +(t20,                              
+        1))                               
+  Jmp(test,                               
+      [test])                             
+  true:                                   
+  Mov(t22,                                then
+      str__O)                             
+  Jmp(join,                               
+      [join])                             
+  break1:                                 
+  Call(print,                             
+       str__1)                            
+  Mov(t18,                                i := i + 1
+      +(t18,
+        1))
+  Jmp(test1,
+      [test1])
+  break:
+  Call(print,
+       str__1)
+  Mov(rbx,
+      t25)
+  Mov(r12,
+      t26)
+  Mov(r13,
+      t27)
+  Mov(r14,
+      t28)
+  Mov(r15,
+      t29)

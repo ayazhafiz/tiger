@@ -15,6 +15,8 @@ module type FRAME = sig
   (** The type of a register. *)
   type register
 
+  val string_of_register : register -> string
+
   module RegisterSet : Set.S with type elt = register
 
   val registers : register list
@@ -54,10 +56,10 @@ module type FRAME = sig
       given the address [addr_orig_fp] of the frame the access was originally
       created in. *)
 
-  val new_frame : Temp.label -> bool list -> frame
-  (** [new_frame name formals] creates a new frame for a function [name] with
-      [formals], each of whose entry indicates whether the formal escapes the
-      frame. *)
+  val new_frame : Temp.label -> string list -> bool list -> frame
+  (** [new_frame name formal_names formals] creates a new frame for a function
+      [name] with [formals], each of whose entry indicates whether the formal
+      escapes the frame. *)
 
   val name : frame -> Temp.label
   (** [name frame] retrieves the named label of a frame. *)
@@ -65,13 +67,14 @@ module type FRAME = sig
   val formals : frame -> access list
   (** [formals frame] retrieves the access location of formal arguments. *)
 
-  val alloc_local : frame -> bool -> access
-  (** [allocLocal frame escape] allocates a local variable with a given [escape]
-      qualifier in [frame]. If [escape] is true, the local variable is
-      guaranteed to be put on the stack. *)
+  val alloc_local : frame -> string option -> bool -> access
+  (** [alloc_local frame name escapes] allocates a local variable with a given
+      [escape] qualifier in [frame]. If [escape] is true, the local variable is
+      guaranteed to be put on the stack. If [name] is [None], a fresh name is
+      given. *)
 
-  val external_call : Temp.label -> Ir.expr list -> Ir.expr
-  (** [external_call name args] performs a call to an external procedure. *)
+  val external_call : frame -> Temp.label -> Ir.expr list -> Ir.expr
+  (** [external_call calling_frame name args] performs a call to an external procedure. *)
 
   val codegen : frame -> Ir.stmt -> Assem.instr list
   (** Generates [Assem]-style assembly instructions from the [Ir]. *)
@@ -86,7 +89,21 @@ module type FRAME = sig
   val emit :
        (Temp.label * string) list
     -> (frame * Assem.instr list * allocation) list
+    -> Temp.label
     -> string
-  (** [emit strings blocks] generates assembly for a program consisting of
+  (** [emit strings blocks main] generates assembly for a program consisting of
       strings [strings] and procedure blocks [blocks]. *)
+
+  val reserved_temps : Temp.temp list
+  val reserved_labels : Temp.label list
+
+  module Debug : sig
+    val emit_debug :
+         (Temp.label * string) list
+      -> (frame * Assem.instr list) list
+      -> (Temp.temp -> string)
+      -> Temp.label
+      -> string
+    (** Like [emit], but does not require a register [allocation]. *)
+  end
 end

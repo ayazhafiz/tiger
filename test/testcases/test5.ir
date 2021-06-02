@@ -1,0 +1,45 @@
+
+
+_start:
+  Mov(t19,                                
+      rbx)                                
+  Mov(t20,                                
+      r12)                                
+  Mov(t21,                                
+      r13)                                
+  Mov(t22,                                
+      r14)                                
+  Mov(t23,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t18,                                
+      Call(initArray,                     
+           *(2,                           
+             8),                          
+           0))                            
+  Mov(Mem(+(t18,                          .hd  .hd=0
+            *(0,                          
+              8))),                       
+      0)                                  
+  Mov(Mem(+(t18,                          .tl  .tl=nil
+            *(1,                          
+              8))),                       
+      0)                                  
+  Mov(t17,                                var lis : intlist := intlist {
+      t18)                                  hd=0,
+                                            tl=nil
+                                          }
+  Mov(rax,                                return ()
+      t17)
+  Mov(rbx,
+      t19)
+  Mov(r12,
+      t20)
+  Mov(r13,
+      t21)
+  Mov(r14,
+      t22)
+  Mov(r15,
+      t23)

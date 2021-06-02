@@ -1,0 +1,117 @@
+str__str2:
+  "str2"
+
+str__:
+  " "
+
+str__str:
+  "str"
+
+_start:
+  Mov(t33,                                
+      rbx)                                
+  Mov(t34,                                
+      r12)                                
+  Mov(t35,                                
+      r13)                                
+  Mov(t36,                                
+      r14)                                
+  Mov(t37,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Call(do_nothing1,                       
+       rbp,                               
+       0,                                 
+       str__str2)                         
+  Mov(t32,                                
+      rax)                                
+  Mov(rax,                                return ()
+      t32)
+  Mov(rbx,
+      t33)
+  Mov(r12,
+      t34)
+  Mov(r13,
+      t35)
+  Mov(r14,
+      t36)
+  Mov(r15,
+      t37)
+
+do_nothing2:
+  Mov(t27,                                
+      rbx)                                
+  Mov(t28,                                
+      r12)                                
+  Mov(t29,                                
+      r13)                                
+  Mov(t30,                                
+      r14)                                
+  Mov(t31,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t19,                                d
+      rsi)                                
+  Call(do_nothing1,                       
+       Mem(-(rbp,                         static link
+             8)),                         
+       t19,                               
+       str__str)                          
+  Mov(t26,                                
+      rax)                                
+  t26                                     
+  Mov(rax,                                return ()
+      str__)
+  Mov(rbx,
+      t27)
+  Mov(r12,
+      t28)
+  Mov(r13,
+      t29)
+  Mov(r14,
+      t30)
+  Mov(r15,
+      t31)
+
+do_nothing1:
+  Mov(t21,                                
+      rbx)                                
+  Mov(t22,                                
+      r12)                                
+  Mov(t23,                                
+      r13)                                
+  Mov(t24,                                
+      r14)                                
+  Mov(t25,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t17,                                a
+      rsi)                                
+  Mov(t18,                                b
+      rdx)                                
+  Call(do_nothing2,                       
+       Mem(-(rbp,                         static link
+             8)),                         
+       +(t17,                             
+         1))                              
+  Mov(t20,                                
+      rax)                                
+  t20                                     
+  Mov(rax,                                return ()
+      0)
+  Mov(rbx,
+      t21)
+  Mov(r12,
+      t22)
+  Mov(r13,
+      t23)
+  Mov(r14,
+      t24)
+  Mov(r15,
+      t25)

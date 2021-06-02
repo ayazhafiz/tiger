@@ -1,11 +1,11 @@
 open Tiger
+open Tiger.Backend_registry
+open Tiger.Desugar
 open Tiger.Language
 open Tiger.Print
 open Tiger.Semantic
-open Tiger.Desugar
 
 let ext = ".tig"
-let parse_ext = ".parse"
 
 type fi =
   { name : string
@@ -71,7 +71,7 @@ let ensure_desugar fi =
 let get_test_files =
   let open Cmdliner in
   let res =
-    Arg.(value & opt string "testcases" & info ["p"] ~doc:"Path to tests")
+    Arg.(value & opt string "test/testcases" & info ["p"] ~doc:"Path to tests")
   in
   Term.app
     (Term.const (fun dir ->
@@ -93,6 +93,7 @@ let cmd =
 
 let wrap test =
   Printexc.record_backtrace true;
+  Sys.catch_break true;
   try test
   with _ as e ->
     Printexc.record_backtrace false;
@@ -117,7 +118,7 @@ let parsetest fi =
 let printtest update fi =
   let test _ =
     ensure_parsed fi;
-    let pr_path = Filename.remove_extension fi.path ^ parse_ext in
+    let pr_path = Filename.remove_extension fi.path ^ ".parse" in
     let expr_real =
       get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name)
     in
@@ -128,6 +129,7 @@ let printtest update fi =
     | false ->
         pr_expect := readfi pr_path;
         Alcotest.(check string) fi.name !pr_expect pr_real
+    (* TODO *)
     (* let expr_expect = parse @@ lex !pr_expect in
        Alcotest.(check testable_expr) fi.name expr_expect expr_real *)
   in
@@ -151,16 +153,57 @@ let sematest fi =
   in
   ((fi.name, `Quick, test), Option.is_none fi.semantic_error)
 
-module MipsTranslate = Lower.Translate (Mips_frame.MipsFrame)
+let backend_golden update fi ext driver =
+  ensure_parsed fi;
+  let golden_path = Filename.remove_extension fi.path ^ ext in
+  let expr = get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name) in
+  let real = driver expr in
+  match update with
+  | true -> writefi golden_path real
+  | false ->
+      let expect = readfi golden_path in
+      Alcotest.(check string) fi.name expect real
 
-let lowertest fi =
+let irtest update fi =
   let test _ =
-    ensure_desugar fi;
-    let expr = get fi.desugar "Desugar incomplete" in
-    let _ = MipsTranslate.lower expr in
-    ()
+    (* x86 *)
+    backend_golden update fi ".ir" X86_64_Backend.emit_ir
   in
   ((fi.name, `Quick, wrap test), true)
+
+let exclude_asm = ["queens"; "test4"; "test30"; "merge"; "test42"]
+
+let pseudo_asmtest update fi =
+  let test _ =
+    (* x86 *)
+    backend_golden update fi ".pseudo_s" X86_64_Backend.Debug.emit_pseudo_assem
+  in
+  ((fi.name, `Quick, wrap test), List.mem fi.name exclude_asm |> not)
+
+let asmtest update fi =
+  let test _ =
+    (* x86 *)
+    backend_golden update fi ".s" X86_64_Backend.emit_assem
+  in
+  ((fi.name, `Quick, wrap test), true)
+
+let exectest update fi =
+  let exec handler expr =
+    let stdout, stderr, exit = handler expr in
+    let ekind, ecode =
+      match exit with
+      | Backend.Exit n -> ("exit", n)
+      | Backend.Killed n -> ("killed", n)
+    in
+    String.concat "\n"
+      [ "~~~stdout"; stdout; "~~~stdout"; ""; "~~~stderr"; stderr; "~~~stderr"
+      ; ""; "---" ^ ekind; string_of_int ecode; "---" ^ ekind ]
+  in
+  let test _ =
+    (* x86 *)
+    backend_golden update fi ".exec" (exec X86_64_Backend.exec)
+  in
+  ((fi.name, `Slow, wrap test), true)
 
 let mktests factory cases =
   List.fold_right
@@ -178,9 +221,13 @@ let () =
   let parser_tests, cases = mktests parsetest cases in
   let printer_tests, cases = mktests (printtest update_goldens) cases in
   let semantic_tests, cases = mktests sematest cases in
-  let lowering_tests, _cases = mktests lowertest cases in
+  let ir_tests, cases = mktests (irtest update_goldens) cases in
+  let pseudo_asm_tests, cases = mktests (pseudo_asmtest update_goldens) cases in
+  let asm_tests, cases = mktests (asmtest update_goldens) cases in
+  let exec_tests, _cases = mktests (exectest update_goldens) cases in
   let fakeargv = Array.make 1 "compiler_tests" in
   Alcotest.run "compiler_tests" ~argv:fakeargv
     [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
     ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
-    ; ("lowering tests", lowering_tests) ]
+    ; ("lowering tests", ir_tests); ("pseudo-emit tests", pseudo_asm_tests)
+    ; ("emit tests", asm_tests); ("execution tests", exec_tests) ]

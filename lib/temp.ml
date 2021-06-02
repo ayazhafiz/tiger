@@ -1,23 +1,31 @@
+open Symbol
+
 type temp = int
+type label = symbol
 
-let newtemp =
-  let cnt = ref 0 in
-  fun () ->
-    cnt := !cnt + 1;
-    !cnt
+let label = symbol
+let temp_cnt = ref 0
+let label_store = Hashtbl.create 128
+let string_of_temp t = "t" ^ string_of_int t
 
-type label = string
+let newtemp () =
+  temp_cnt := !temp_cnt + 1;
+  !temp_cnt
 
-let string_of_label l = l
+let string_of_label = name
 
 (** TODO: figure out how to deal with externals better *)
-let stringEqual = "stringEqual"
+let stringEqual = label "stringEqual"
 
-let initArray = "initArray"
+let initArray = label "initArray"
 let externals = [stringEqual; initArray]
 
-let label_store =
-  List.map (fun n -> (n, ())) externals |> List.to_seq |> Hashtbl.of_seq
+let init_label_store () =
+  List.map (fun n -> (name n, ())) externals
+  |> List.to_seq
+  |> Hashtbl.add_seq label_store
+
+let _ = init_label_store ()
 
 let newlabel =
   let rec find name ext =
@@ -25,17 +33,31 @@ let newlabel =
     match Hashtbl.find_opt label_store cand with
     | None ->
         Hashtbl.add label_store cand ();
-        cand
+        label cand
     | Some _ -> find name (ext + 1)
   in
   fun name -> find name 0
 
 let strlabel name =
   Hashtbl.add label_store name ();
-  name
+  label name
 
 module TempSet = Set.Make (struct
   type t = temp
 
   let compare = compare
 end)
+
+module LabelSet = Set.Make (struct
+  type t = label
+
+  let compare = compare
+end)
+
+module LabelHashtbl = SymbolHashtbl
+
+let reset reserved_temps reserved_labels =
+  temp_cnt := List.fold_left max 0 reserved_temps;
+  Hashtbl.clear label_store;
+  init_label_store ();
+  List.iter (fun l -> Hashtbl.add label_store (name l) ()) reserved_labels

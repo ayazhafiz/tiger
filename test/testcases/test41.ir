@@ -1,0 +1,28 @@
+
+
+_start:
+  Mov(t17,                                
+      rbx)                                
+  Mov(t18,                                
+      r12)                                
+  Mov(t19,                                
+      r13)                                
+  Mov(t20,                                
+      r14)                                
+  Mov(t21,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(rax,                                return ()
+      0)
+  Mov(rbx,
+      t17)
+  Mov(r12,
+      t18)
+  Mov(r13,
+      t19)
+  Mov(r14,
+      t20)
+  Mov(r15,
+      t21)

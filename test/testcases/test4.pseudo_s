@@ -1,0 +1,152 @@
+BITS 64
+section .text
+
+global _start
+
+_start:
+  push rbp
+  mov rbp, rsp
+  sub rsp, 16
+  mov t26, rbx                            # liveout: rbp rsp rdi r12 r13 r14 r15 t26
+  mov t27, r12                            # liveout: rbp rsp rdi r13 r14 r15 t26 t27
+  mov t28, r13                            # liveout: rbp rsp rdi r14 r15 t26 t27 t28
+  mov t29, r14                            # liveout: rbp rsp rdi r15 t26 t27 t28 t29
+  mov t30, r15                            # liveout: rbp rsp rdi t26 t27 t28 t29 t30
+  mov [rbp - 8], rdi                      # liveout: rbp rsp t26 t27 t28 t29 t30
+  mov rdi, rbp                            # liveout: rbp rsp rdi t26 t27 t28 t29 t30
+  mov rsi, 10                             # liveout: rbp rsp rsi rdi t26 t27 t28 t29 t30
+  call nfactor                            # liveout: rax rbp rsp t26 t27 t28 t29 t30
+  mov t25, rax                            # liveout: rbp rsp t25 t26 t27 t28 t29 t30
+  mov rax, t25                            # liveout: rax rbp rsp t26 t27 t28 t29 t30
+  mov rbx, t26                            # liveout: rax rbx rbp rsp t27 t28 t29 t30
+  mov r12, t27                            # liveout: rax rbx rbp rsp r12 t28 t29 t30
+  mov r13, t28                            # liveout: rax rbx rbp rsp r12 r13 t29 t30
+  mov r14, t29                            # liveout: rax rbx rbp rsp r12 r13 r14 t30
+  mov r15, t30                            # liveout: rax rbx rbp rsp r12 r13 r14 r15
+  mov rsp, rbp
+  pop rbp
+  ret
+nfactor:
+  push rbp
+  mov rbp, rsp
+  sub rsp, 16
+  mov t20, rbx                            # liveout: rbp rsp rsi rdi r12 r13 r14 r15 t20
+  mov t21, r12                            # liveout: rbp rsp rsi rdi r13 r14 r15 t20 t21
+  mov t22, r13                            # liveout: rbp rsp rsi rdi r14 r15 t20 t21 t22
+  mov t23, r14                            # liveout: rbp rsp rsi rdi r15 t20 t21 t22 t23
+  mov t24, r15                            # liveout: rbp rsp rsi rdi t20 t21 t22 t23 t24
+  mov [rbp - 8], rdi                      # liveout: rbp rsp rsi t20 t21 t22 t23 t24
+  mov t17, rsi                            # liveout: rbp rsp t17 t20 t21 t22 t23 t24
+  cmp t17, 0                              # liveout: rbp rsp t17 t20 t21 t22 t23 t24
+  je true                                 # liveout: rbp rsp t17 t20 t21 t22 t23 t24
+false:                                    # liveout: rbp rsp t17 t20 t21 t22 t23 t24
+  mov t31, t17                            # liveout: rbp rsp t17 t20 t21 t22 t23 t24 t31
+  mov rdi, [rbp - 8]                      # liveout: rbp rsp rdi t17 t20 t21 t22 t23 t24 t31
+  mov t32, t17                            # liveout: rbp rsp rdi t20 t21 t22 t23 t24 t31 t32
+  dec t32                                 # liveout: rbp rsp rdi t20 t21 t22 t23 t24 t31 t32
+  mov rsi, t32                            # liveout: rbp rsp rsi rdi t20 t21 t22 t23 t24 t31
+  call nfactor                            # liveout: rax rbp rsp t20 t21 t22 t23 t24 t31
+  mov t18, rax                            # liveout: rbp rsp t18 t20 t21 t22 t23 t24 t31
+  mov t33, t31                            # liveout: rbp rsp t18 t20 t21 t22 t23 t24 t33
+  imul t33, t18                           # liveout: rbp rsp t20 t21 t22 t23 t24 t33
+  mov t19, t33                            # liveout: rbp rsp t19 t20 t21 t22 t23 t24
+join:                                     # liveout: rbp rsp t19 t20 t21 t22 t23 t24
+  mov rax, t19                            # liveout: rax rbp rsp t20 t21 t22 t23 t24
+  mov rbx, t20                            # liveout: rax rbx rbp rsp t21 t22 t23 t24
+  mov r12, t21                            # liveout: rax rbx rbp rsp r12 t22 t23 t24
+  mov r13, t22                            # liveout: rax rbx rbp rsp r12 r13 t23 t24
+  mov r14, t23                            # liveout: rax rbx rbp rsp r12 r13 r14 t24
+  mov r15, t24                            # liveout: rax rbx rbp rsp r12 r13 r14 r15
+  jmp done1                               # liveout: rax rbx rbp rsp r12 r13 r14 r15
+true:                                     # liveout: rbp rsp t20 t21 t22 t23 t24
+  mov t19, 1                              # liveout: rbp rsp t19 t20 t21 t22 t23 t24
+  jmp join                                # liveout: rbp rsp t19 t20 t21 t22 t23 t24
+done1:                                    # liveout: rax rbx rbp rsp r12 r13 r14 r15
+  mov rsp, rbp
+  pop rbp
+  ret
+
+=== Interferences ===
+
+rax: rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+rbx: rax rbp rsp r12 r13 r14 r15 t21 t22 t23 t24 t27 t28 t29 t30
+rcx: rax rbp rsp t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+rdx: rax rbp rsp t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+rbp: rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t25 t26 t27 t28 t29 t30 t31 t32 t33
+rsp: rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t25 t26 t27 t28 t29 t30 t31 t32 t33
+rsi: rax rbp rsp rdi t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+rdi: rax rbp rsp rsi t17 t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31 t32
+r8: rax rbp rsp t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+r9: rax rbp rsp t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+r10: rax rbp rsp t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+r11: rax rbp rsp t20 t21 t22 t23 t24 t26 t27 t28 t29 t30 t31
+r12: rax rbx rbp rsp r13 r14 r15 t20 t22 t23 t24 t26 t28 t29 t30
+r13: rax rbx rbp rsp r12 r14 r15 t20 t21 t23 t24 t26 t27 t29 t30
+r14: rax rbx rbp rsp r12 r13 r15 t20 t21 t22 t24 t26 t27 t28 t30
+r15: rax rbx rbp rsp r12 r13 r14 t20 t21 t22 t23 t26 t27 t28 t29
+t17: rbp rsp rdi t20 t21 t22 t23 t24
+t18: rbp rsp t20 t21 t22 t23 t24 t31 t33
+t19: rbp rsp t20 t21 t22 t23 t24
+t20: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t21 t22 t23 t24 t31 t32 t33
+t21: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t17 t18 t19 t20 t22 t23 t24 t31 t32 t33
+t22: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t17 t18 t19 t20 t21 t23 t24 t31 t32 t33
+t23: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t17 t18 t19 t20 t21 t22 t24 t31 t32 t33
+t24: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t17 t18 t19 t20 t21 t22 t23 t31 t32 t33
+t25: rbp rsp t26 t27 t28 t29 t30
+t26: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t25 t27 t28 t29 t30
+t27: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t25 t26 t28 t29 t30
+t28: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t25 t26 t27 t29 t30
+t29: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t25 t26 t27 t28 t30
+t30: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t25 t26 t27 t28 t29
+t31: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t18 t20 t21 t22 t23 t24 t32
+t32: rbp rsp rdi t20 t21 t22 t23 t24 t31
+t33: rbp rsp t18 t20 t21 t22 t23 t24
+nbhd t23 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t17 t18 t19 t20 t21 t22 t24 t31 t32 t33
+nbhd t19 = rbp rsp t20 t21 t22 t23 t24
+nbhd t20 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t21 t22 t23 t24 t31 t32 t33
+nbhd t18 = rbp rsp t20 t21 t22 t23 t24 t31 t33
+nbhd rbx = rax rbp rsp r12 r13 r14 r15 t21 t22 t23 t24
+nbhd t24 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t17 t18 t19 t20 t21 t22 t23 t31 t32 t33
+nbhd t32 = rbp rsp rdi t20 t21 t22 t23 t24 t31
+nbhd rbp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t31 t32 t33
+nbhd rsp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t31 t32 t33
+nbhd rdx = rax rbp rsp t20 t21 t22 t23 t24 t31
+nbhd t17 = rbp rsp rdi t20 t21 t22 t23 t24
+nbhd t31 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t18 t20 t21 t22 t23 t24 t32
+nbhd r14 = rax rbx rbp rsp r12 r13 r15 t20 t21 t22 t24
+nbhd t22 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t17 t18 t19 t20 t21 t23 t24 t31 t32 t33
+nbhd rsi = rax rbp rsp rdi t20 t21 t22 t23 t24 t31
+nbhd r15 = rax rbx rbp rsp r12 r13 r14 t20 t21 t22 t23
+nbhd r10 = rax rbp rsp t20 t21 t22 t23 t24 t31
+nbhd t33 = rbp rsp t18 t20 t21 t22 t23 t24
+nbhd rax = rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t20 t21 t22 t23 t24 t31
+nbhd r11 = rax rbp rsp t20 t21 t22 t23 t24 t31
+nbhd r9 = rax rbp rsp t20 t21 t22 t23 t24 t31
+nbhd r12 = rax rbx rbp rsp r13 r14 r15 t20 t22 t23 t24
+nbhd r13 = rax rbx rbp rsp r12 r14 r15 t20 t21 t23 t24
+nbhd rdi = rax rbp rsp rsi t17 t20 t21 t22 t23 t24 t31 t32
+nbhd r8 = rax rbp rsp t20 t21 t22 t23 t24 t31
+nbhd rcx = rax rbp rsp t20 t21 t22 t23 t24 t31
+nbhd t21 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t17 t18 t19 t20 t22 t23 t24 t31 t32 t33
+nbhd t27 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t25 t26 t28 t29 t30
+nbhd t28 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t25 t26 t27 t29 t30
+nbhd t26 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t25 t27 t28 t29 t30
+nbhd rbx = rax rbp rsp r12 r13 r14 r15 t27 t28 t29 t30
+nbhd rbp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t25 t26 t27 t28 t29 t30
+nbhd rsp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t25 t26 t27 t28 t29 t30
+nbhd rdx = rax rbp rsp t26 t27 t28 t29 t30
+nbhd t25 = rbp rsp t26 t27 t28 t29 t30
+nbhd r14 = rax rbx rbp rsp r12 r13 r15 t26 t27 t28 t30
+nbhd t30 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t25 t26 t27 t28 t29
+nbhd rsi = rax rbp rsp rdi t26 t27 t28 t29 t30
+nbhd r15 = rax rbx rbp rsp r12 r13 r14 t26 t27 t28 t29
+nbhd r10 = rax rbp rsp t26 t27 t28 t29 t30
+nbhd rax = rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t26 t27 t28 t29 t30
+nbhd r11 = rax rbp rsp t26 t27 t28 t29 t30
+nbhd r9 = rax rbp rsp t26 t27 t28 t29 t30
+nbhd r12 = rax rbx rbp rsp r13 r14 r15 t26 t28 t29 t30
+nbhd r13 = rax rbx rbp rsp r12 r14 r15 t26 t27 t29 t30
+nbhd rdi = rax rbp rsp rsi t26 t27 t28 t29 t30
+nbhd r8 = rax rbp rsp t26 t27 t28 t29 t30
+nbhd rcx = rax rbp rsp t26 t27 t28 t29 t30
+nbhd t29 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t25 t26 t27 t28 t30

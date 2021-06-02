@@ -3,6 +3,7 @@
 
 type temp
 
+val string_of_temp : temp -> string
 val newtemp : unit -> temp
 
 type label
@@ -16,3 +17,8 @@ val strlabel : string -> label
 (** [strlabel mand] returns a label corresponding exactly to [mand]. *)
 
 module TempSet : Set.S with type elt = temp
+module LabelSet : Set.S with type elt = label
+module LabelHashtbl : Hashtbl.S with type key = label
+
+val reset : temp list -> label list -> unit
+(** Resets temps and labels for a fresh compilation. *)

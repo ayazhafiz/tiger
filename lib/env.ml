@@ -18,7 +18,7 @@ let base_venv =
   let t = singleton () in
   add t (symbol "print") (FunEntry ([String], Unit));
   add t (symbol "flush") (FunEntry ([], Unit));
-  add t (symbol "getchar") (FunEntry ([], String));
+  add t (symbol "get_char") (FunEntry ([], String));
   add t (symbol "ord") (FunEntry ([String], Int));
   add t (symbol "chr") (FunEntry ([Int], String));
   add t (symbol "size") (FunEntry ([String], Int));

@@ -1,17 +1,16 @@
 type symbol = string * int
 
 val nextsym : int ref
-
 val symbol : string -> symbol
-
 val symeq : symbol -> symbol -> bool
-
 val name : symbol -> string
+
+module SymbolHashtbl : Hashtbl.S with type key = symbol
 
 (** A mutable symbol table. To make copies of the table, use [Table.copy]. *)
 module Table : sig
-  type 'a t
   (** The type of a symbol table. *)
+  type 'a t
 
   val singleton : unit -> 'a t
   (** Creates an empty symbol table with one scope. *)

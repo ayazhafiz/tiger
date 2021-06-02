@@ -13,21 +13,15 @@ let commutes = function
   | _ -> false
 
 let nop = Ir.Expr (Ir.Const 0)
-
-let seq a b =
-  match (a, b) with
-  | n1, n2 when n1 = nop && n2 = nop -> nop
-  | n, s when n = nop -> s
-  | s, n when n = nop -> s
-  | s1, s2 -> Ir.Seq (s1, s2)
+let seq lst = List.filter (fun s -> s <> nop) lst |> Ir.seq
 
 let rec reorder = function
   | [] -> (nop, [])
-  | (Ir.Call _ as call) :: rest ->
+  | (Ir.Call _ as e) :: rest ->
       (* Move call to toplevel (page 178): wrap call in ESeq, which will then get
          percolated upwards. *)
-      let r = Temp.newtemp () in
-      let wrap = Ir.ESeq (Ir.Mov (Ir.Temp r, call), Ir.Temp r) in
+      let t = Temp.newtemp () in
+      let wrap = Ir.ESeq (Ir.Mov (Ir.Temp t, e, "push call up"), Ir.Temp t) in
       reorder (wrap :: rest)
   | e :: rest ->
       let s, e = do_expr e in
@@ -35,49 +29,52 @@ let rec reorder = function
       (* At this point we have that the order of computation is:
            s e rest_s rest_e
          We want to push the "rest_s" statement upwards. *)
-      if commutes (rest_s, e) then (seq s rest_s, e :: rest_e)
+      if commutes (rest_s, e) then (seq [s; rest_s], e :: rest_e)
       else
         (* We can't push it up immediately, so treat "e" itself as a statement. *)
         let te = Temp.newtemp () in
         (* s ; Mov (te, e) ; rest_s *)
-        let stmts = seq (seq s (Ir.Mov (Ir.Temp te, e))) rest_s in
+        let stmts = seq [s; Ir.Mov (Ir.Temp te, e, "push stmt up"); rest_s] in
         (stmts, Ir.Temp te :: rest_e)
 
 and reorder_stmt subexprs build =
   let stmts, exprs = reorder subexprs in
-  seq stmts (build exprs)
+  seq [stmts; build exprs]
 
 and reorder_expr subexprs build =
   let stmts, exprs = reorder subexprs in
   (stmts, build exprs)
 
 and do_stmt = function
+  | Ir.Seq (s1, s2) -> seq [do_stmt s1; do_stmt s2]
+  | Ir.Jmp (e, labs) ->
+      reorder_stmt [e] (function [e] -> Ir.Jmp (e, labs) | _ -> ice "bad args")
+  | Ir.CJmp (op, e1, e2, t, f, cmt) ->
+      reorder_stmt [e1; e2] (function
+        | [e1; e2] -> Ir.CJmp (op, e1, e2, t, f, cmt)
+        | _ -> ice "bad args" )
+  | Ir.Mov (Ir.Temp t, Ir.Call (f, args), cmt) ->
+      (* Keep call on toplevel *)
+      reorder_stmt (f :: args) (function
+        | f :: args -> Ir.Mov (Ir.Temp t, Ir.Call (f, args), cmt)
+        | _ -> ice "bad args" )
+  | Ir.Mov (Ir.Temp t, e, cmt) ->
+      reorder_stmt [e] (function
+        | [e] -> Ir.Mov (Ir.Temp t, e, cmt)
+        | _ -> ice "bad args" )
+  | Ir.Mov (Ir.Mem (m, cmt1), e, cmt2) ->
+      reorder_stmt [m; e] (function
+        | [m; e] -> Ir.Mov (Ir.Mem (m, cmt1), e, cmt2)
+        | _ -> ice "bad args" )
+  | Ir.Mov (Ir.ESeq (s, e), e2, cmt) -> do_stmt (Ir.Seq (s, Ir.Mov (e, e2, cmt)))
   | Ir.Expr (Ir.Call (f, args)) ->
       (* Keep call on toplevel *)
       reorder_stmt (f :: args) (function
         | f :: args -> Ir.Expr (Ir.Call (f, args))
-        | _ -> ice "bad args")
+        | _ -> ice "bad args" )
   | Ir.Expr e ->
       reorder_stmt [e] (function [e] -> Ir.Expr e | _ -> ice "bad args")
-  | Ir.Mov (Ir.Temp t, Ir.Call (f, args)) ->
-      (* Keep call on toplevel *)
-      reorder_stmt (f :: args) (function
-        | f :: args -> Ir.Mov (Ir.Temp t, Ir.Call (f, args))
-        | _ -> ice "bad args")
-  | Ir.Mov (t, v) ->
-      reorder_stmt [t; v] (function
-        | [t; v] -> Ir.Mov (t, v)
-        | _ -> ice "bad args")
-  | Ir.Jmp (e, labs) ->
-      reorder_stmt [e] (function
-        | [e] -> Ir.Jmp (e, labs)
-        | _ -> ice "bad args")
-  | Ir.CJmp (op, e1, e2, t, f) ->
-      reorder_stmt [e1; e2] (function
-        | [e1; e2] -> Ir.CJmp (op, e1, e2, t, f)
-        | _ -> ice "bad args")
-  | Ir.Seq (s1, s2) -> seq (do_stmt s1) (do_stmt s2)
-  | Ir.Label lab -> Ir.Label lab
+  | s -> reorder_stmt [] (fun _ -> s)
 
 and do_expr = function
   | Ir.Const n -> (nop, Ir.Const n)
@@ -86,17 +83,17 @@ and do_expr = function
   | Ir.BinOp (op, l, r) ->
       reorder_expr [l; r] (function
         | [l; r] -> Ir.BinOp (op, l, r)
-        | _ -> ice "bad args")
-  | Ir.Mem e ->
-      reorder_expr [e] (function [e] -> Ir.Mem e | _ -> ice "bad args")
+        | _ -> ice "bad args" )
+  | Ir.Mem (e, cmt) ->
+      reorder_expr [e] (function [e] -> Ir.Mem (e, cmt) | _ -> ice "bad args")
   | Ir.Call (t, args) ->
       reorder_expr (t :: args) (function
         | t :: args -> Ir.Call (t, args)
-        | _ -> ice "bad args")
+        | _ -> ice "bad args" )
   | Ir.ESeq (s, e) ->
       let s = do_stmt s in
       let s', e = do_expr e in
-      (seq s s', e)
+      (seq [s; s'], e)
 
 let linearize stmt =
   let rec linear = function
@@ -167,21 +164,23 @@ let trace_schedule (basic_blocks, finish) =
          in favor of a fall-through. *)
       | 1, Some nextblock -> front @ trace nextblock
       | _, Some nextblock -> block @ trace nextblock )
-    | front, Ir.CJmp (op, e1, e2, t, f) -> (
+    | front, Ir.CJmp (op, e1, e2, t, f, cmt) -> (
       match (Hashtbl.find_opt todo t, Hashtbl.find_opt todo f) with
       (* Arrange so that false label follows cjump *)
       | _, Some falseblock -> block @ trace falseblock
       (* False label can never follow cjump, but true label can;
          negate the conditional, so that the true label is now the false label. *)
       | Some trueblock, _ ->
-          let cjmp' = Ir.CJmp (Ir.not_relop op, e1, e2, f, t) in
+          let cjmp' =
+            Ir.CJmp (Ir.not_relop op, e1, e2, f, t, Printf.sprintf "!(%s)" cmt)
+          in
           front @ [cjmp'] @ trace trueblock
       (* We can't find a false or true label to schedule.
          Instead, make up a dummy "false bridge" that will jump immediately to
          the real false label. *)
       | _, _ ->
           let f' = Temp.newlabel "false_bridge" in
-          let cjmp' = Ir.CJmp (op, e1, e2, t, f') in
+          let cjmp' = Ir.CJmp (op, e1, e2, t, f', "") in
           front @ [cjmp'; Ir.Label f'; Ir.Jmp (Ir.Name f, [f])] )
     | _, _ -> ice "mishaped basic block: doesn't end with label"
   in
@@ -193,3 +192,53 @@ let trace_schedule (basic_blocks, finish) =
     | _ :: rest -> schedule rest
   in
   schedule basic_blocks @ [Ir.Label finish]
+
+(* Removes jumps whose target is the immediate next instruction. *)
+let rec eliminate_trivial_jumps = function
+  | [] -> []
+  | [one] -> [one]
+  | Ir.Jmp (_, [l1]) :: Ir.Label l2 :: rest when l1 = l2 ->
+      eliminate_trivial_jumps rest
+  | i :: rest -> i :: eliminate_trivial_jumps rest
+
+let eliminate_unused_labels instrs =
+  let module LT = Temp.LabelHashtbl in
+  let unused_labels = LT.create 8 in
+  (* Populate *)
+  List.iter
+    (function
+      | Ir.Label lab ->
+          assert (not (LT.mem unused_labels lab));
+          LT.add unused_labels lab ()
+      | _ -> () )
+    instrs;
+  (* Mark used labels *)
+  let rec expr = function
+    | Ir.Const _ | Ir.Temp _ -> []
+    | Ir.Name lab -> [lab]
+    | Ir.BinOp (_, e1, e2) -> expr e1 @ expr e2
+    | Ir.Mem (e, _) -> expr e
+    | Ir.Call (f, args) -> expr f @ List.concat_map expr args
+    | Ir.ESeq _ -> ice "should be eliminated by linearize"
+  and stmt = function
+    | Ir.Expr e -> expr e
+    | Ir.Mov (e1, e2, _) -> expr e1 @ expr e2
+    | Ir.Jmp (e1, labs) -> expr e1 @ labs
+    | CJmp (_, e1, e2, t, f, _) -> expr e1 @ expr e2 @ [t; f]
+    | Seq _ -> ice "should be eliminated by linearize"
+    | Label _ -> (* definition, not a use *) []
+  in
+  List.iter (fun s -> stmt s |> List.iter (LT.remove unused_labels)) instrs;
+  (* Remove unused *)
+  let rec finish = function
+    | [] -> []
+    | Ir.Label l :: rest when LT.mem unused_labels l -> finish rest
+    | s :: rest -> s :: finish rest
+  in
+  finish instrs
+
+let simplify instrs =
+  instrs
+  (* Eliminating trivial jumps first may open up more unused labels. *)
+  |> eliminate_trivial_jumps
+  |> eliminate_unused_labels

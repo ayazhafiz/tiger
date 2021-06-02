@@ -2,7 +2,7 @@ let
   type any = {
     any: int
   }
-  var buffer := getchar()
+  var buffer := get_char()
   function readint(any: any): int =
     let
       var i := 0
@@ -16,13 +16,13 @@ let
           1
         else
           buffer = "\n" do
-          buffer := getchar()
+          buffer := get_char()
     in
       skipto();
       any.any := isdigit(buffer);
       while isdigit(buffer) do
         i := i * 10 + ord(buffer) - ord("0");
-        buffer := getchar();
+        buffer := get_char();
       i
     end
   type list = {
@@ -85,7 +85,7 @@ let
       print(" ");
       printlist(l.rest)
   var list1 := readlist()
-  var list2 := buffer := getchar();
+  var list2 := buffer := get_char();
   readlist()
 in
   printlist(merge(list1, list2))

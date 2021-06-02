@@ -1,0 +1,89 @@
+
+
+_start:
+  Mov(t26,                                
+      rbx)                                
+  Mov(t27,                                
+      r12)                                
+  Mov(t28,                                
+      r13)                                
+  Mov(t29,                                
+      r14)                                
+  Mov(t30,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Call(nfactor,                           
+       rbp,                               
+       10)                                
+  Mov(t25,                                
+      rax)                                
+  Mov(rax,                                return ()
+      t25)
+  Mov(rbx,
+      t26)
+  Mov(r12,
+      t27)
+  Mov(r13,
+      t28)
+  Mov(r14,
+      t29)
+  Mov(r15,
+      t30)
+
+nfactor:
+  Mov(t20,                                
+      rbx)                                
+  Mov(t21,                                
+      r12)                                
+  Mov(t22,                                
+      r13)                                
+  Mov(t23,                                
+      r14)                                
+  Mov(t24,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t17,                                n
+      rsi)                                
+  CJmp(=,                                 n = 0
+      t17,                                
+      0,                                  
+      true,                               
+      false)                              
+  false:                                  
+  Mov(t31,                                push stmt up
+      t17)                                
+  Call(nfactor,                           
+       Mem(-(rbp,                         static link
+             8)),                         
+       -(t17,                             
+         1))                              
+  Mov(t18,                                
+      rax)                                
+  Mov(t19,                                else
+      *(t31,                              
+        t18))                             
+  join:                                   
+  Mov(rax,                                return ()
+      t19)                                
+  Mov(rbx,                                
+      t20)                                
+  Mov(r12,                                
+      t21)                                
+  Mov(r13,                                
+      t22)                                
+  Mov(r14,                                
+      t23)                                
+  Mov(r15,                                
+      t24)                                
+  Jmp(done1,                              
+      [done1])                            
+  true:                                   
+  Mov(t19,                                then
+      1)
+  Jmp(join,
+      [join])
+  done1:

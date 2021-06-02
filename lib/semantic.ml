@@ -46,7 +46,7 @@ let tyeq t1 t2 =
   | Ty.Name (t1, _), Ty.Name (t2, _) ->
       ice
         (Printf.sprintf "Inconsistent state: type names %s, %s not resolved"
-           (name t1) (name t2))
+           (name t1) (name t2) )
   | _ -> false
 
 let getty ?(resolve = true) tbl sym =
@@ -62,7 +62,7 @@ let expect_ty2 check t1 t2 msg =
   if not (check t1 t2) then
     ice
       (Printf.sprintf "mismatched types (%s vs %s): %s" (Ty.string_of_ty t1)
-         (Ty.string_of_ty t2) msg)
+         (Ty.string_of_ty t2) msg )
 
 let rec ck_var venv tenv = function
   | SimpleVar (v, realty) ->
@@ -84,7 +84,7 @@ let rec ck_var venv tenv = function
     | _ ->
         ice
           (Printf.sprintf "field access \"%s\" must be on a record type"
-             (name f)) )
+             (name f) ) )
   | SubscriptVar (v, idx, realty) -> (
     match simplifyty (ck_var venv tenv v) with
     | Ty.Array (elty, _) ->
@@ -116,7 +116,7 @@ and ck_expr venv tenv = function
           List.iter2
             (fun ety rty ->
               expect_ty2 tyeq rty ety
-                "argument type differs from formal parameter")
+                "argument type differs from formal parameter" )
             param_tys ck_args;
           realty := Some out_ty;
           out_ty )
@@ -145,7 +145,7 @@ and ck_expr venv tenv = function
                  |Ty.Nil, Ty.Nil
                  |Ty.Array _, Ty.Array _ ->
                     tyeq t1 t2
-                | _ -> false)
+                | _ -> false )
               ty_l ty_r
               "arguments to comparison operators must be both ints, strings, \
                records, or arrays";
@@ -166,7 +166,7 @@ and ck_expr venv tenv = function
                 ^ ", or is out of order" );
             let rty = ck_expr venv tenv rexpr in
             expect_ty2 tyeq fty rty
-              (Printf.sprintf "field %s has incorrect\ntype" (name rname)))
+              (Printf.sprintf "field %s has incorrect\ntype" (name rname)) )
           field_tys fields;
         realty := Some rcd;
         rcd
@@ -216,7 +216,7 @@ and ck_expr venv tenv = function
       scoped venv tenv (fun venv tenv ->
           Tbl.add venv var (VarEntry Ty.Int);
           let tbody = ck_expr venv tenv body in
-          expect_ty2 tyeq Ty.Unit tbody "body must return no value");
+          expect_ty2 tyeq Ty.Unit tbody "body must return no value" );
       Ty.Unit
   | BreakExpr -> Ty.Unit
   | LetExpr {decls; body; ty = realty} ->
@@ -224,7 +224,7 @@ and ck_expr venv tenv = function
           List.iter (ck_decl venv tenv) decls;
           let tbody = ck_expr venv tenv body in
           realty := Some tbody;
-          tbody)
+          tbody )
   | ArrayExpr {typ; size; init; ty = realty} -> (
       expect_ty2 tyeq (ck_expr venv tenv size) Ty.Int "array size must be int";
       match getty tenv typ with
@@ -241,14 +241,18 @@ and ck_expr venv tenv = function
 
 and ck_decl venv tenv = function
   | FunctionDecl decls ->
+      let declared = ref [] in
       (* 1. Introduce headers for mutually recursive definitions *)
       List.iter
         (fun {fn_name; params; result; _} ->
+          if List.mem fn_name !declared then
+            ice (name fn_name ^ " re-declared in mutually recursive block");
+          declared := fn_name :: !declared;
           let param_tys = List.map (fun {typ; _} -> getty tenv typ) params in
           let out_ty =
             match result with None -> Ty.Unit | Some typ -> getty tenv typ
           in
-          Tbl.add venv fn_name (FunEntry (param_tys, out_ty)))
+          Tbl.add venv fn_name (FunEntry (param_tys, out_ty)) )
         decls;
       (* 2. Check bodies of each function *)
       List.iter
@@ -257,7 +261,7 @@ and ck_decl venv tenv = function
               List.iter
                 (fun {fld_name = pname; typ; _} ->
                   let pty = getty tenv typ in
-                  Tbl.add venv pname (VarEntry pty))
+                  Tbl.add venv pname (VarEntry pty) )
                 params;
               let tbody = ck_expr venv tenv body in
               match result with
@@ -266,7 +270,8 @@ and ck_decl venv tenv = function
                     "procedure must not return a value"
               | Some typ ->
                   expect_ty2 tyeq (getty tenv typ) tbody
-                    "type of body expression differs from declared return\ntype"))
+                    "type of body expression differs from declared return\ntype" )
+          )
         decls
   | VarDecl {name; typ = None; init; _} ->
       let tinit = ck_expr venv tenv init in
@@ -283,23 +288,25 @@ and ck_decl venv tenv = function
       let partial_defs = ref [] in
       List.iter
         (fun {name; _} ->
+          if List.mem_assoc name !partial_defs then
+            ice (Symbol.name name ^ " re-declared in mutually recursive block");
           let realty = ref None in
           Tbl.add tenv name (Ty.Name (name, realty));
-          partial_defs := (name, realty) :: !partial_defs)
+          partial_defs := (name, realty) :: !partial_defs )
         aliases;
       (* 2. Compute real definitions of types *)
       List.iter
         (fun {name; ty} ->
           let realty = ck_ty ~resolve:false tenv ty in
           let realdef = List.assoc name !partial_defs in
-          realdef := Some realty)
+          realdef := Some realty )
         aliases;
       (* 3. Perform cycle-busting. [getty ~resolve:true] will attempt to
             resolve all names and catch cycles. *)
       List.iter
         (fun {name; _} ->
           let _ = getty ~resolve:true tenv name in
-          ())
+          () )
         aliases
 
 and ck_ty ?(resolve = true) tenv = function

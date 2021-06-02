@@ -1,0 +1,30 @@
+
+
+_start:
+  Mov(t18,                                
+      rbx)                                
+  Mov(t19,                                
+      r12)                                
+  Mov(t20,                                
+      r13)                                
+  Mov(t21,                                
+      r14)                                
+  Mov(t22,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t17,                                var b := 4
+      4)                                  
+  Mov(rax,                                return ()
+      0)
+  Mov(rbx,
+      t18)
+  Mov(r12,
+      t19)
+  Mov(r13,
+      t20)
+  Mov(r14,
+      t21)
+  Mov(r15,
+      t22)

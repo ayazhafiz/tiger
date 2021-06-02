@@ -1,0 +1,64 @@
+
+
+_start:
+  Mov(t25,                                
+      rbx)                                
+  Mov(t26,                                
+      r12)                                
+  Mov(t27,                                
+      r13)                                
+  Mov(t28,                                
+      r14)                                
+  Mov(t29,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t17,                                var a := 0
+      0)                                  
+  Call(g,                                 
+       rbp,                               
+       2)                                 
+  Mov(t24,                                
+      rax)                                
+  Mov(rax,                                return ()
+      t24)
+  Mov(rbx,
+      t25)
+  Mov(r12,
+      t26)
+  Mov(r13,
+      t27)
+  Mov(r14,
+      t28)
+  Mov(r15,
+      t29)
+
+g:
+  Mov(t19,                                
+      rbx)                                
+  Mov(t20,                                
+      r12)                                
+  Mov(t21,                                
+      r13)                                
+  Mov(t22,                                
+      r14)                                
+  Mov(t23,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t18,                                a
+      rsi)                                
+  Mov(rax,                                return ()
+      t18)
+  Mov(rbx,
+      t19)
+  Mov(r12,
+      t20)
+  Mov(r13,
+      t21)
+  Mov(r14,
+      t22)
+  Mov(r15,
+      t23)
