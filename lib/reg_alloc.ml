@@ -18,7 +18,7 @@ let tbl_update tbl key default updatefn =
   let v = find_or tbl key default in
   Hashtbl.add tbl key (updatefn v)
 
-module RegisterAllocation (F : FRAME) = struct
+module RegisterAllocation (F : ALLOCATION_FRAME) = struct
   (*******************************)
   (* Interference Graph Coloring *)
   (*******************************)
@@ -111,7 +111,7 @@ module RegisterAllocation (F : FRAME) = struct
     in
     (* Mapping of nodes to their current interference degree. *)
     let degree = Hashtbl.create n_ifnodes in
-    let degree_of n = find_or_assert_precolored degree n 0 in
+    let get_degree n = find_or_assert_precolored degree n 0 in
     (* Mapping of nodes to the moves they are involved in. *)
     let move_list =
       (* Init as empty for every node *)
@@ -158,7 +158,7 @@ module RegisterAllocation (F : FRAME) = struct
         let psfs = NS.(sfs ++ precolored_nodes) in
         NS.iter
           (fun u ->
-            assert (degree_of u = NS.(Hashtbl.find adj_list u ^^ psfs |> size))
+            assert (get_degree u = NS.(Hashtbl.find adj_list u ^^ psfs |> size))
             )
           sfs
       in
@@ -168,7 +168,7 @@ module RegisterAllocation (F : FRAME) = struct
            ∧ move_list[u] ∩ (active_moves ∪ worklist_moves) = ∅ *)
         NS.iter
           (fun u ->
-            assert (degree_of u < k);
+            assert (get_degree u < k);
             assert (
               NS.(
                 Hashtbl.find move_list u ^^ (!active_moves ++ !worklist_moves)
@@ -181,7 +181,7 @@ module RegisterAllocation (F : FRAME) = struct
            ∧ move_list[u] ∩ (active_moves ∪ worklist_moves) ≠ ∅ *)
         NS.iter
           (fun u ->
-            assert (degree_of u < k);
+            assert (get_degree u < k);
             assert (
               NS.(
                 Hashtbl.find move_list u ^^ (!active_moves ++ !worklist_moves)
@@ -190,7 +190,7 @@ module RegisterAllocation (F : FRAME) = struct
       in
       let wl_spill_invariant () =
         (* u ∈ wl_spill => degree(u) >= K *)
-        NS.iter (fun u -> assert (degree_of u >= k)) !wl_spill
+        NS.iter (fun u -> assert (get_degree u >= k)) !wl_spill
       in
       (* *)
       degree_invariant ();
@@ -244,7 +244,7 @@ module RegisterAllocation (F : FRAME) = struct
     let make_worklist () =
       NS.iter
         (fun n ->
-          if degree_of n >= k then wl_spill := NS.add n !wl_spill
+          if get_degree n >= k then wl_spill := NS.add n !wl_spill
           else if move_related n then wl_freeze := NS.add n !wl_freeze
           else wl_simplify := NS.add n !wl_simplify )
         !initial;
@@ -270,7 +270,7 @@ module RegisterAllocation (F : FRAME) = struct
     in
     (* *)
     let decrement_degree m =
-      let d = degree_of m in
+      let d = get_degree m in
       Hashtbl.add degree m (d - 1);
       if d = k then (
         (* Just transitioned from degree k to k-1. This means we may be eligible
@@ -302,7 +302,7 @@ module RegisterAllocation (F : FRAME) = struct
       let neighbors_uv = NS.(adjacent u ++ adjacent v) in
       let uv_sig_neighbors =
         NS.fold
-          (fun n cnt -> if degree_of n >= k then cnt + 1 else cnt)
+          (fun n cnt -> if get_degree n >= k then cnt + 1 else cnt)
           neighbors_uv 0
       in
       uv_sig_neighbors < k
@@ -311,7 +311,7 @@ module RegisterAllocation (F : FRAME) = struct
     let george u v =
       adjacent u
       |> NS.for_all (fun t ->
-             degree_of t < k
+             get_degree t < k
              || NS.mem t precolored_nodes
              || Hashtbl.mem adj_set (t, v) )
     in
@@ -320,7 +320,7 @@ module RegisterAllocation (F : FRAME) = struct
       if
         (not (NS.mem u precolored_nodes))
         && (not (move_related u))
-        && degree_of u < k
+        && get_degree u < k
       then (
         wl_freeze := NS.remove u !wl_freeze;
         wl_simplify := NS.add u !wl_simplify )
@@ -351,7 +351,7 @@ module RegisterAllocation (F : FRAME) = struct
           add_edge t u;
           decrement_degree t )
         (adjacent v);
-      if degree_of u >= k && NS.mem u !wl_freeze then (
+      if get_degree u >= k && NS.mem u !wl_freeze then (
         wl_freeze := NS.remove u !wl_freeze;
         wl_spill := NS.add u !wl_spill )
     in
@@ -414,7 +414,7 @@ module RegisterAllocation (F : FRAME) = struct
           let v =
             if get_alias y = get_alias u then get_alias x else get_alias y
           in
-          if NS.is_empty (node_moves v) && degree_of v < k then (
+          if NS.is_empty (node_moves v) && get_degree v < k then (
             wl_freeze := NS.remove v !wl_freeze;
             wl_simplify := NS.add v !wl_simplify ) )
         (node_moves u)
@@ -529,24 +529,15 @@ module RegisterAllocation (F : FRAME) = struct
             (v, vmem) )
           spills
       in
-      fun spilltemp -> F.expr_of_access (List.assoc spilltemp map, Ir.Temp F.fp)
+      fun spilltemp -> List.assoc spilltemp map
     in
-    let cgen = F.codegen fr in
     let fetch spilled_temp newtemp =
       let cmt = "fetch spilled " ^ string_of_temp spilled_temp in
-      let i =
-        Ir.Mov (Ir.Temp newtemp, mem_of_spill spilled_temp, cmt) |> cgen
-      in
-      List.iter (add_comment cmt) i;
-      i
+      F.fetch_from_access fr newtemp (mem_of_spill spilled_temp) cmt
     in
     let store spilled_temp newtemp =
       let cmt = "store spilled " ^ string_of_temp spilled_temp in
-      let i =
-        Ir.Mov (mem_of_spill spilled_temp, Ir.Temp newtemp, cmt) |> cgen
-      in
-      List.iter (add_comment cmt) i;
-      i
+      F.store_to_access fr (mem_of_spill spilled_temp) newtemp cmt
     in
     let process dsts srcs =
       let dstsrc = TempSet.(union (of_list dsts) (of_list srcs)) in

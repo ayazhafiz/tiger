@@ -1,17 +1,5 @@
-(** An architecture-specific representation of a stack frame. *)
-module type FRAME = sig
-  type frame
-
-  (** Denotes the access location of a variable in this frame. *)
-  type access
-
-  (** Fragment types. *)
-  type frag =
-    | Proc of frame * Ir.stmt  (** A procedure *)
-    | String of Temp.label * string  (** A string literal *)
-
-  type proc = {prolog : string; body : Assem.instr list; epilog : string}
-
+(** A representation of a machine and its stack frames for register allocation. *)
+module type ALLOCATION_FRAME = sig
   (** The type of a register. *)
   type register
 
@@ -21,6 +9,48 @@ module type FRAME = sig
 
   val registers : register list
   (** All registers on this machine. *)
+
+  (** Allocation of temporaries in a program to registers. *)
+  type allocation = (Temp.temp, register) Hashtbl.t
+
+  val temp_map : (Temp.temp * register) list
+  (** A mapping of a register to its machine name. *)
+
+  (** Type of a stack frame on this machine. *)
+  type frame
+
+  (** Denotes the access location of a variable in this frame. *)
+  type access
+
+  val alloc_local : frame -> string option -> bool -> access
+  (** [alloc_local frame name escapes] allocates a local variable with a given
+      [escape] qualifier in [frame]. If [escape] is true, the local variable is
+      guaranteed to be put on the stack. If [name] is [None], a fresh name is
+      given. *)
+
+  val fetch_from_access :
+    frame -> Temp.temp -> access -> string -> Assem.instr list
+  (** [fetch fr t access comment] is equivalent to generating assembly for
+      Mov(t, access, comment). *)
+
+  val store_to_access :
+    frame -> access -> Temp.temp -> string -> Assem.instr list
+  (** [store fr access t comment] is equivalent to generating assembly for
+      Mov(access, t, comment). *)
+end
+
+(* TODO: rename FRAME *)
+
+(** An architecture-specific representation of a stack frame. *)
+module type FRAME = sig
+  include ALLOCATION_FRAME
+
+  (** Fragment types. *)
+  type frag =
+    | Proc of frame * Ir.stmt  (** A procedure *)
+    | String of Temp.label * string  (** A string literal *)
+
+  type proc = {prolog : string; body : Assem.instr list; epilog : string}
 
   val fp : Temp.temp
   (** The frame pointer of the present frame.
@@ -45,9 +75,6 @@ module type FRAME = sig
   val calldefs : Temp.temp list
   (** Registers trashed (definitely used) by a function inside a call. *)
 
-  val temp_map : (Temp.temp * register) list
-  (** A mapping of a register to its machine name. *)
-
   val wordsize : int
   (** Native word size of the architecture this frame represents. *)
 
@@ -67,12 +94,6 @@ module type FRAME = sig
   val formals : frame -> access list
   (** [formals frame] retrieves the access location of formal arguments. *)
 
-  val alloc_local : frame -> string option -> bool -> access
-  (** [alloc_local frame name escapes] allocates a local variable with a given
-      [escape] qualifier in [frame]. If [escape] is true, the local variable is
-      guaranteed to be put on the stack. If [name] is [None], a fresh name is
-      given. *)
-
   val external_call : frame -> Temp.label -> Ir.expr list -> Ir.expr
   (** [external_call calling_frame name args] performs a call to an external procedure. *)
 
@@ -82,9 +103,6 @@ module type FRAME = sig
   val proc_entry_exit1 : frame -> Ir.stmt -> Ir.stmt
   val proc_entry_exit2 : frame -> Assem.instr list -> Assem.instr list
   val proc_entry_exit3 : frame -> Assem.instr list -> proc
-
-  (** Allocation of temporaries in a program to registers. *)
-  type allocation = (Temp.temp, register) Hashtbl.t
 
   val emit :
        (Temp.label * string) list

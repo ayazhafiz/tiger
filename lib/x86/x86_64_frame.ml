@@ -432,6 +432,20 @@ end = struct
     munch_stmt stmt;
     List.rev !ilist
 
+  let fetch_from_access fr temp mem cmt =
+    let i =
+      Ir.Mov (Ir.Temp temp, expr_of_access (mem, Ir.Temp fp), cmt) |> codegen fr
+    in
+    List.iter (Assem.add_comment cmt) i;
+    i
+
+  let store_to_access fr mem temp cmt =
+    let i =
+      Ir.Mov (expr_of_access (mem, Ir.Temp fp), Ir.Temp temp, cmt) |> codegen fr
+    in
+    List.iter (Assem.add_comment cmt) i;
+    i
+
   let proc_entry_exit1 fr body =
     (* Move formals into their accesses. *)
     let rec eat_stack n = function

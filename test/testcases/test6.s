@@ -14,9 +14,6 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi
-  mov rdi, rbp
-  mov rsi, 0
-  lea rdx, [rel str__str2]
   call do_nothing1
   mov rax, 0
   mov rsp, rbp
@@ -27,8 +24,7 @@ do_nothing2:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi
-  mov rdi, [rbp - 8]
-  lea rdx, [rel str__str]
+  mov rsi, r10
   call do_nothing1
   mov rsp, rbp
   pop rbp
@@ -38,8 +34,7 @@ do_nothing1:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi
-  mov rdi, [rbp - 8]
-  inc rsi
+  mov rsi, r10
   call do_nothing2
   mov rsp, rbp
   pop rbp

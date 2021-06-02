@@ -357,21 +357,31 @@ module Translate (F : FRAME) = struct
       | Toplevel -> ice "caller of function is not toplevel?"
       | Nest {frame; _} -> frame
     in
-    let call =
+    let arg_moves, call =
       match target with
-      | Toplevel -> F.external_call calling_frame target_label args
+      | Toplevel -> ([], F.external_call calling_frame target_label args)
       | Nest {parent = Toplevel; _} -> ice "cannot call function on toplevel"
       | Nest {parent; frame; _} ->
           (* Need to pass static link to the parent level of the function level
              we are about to call, per our calling convention (page 133) *)
           let sl = sl_of_from parent caller in
-          Ir.Call (Ir.Name (F.name frame), sl :: args)
+          let args', arg_moves =
+            List.map
+              (fun a ->
+                let a' = Ir.Temp (newtemp ()) in
+                (a', Ir.Mov (a', a, "")) )
+              (sl :: args)
+            |> List.split
+          in
+          (arg_moves, Ir.Call (Ir.Name (F.name frame), args'))
     in
     if has_ret then
       let rvtmp = Ir.Temp (Temp.newtemp ()) in
       Ex
-        (Ir.ESeq (Ir.seq [Ir.Expr call; Ir.Mov (rvtmp, Ir.Temp F.rv, "")], rvtmp)
-        )
+        (Ir.ESeq
+           ( Ir.seq
+               (arg_moves @ [Ir.Expr call; Ir.Mov (rvtmp, Ir.Temp F.rv, "")])
+           , rvtmp ) )
     else Nx (Ir.Expr call)
 
   (** [ir_seq exprs has_val] translates a sequence of [expr]s, conditioned on

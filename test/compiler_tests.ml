@@ -171,7 +171,7 @@ let irtest update fi =
   in
   ((fi.name, `Quick, wrap test), true)
 
-let exclude_asm = ["queens"; "test4"; "test30"; "merge"; "test42"]
+let exclude_asm = ["queens"; "test30"; "merge"; "test42"]
 
 let pseudo_asmtest update fi =
   let test _ =

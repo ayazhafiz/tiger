@@ -351,5 +351,8 @@ module MipsFrame : Frame.FRAME = struct
 
   let reserved_labels = [] (* TODO *)
 
+  let fetch_from_access _ = failwith "todo"
+  let store_to_access _ = failwith "todo"
+
   module Debug = struct let emit_debug _ _ _ = failwith "todo" end
 end

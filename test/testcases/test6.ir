@@ -5,6 +5,37 @@ str__str:
   "str"
 
 _start:
+  Mov(t38,                                
+      rbx)                                
+  Mov(t39,                                
+      r12)                                
+  Mov(t40,                                
+      r13)                                
+  Mov(t41,                                
+      r14)                                
+  Mov(t42,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Call(do_nothing1,                       
+       t35,                               
+       t36,                               
+       t37)                               
+  Mov(rax,                                return ()
+      0)
+  Mov(rbx,
+      t38)
+  Mov(r12,
+      t39)
+  Mov(r13,
+      t40)
+  Mov(r14,
+      t41)
+  Mov(r15,
+      t42)
+
+do_nothing2:
   Mov(t30,                                
       rbx)                                
   Mov(t31,                                
@@ -18,12 +49,12 @@ _start:
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
-  Call(do_nothing1,                       
-       rbp,                               
-       0,                                 
-       str__str2)                         
-  Mov(rax,                                return ()
-      0)
+  Mov(t19,                                d
+      rsi)
+  Call(do_nothing1,
+       t27,
+       t28,
+       t29)
   Mov(rbx,
       t30)
   Mov(r12,
@@ -35,48 +66,16 @@ _start:
   Mov(r15,
       t34)
 
-do_nothing2:
-  Mov(t25,                                
-      rbx)                                
-  Mov(t26,                                
-      r12)                                
-  Mov(t27,                                
-      r13)                                
-  Mov(t28,                                
-      r14)                                
-  Mov(t29,                                
-      r15)                                
-  Mov(Mem(-(rbp,                          static link  static link
-            8)),                          
-      rdi)                                
-  Mov(t19,                                d
-      rsi)                                
-  Call(do_nothing1,                       
-       Mem(-(rbp,                         static link
-             8)),
-       t19,
-       str__str)
-  Mov(rbx,
-      t25)
-  Mov(r12,
-      t26)
-  Mov(r13,
-      t27)
-  Mov(r14,
-      t28)
-  Mov(r15,
-      t29)
-
 do_nothing1:
-  Mov(t20,                                
-      rbx)                                
-  Mov(t21,                                
-      r12)                                
   Mov(t22,                                
-      r13)                                
+      rbx)                                
   Mov(t23,                                
-      r14)                                
+      r12)                                
   Mov(t24,                                
+      r13)                                
+  Mov(t25,                                
+      r14)                                
+  Mov(t26,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
@@ -84,19 +83,17 @@ do_nothing1:
   Mov(t17,                                a
       rsi)                                
   Mov(t18,                                b
-      rdx)                                
-  Call(do_nothing2,                       
-       Mem(-(rbp,                         static link
-             8)),
-       +(t17,
-         1))
+      rdx)
+  Call(do_nothing2,
+       t20,
+       t21)
   Mov(rbx,
-      t20)
-  Mov(r12,
-      t21)
-  Mov(r13,
       t22)
-  Mov(r14,
+  Mov(r12,
       t23)
-  Mov(r15,
+  Mov(r13,
       t24)
+  Mov(r14,
+      t25)
+  Mov(r15,
+      t26)

@@ -1,38 +1,42 @@
 
 
 _start:
-  Mov(t25,                                
-      rbx)                                
-  Mov(t26,                                
-      r12)                                
   Mov(t27,                                
-      r13)                                
+      rbx)                                
   Mov(t28,                                
-      r14)                                
+      r12)                                
   Mov(t29,                                
+      r13)                                
+  Mov(t30,                                
+      r14)                                
+  Mov(t31,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
   Mov(t17,                                var a := 0
       0)                                  
-  Call(g,                                 
-       rbp,                               
-       2)                                 
   Mov(t24,                                
+      rbp)                                
+  Mov(t25,                                
+      2)                                  
+  Call(g,                                 
+       t24,                               
+       t25)                               
+  Mov(t26,                                
       rax)                                
   Mov(rax,                                return ()
-      t24)
-  Mov(rbx,
-      t25)
-  Mov(r12,
       t26)
-  Mov(r13,
+  Mov(rbx,
       t27)
-  Mov(r14,
+  Mov(r12,
       t28)
-  Mov(r15,
+  Mov(r13,
       t29)
+  Mov(r14,
+      t30)
+  Mov(r15,
+      t31)
 
 g:
   Mov(t19,                                

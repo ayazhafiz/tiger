@@ -9,8 +9,8 @@ _start:
   sub rsp, 16
   mov [rbp - 8], rdi
   mov r10, 0
-  mov rdi, rbp
   mov rsi, 2
+  mov rdi, rbp
   call g
   mov rsp, rbp
   pop rbp
