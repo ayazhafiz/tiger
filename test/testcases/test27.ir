@@ -16,9 +16,9 @@ _start:
       rdi)                                
   Mov(t17,                                var a := 0
       0)                                  
-  Mov(t24,                                
+  Mov(t24,                                %arg(static_link):g
       rbp)                                
-  Mov(t25,                                
+  Mov(t25,                                %arg1:g
       2)                                  
   Call(g,                                 
        t24,                               

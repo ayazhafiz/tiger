@@ -171,7 +171,7 @@ let irtest update fi =
   in
   ((fi.name, `Quick, wrap test), true)
 
-let exclude_asm = ["queens"; "test30"; "merge"; "test42"]
+let exclude_asm = ["merge"]
 
 let pseudo_asmtest update fi =
   let test _ =
@@ -183,7 +183,7 @@ let pseudo_asmtest update fi =
 let asmtest update fi =
   let test _ =
     (* x86 *)
-    backend_golden update fi ".s" X86_64_Backend.emit_assem
+    backend_golden update fi ".nasm" X86_64_Backend.emit_assem
   in
   ((fi.name, `Quick, wrap test), true)
 
@@ -193,7 +193,7 @@ let exectest update fi =
     let ekind, ecode =
       match exit with
       | Backend.Exit n -> ("exit", n)
-      | Backend.Killed n -> ("killed", n)
+      | Backend.Killed n -> Alcotest.fail (Printf.sprintf "Killed (%d)" n)
     in
     String.concat "\n"
       [ "~~~stdout"; stdout; "~~~stdout"; ""; "~~~stderr"; stderr; "~~~stderr"

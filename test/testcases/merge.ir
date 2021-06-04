@@ -14,120 +14,227 @@ str__9:
   "9"
 
 _start:
-  Mov(t131,                               
+  Mov(t144,                               
       rbx)                                
-  Mov(t132,                               
+  Mov(t145,                               
       r12)                                
-  Mov(t133,                               
+  Mov(t146,                               
       r13)                                
-  Mov(t134,                               
+  Mov(t147,                               
       r14)                                
-  Mov(t135,                               
+  Mov(t148,                               
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
-  Mov(t137,                               push stmt up
+  Mov(t150,                               push stmt up
       -(rbp,                              
         16))                              
   Call(get_char,                          
   )                                       
   Mov(t17,                                
       rax)                                
-  Mov(Mem(t137)                           buffer  var buffer := get_char()
+  Mov(Mem(t150)                           buffer  var buffer := get_char()
       t17)                                
-  Mov(t119,                               
+  Mov(t132,                               %arg(static_link):readlist
       rbp)                                
   Call(readlist,                          
-       t119)                              
-  Mov(t120,                               
+       t132)                              
+  Mov(t133,                               
       rax)                                
-  Mov(t118,                               var list1 := readlist()
-      t120)                               
-  Mov(t136,                               push stmt up
+  Mov(t131,                               var list1 := readlist()
+      t133)                               
+  Mov(t149,                               push stmt up
       -(rbp,                              
         16))                              
   Call(get_char,                          
   )                                       
-  Mov(t122,                               
+  Mov(t135,                               
       rax)                                
-  Mov(Mem(t136)                           buffer  buffer := get_char()
-      t122)                               
-  Mov(t123,                               
+  Mov(Mem(t149)                           buffer  buffer := get_char()
+      t135)                               
+  Mov(t136,                               %arg(static_link):readlist
       rbp)                                
   Call(readlist,                          
-       t123)                              
-  Mov(t124,                               
+       t136)                              
+  Mov(t137,                               
       rax)                                
-  Mov(t121,                               var list2 := buffer := get_char();
-      t124)                               readlist()
+  Mov(t134,                               var list2 := buffer := get_char();
+      t137)                               readlist()
+  Mov(t142,                               %arg(static_link):printlist
+      rbp)                                
+  Mov(t138,                               %arg(static_link):merge
+      rbp)                                
+  Mov(t139,                               %arg1:merge
+      t131)                               
+  Mov(t140,                               %arg2:merge
+      t134)                               
+  Call(merge,                             
+       t138,                              
+       t139,                              
+       t140)                              
+  Mov(t141,                               
+      rax)                                
+  Mov(t143,                               %arg1:printlist
+      t141)                               
   Call(printlist,                         
-       t129,                              
-       t130)                              
+       t142,                              
+       t143)                              
   Mov(rax,                                return ()
       0)
   Mov(rbx,
-      t131)
+      t144)
   Mov(r12,
-      t132)
+      t145)
   Mov(r13,
-      t133)
+      t146)
   Mov(r14,
-      t134)
+      t147)
   Mov(r15,
-      t135)
+      t148)
 
 printlist:
-  Mov(t113,                               
+  Mov(t126,                               
       rbx)                                
-  Mov(t114,                               
+  Mov(t127,                               
       r12)                                
-  Mov(t115,                               
+  Mov(t128,                               
       r13)                                
-  Mov(t116,                               
+  Mov(t129,                               
       r14)                                
-  Mov(t117,                               
+  Mov(t130,                               
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
-  Mov(t56,                                l
+  Mov(t62,                                l
       rsi)                                
   CJmp(=,                                 l = nil
-      t56,
-      0,
-      true9,
-      false9)
-  false9:
-  Call(printint,
-       t109,
-       t110)
+      t62,                                
+      0,                                  
+      true9,                              
+      false9)                             
+  false9:                                 
+  Mov(t120,                               %arg(static_link):printint
+      Mem(-(rbp,                          static link
+            8)))                          
+  Mov(t121,                               %arg1:printint
+      Mem(+(t62,                          l.first
+            *(0,                          
+              8))))                       
+  Call(printint,                          
+       t120,                              
+       t121)                              
+  Mov(t122,                               %arg1:print
+      str__1)                             
+  Call(print,                             
+       t122)                              
+  Mov(t123,                               %arg(static_link):printlist
+      Mem(-(rbp,                          static link
+            8)))                          
+  Mov(t124,                               %arg1:printlist
+      Mem(+(t62,                          l.rest
+            *(1,                          
+              8))))                       
+  Call(printlist,                         
+       t123,                              
+       t124)                              
+  join7:                                  
+  Mov(rbx,                                
+      t126)                               
+  Mov(r12,                                
+      t127)                               
+  Mov(r13,                                
+      t128)                               
+  Mov(r14,                                
+      t129)                               
+  Mov(r15,                                
+      t130)                               
+  Jmp(done1,                              
+      [done1])                            
+  true9:                                  
+  Mov(t125,                               %arg1:print
+      str__)
   Call(print,
-       str__1)
-  Call(printlist,
-       t111,
-       t112)
-  join7:
-  Mov(rbx,
-      t113)
-  Mov(r12,
-      t114)
-  Mov(r13,
-      t115)
-  Mov(r14,
-      t116)
-  Mov(r15,
-      t117)
-  Jmp(done1,
-      [done1])
-  true9:
-  Call(print,
-       str__)
+       t125)
   Jmp(join7,
       [join7])
   done1:
 
 printint:
+  Mov(t115,                               
+      rbx)                                
+  Mov(t116,                               
+      r12)                                
+  Mov(t117,                               
+      r13)                                
+  Mov(t118,                               
+      r14)                                
+  Mov(t119,                               
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t61,                                i
+      rsi)                                
+  CJmp(<,                                 i < 0
+      t61,                                
+      0,                                  
+      true8,                              
+      false8)                             
+  false8:                                 
+  CJmp(>,                                 i > 0
+      t61,                                
+      0,                                  
+      true7,                              
+      false7)                             
+  false7:                                 
+  Mov(t109,                               %arg1:print
+      str__0)                             
+  Call(print,                             
+       t109)                              
+  join5:                                  
+  join6:                                  
+  Mov(rbx,                                
+      t115)                               
+  Mov(r12,                                
+      t116)                               
+  Mov(r13,                                
+      t117)                               
+  Mov(r14,                                
+      t118)                               
+  Mov(r15,                                
+      t119)                               
+  Jmp(done2,                              
+      [done2])                            
+  true8:                                  
+  Mov(t112,                               %arg1:print
+      str__2)                             
+  Call(print,                             
+       t112)                              
+  Mov(t113,                               %arg(static_link):f
+      rbp)                                
+  Mov(t114,                               %arg1:f
+      -(0,                                
+        t61))                             
+  Call(f,                                 
+       t113,                              
+       t114)                              
+  Jmp(join6,                              
+      [join6])                            
+  true7:                                  
+  Mov(t110,                               %arg(static_link):f
+      rbp)                                
+  Mov(t111,                               %arg1:f
+      t61)
+  Call(f,
+       t110,
+       t111)
+  Jmp(join5,
+      [join5])
+  done2:
+
+f:
   Mov(t104,                               
       rbx)                                
   Mov(t105,                               
@@ -141,462 +248,420 @@ printint:
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
-  Mov(t55,                                i
-      rsi)                                
-  CJmp(<,                                 i < 0
-      t55,                                
-      0,                                  
-      true8,                              
-      false8)                             
-  false8:                                 
-  CJmp(>,                                 i > 0
-      t55,
-      0,
-      true7,
-      false7)
-  false7:
-  Call(print,
-       str__0)
-  join5:
-  join6:
-  Mov(rbx,
-      t104)
-  Mov(r12,
-      t105)
-  Mov(r13,
-      t106)
-  Mov(r14,
-      t107)
-  Mov(r15,
-      t108)
-  Jmp(done2,
-      [done2])
-  true8:
-  Call(print,
-       str__2)
-  Call(f,
-       t102,
-       t103)
-  Jmp(join6,
-      [join6])
-  true7:
-  Call(f,
-       t100,
-       t101)
-  Jmp(join5,
-      [join5])
-  done2:
-
-f:
-  Mov(t95,                                
-      rbx)                                
-  Mov(t96,                                
-      r12)                                
-  Mov(t97,                                
-      r13)                                
-  Mov(t98,                                
-      r14)                                
-  Mov(t99,                                
-      r15)                                
-  Mov(Mem(-(rbp,                          static link  static link
-            8)),                          
-      rdi)                                
-  Mov(t90,                                i
+  Mov(t96,                                i
       rsi)                                
   CJmp(>,                                 i > 0
-      t90,                                
+      t96,                                
       0,                                  
       true6,                              
       false6)                             
   false6:                                 
   Mov(rbx,                                
-      t95)                                
+      t104)                               
   Mov(r12,                                
-      t96)                                
+      t105)                               
   Mov(r13,                                
-      t97)                                
+      t106)                               
   Mov(r14,                                
-      t98)                                
+      t107)                               
   Mov(r15,                                
-      t99)                                
+      t108)                               
   Jmp(done3,                              
       [done3])                            
   true6:                                  
+  Mov(t97,                                %arg(static_link):f
+      Mem(-(rbp,                          static link
+            8)))                          
+  Mov(t98,                                %arg1:f
+      /(t96,                              
+        10))                              
   Call(f,                                 
-       t91,                               
-       t92)                               
-  Mov(t138,                               push stmt up
-      -(t90,
-        *(/(t90,
-            10),
-          10)))
-  Call(ord,
-       str__0)
-  Mov(t93,
-      rax)
-  Call(chr,
-       +(t138,
-         t93))
-  Mov(t94,
-      rax)
+       t97,                               
+       t98)                               
+  Mov(t151,                               push stmt up
+      -(t96,                              
+        *(/(t96,                          
+            10),                          
+          10)))                           
+  Mov(t99,                                %arg1:ord
+      str__0)                             
+  Call(ord,                               
+       t99)                               
+  Mov(t100,                               
+      rax)                                
+  Mov(t101,                               %arg1:chr
+      +(t151,                             
+        t100))                            
+  Call(chr,                               
+       t101)                              
+  Mov(t102,                               
+      rax)                                
+  Mov(t103,                               %arg1:print
+      t102)
   Call(print,
-       t94)
+       t103)
   Jmp(false6,
       [false6])
   done3:
 
 merge:
-  Mov(t85,                                          
+  Mov(t91,                                          
       rbx)                                          
-  Mov(t86,                                          
+  Mov(t92,                                          
       r12)                                          
-  Mov(t87,                                          
+  Mov(t93,                                          
       r13)                                          
-  Mov(t88,                                          
+  Mov(t94,                                          
       r14)                                          
-  Mov(t89,                                          
+  Mov(t95,                                          
       r15)                                          
   Mov(Mem(-(rbp,                                    static link  static link
             8)),                                    
       rdi)                                          
-  Mov(t53,                                          a
+  Mov(t59,                                          a
       rsi)                                          
-  Mov(t54,                                          b
+  Mov(t60,                                          b
       rdx)                                          
   CJmp(=,                                           a = nil
-      t53,                                          
+      t59,                                          
       0,                                            
       true5,                                        
       false5)                                       
   false5:                                           
   CJmp(=,                                           b = nil
-      t54,                                          
+      t60,                                          
       0,                                            
       true4,                                        
       false4)                                       
   false4:                                           
   CJmp(<,                                           a.first < b.first
-      Mem(+(t53,                                    a.first
+      Mem(+(t59,                                    a.first
             *(0,                            
               8))),                         
-      Mem(+(t54,                                    b.first
+      Mem(+(t60,                                    b.first
             *(0,                                    
               8))),                                 
       true3,                                        
       false3)                                       
   false3:                                           
-  Mov(t76,                                          
+  Mov(t82,                                          
       Call(initArray,                               
            *(2,                                     
              8),                                    
            0))                                      
-  Mov(Mem(+(t76,                                    .first  .first=b.first
+  Mov(Mem(+(t82,                                    .first  .first=b.first
             *(0,                            
               8))),                         
-      Mem(+(t54,                                    b.first
+      Mem(+(t60,                                    b.first
             *(0,                                    
               8))))                                 
-  Mov(t139,                                         push stmt up
-      +(t76,                                        
+  Mov(t152,                                         push stmt up
+      +(t82,                                        
         *(1,                                        
           8)))                                      
-  Mov(t72,                                  
+  Mov(t78,                                          %arg(static_link):merge
       Mem(-(rbp,                                    static link
             8)))                                    
-  Mov(t73,                                          
-      t53)                                          
-  Mov(t74,                                  
-      Mem(+(t54,                                    b.rest
+  Mov(t79,                                          %arg1:merge
+      t59)                                          
+  Mov(t80,                                          %arg2:merge
+      Mem(+(t60,                                    b.rest
             *(1,                                    
               8))))                                 
   Call(merge,                                       
-       t72,                                         
-       t73,                                         
-       t74)                                         
-  Mov(t75,                                          
+       t78,                                         
+       t79,                                         
+       t80)                                         
+  Mov(t81,                                          
       rax)                                          
-  Mov(Mem(t139)                                     .rest  .rest=merge(a, b.rest)
-      t75)                                          
-  Mov(t82,                                          else
-      t76)                                          
-  join2:                                            
-  Mov(t83,                                          else
+  Mov(Mem(t152)                                     .rest  .rest=merge(a, b.rest)
+      t81)                                          
+  Mov(t88,                                          else
       t82)                                          
+  join2:                                            
+  Mov(t89,                                          else
+      t88)                                          
   join3:                                            
-  Mov(t84,                                          else
-      t83)                                          
+  Mov(t90,                                          else
+      t89)                                          
   join4:                                            
   Mov(rax,                                          return ()
-      t84)                                          
+      t90)                                          
   Mov(rbx,                                          
-      t85)                                          
+      t91)                                          
   Mov(r12,                                          
-      t86)                                          
+      t92)                                          
   Mov(r13,                                          
-      t87)                                          
+      t93)                                          
   Mov(r14,                                          
-      t88)                                          
+      t94)                                          
   Mov(r15,                                          
-      t89)                                          
+      t95)                                          
   Jmp(done4,                                        
       [done4])                                      
   true5:                                            
-  Mov(t84,                                          then
-      t54)                                          
+  Mov(t90,                                          then
+      t60)                                          
   Jmp(join4,                                        
       [join4])                                      
   true4:                                            
-  Mov(t83,                                          then
-      t53)                                          
+  Mov(t89,                                          then
+      t59)                                          
   Jmp(join3,                                        
       [join3])                                      
   true3:                                            
-  Mov(t81,                                          
+  Mov(t87,                                          
       Call(initArray,                               
            *(2,                                     
              8),                                    
            0))                                      
-  Mov(Mem(+(t81,                                    .first  .first=a.first
+  Mov(Mem(+(t87,                                    .first  .first=a.first
             *(0,                            
               8))),                         
-      Mem(+(t53,                                    a.first
+      Mem(+(t59,                                    a.first
             *(0,                                    
               8))))                                 
-  Mov(t140,                                         push stmt up
-      +(t81,                                        
+  Mov(t153,                                         push stmt up
+      +(t87,                                        
         *(1,                                        
           8)))                                      
-  Mov(t77,                                  
+  Mov(t83,                                          %arg(static_link):merge
       Mem(-(rbp,                                    static link
             8)))                                    
-  Mov(t78,                                  
-      Mem(+(t53,                                    a.rest
+  Mov(t84,                                          %arg1:merge
+      Mem(+(t59,                                    a.rest
             *(1,                                    
               8))))                                 
-  Mov(t79,                                          
-      t54)                                          
+  Mov(t85,                                          %arg2:merge
+      t60)                                          
   Call(merge,                                       
-       t77,                                         
-       t78,                                         
-       t79)                                         
-  Mov(t80,                                          
+       t83,                                         
+       t84,                                         
+       t85)                                         
+  Mov(t86,                                          
       rax)                                          
-  Mov(Mem(t140)                                     .rest  .rest=merge(a.rest, b)
-      t80)                                          
-  Mov(t82,                                          then
-      t81)
+  Mov(Mem(t153)                                     .rest  .rest=merge(a.rest, b)
+      t86)                                          
+  Mov(t88,                                          then
+      t87)
   Jmp(join2,
       [join2])
   done4:
 
 readlist:
-  Mov(t67,                                          
-      rbx)                                          
-  Mov(t68,                                          
-      r12)                                          
-  Mov(t69,                                          
-      r13)                                          
-  Mov(t70,                                          
-      r14)                                          
-  Mov(t71,                                          
-      r15)                                          
-  Mov(Mem(-(rbp,                                    static link  static link
-            8)),                                    
-      rdi)                                          
-  Mov(t58,                                          
-      Call(initArray,                               
-           *(1,                                     
-             8),                                    
-           0))                                      
-  Mov(Mem(+(t58,                                    .any  .any=0
-            *(0,                                    
-              8))),                                 
-      0)                                            
-  Mov(t57,                                          var any := any {
-      t58)                                            any=0
-                                                    }
-  Mov(t60,                                  
-      Mem(-(rbp,                                    static link
-            8)))                                    
-  Mov(t61,                                          
-      t57)                                          
-  Call(readint,                                     
-       t60,                                         
-       t61)                                         
-  Mov(t62,                                          
-      rax)                                          
-  Mov(t59,                                          var i := readint(any)
-      t62)                                          
-  CJmp(!=,                                          any.any
-      Mem(+(t57,                                    any.any
-            *(0,                                    
-              8))),                                 
-      0,                                            
-      true2,                                        
-      false2)                                       
-  false2:                                           
-  Mov(t66,                                          else
-      0)                                            
-  join1:                                            
-  Mov(rax,                                          return ()
-      t66)                                          
-  Mov(rbx,                                          
-      t67)                                          
-  Mov(r12,                                          
-      t68)                                          
-  Mov(r13,                                          
-      t69)                                          
-  Mov(r14,                                          
-      t70)                                          
-  Mov(r15,                                          
-      t71)                                          
-  Jmp(done5,                                        
-      [done5])                                      
-  true2:                                            
-  Mov(t65,                                          
-      Call(initArray,                               
-           *(2,                                     
-             8),                                    
-           0))                                      
-  Mov(Mem(+(t65,                                    .first  .first=i
-            *(0,                                    
-              8))),                                 
-      t59)                                          
-  Mov(t141,                                         push stmt up
-      +(t65,                                        
-        *(1,                                        
-          8)))                                      
-  Mov(t63,                                  
-      Mem(-(rbp,                                    static link
-            8)))                                    
-  Call(readlist,                                    
-       t63)                                         
-  Mov(t64,                                          
-      rax)                                          
-  Mov(Mem(t141)                                     .rest  .rest=readlist()
-      t64)                                          
-  Mov(t66,                                          then
-      t65)
+  Mov(t73,                                
+      rbx)                                
+  Mov(t74,                                
+      r12)                                
+  Mov(t75,                                
+      r13)                                
+  Mov(t76,                                
+      r14)                                
+  Mov(t77,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t64,                                
+      Call(initArray,                     
+           *(1,                           
+             8),                          
+           0))                            
+  Mov(Mem(+(t64,                          .any  .any=0
+            *(0,                          
+              8))),                       
+      0)                                  
+  Mov(t63,                                var any := any {
+      t64)                                  any=0
+                                          }
+  Mov(t66,                                %arg(static_link):readint
+      Mem(-(rbp,                          static link
+            8)))                          
+  Mov(t67,                                %arg1:readint
+      t63)                                
+  Call(readint,                           
+       t66,                               
+       t67)                               
+  Mov(t68,                                
+      rax)                                
+  Mov(t65,                                var i := readint(any)
+      t68)                                
+  CJmp(!=,                                any.any
+      Mem(+(t63,                          any.any
+            *(0,                          
+              8))),                       
+      0,                                  
+      true2,                              
+      false2)                             
+  false2:                                 
+  Mov(t72,                                else
+      0)                                  
+  join1:                                  
+  Mov(rax,                                return ()
+      t72)                                
+  Mov(rbx,                                
+      t73)                                
+  Mov(r12,                                
+      t74)                                
+  Mov(r13,                                
+      t75)                                
+  Mov(r14,                                
+      t76)                                
+  Mov(r15,                                
+      t77)                                
+  Jmp(done5,                              
+      [done5])                            
+  true2:                                  
+  Mov(t71,                                
+      Call(initArray,                     
+           *(2,                           
+             8),                          
+           0))                            
+  Mov(Mem(+(t71,                          .first  .first=i
+            *(0,                          
+              8))),                       
+      t65)                                
+  Mov(t154,                               push stmt up
+      +(t71,                              
+        *(1,                              
+          8)))                            
+  Mov(t69,                                %arg(static_link):readlist
+      Mem(-(rbp,                          static link
+            8)))                          
+  Call(readlist,                          
+       t69)                               
+  Mov(t70,                                
+      rax)                                
+  Mov(Mem(t154)                           .rest  .rest=readlist()
+      t70)                                
+  Mov(t72,                                then
+      t71)
   Jmp(join1,
       [join1])
   done5:
 
 readint:
-  Mov(t48,                                          
-      rbx)                                          
-  Mov(t49,                                          
-      r12)                                          
-  Mov(t50,                                          
-      r13)                                          
-  Mov(t51,                                          
-      r14)                                          
-  Mov(t52,                                          
-      r15)                                          
-  Mov(Mem(-(rbp,                                    static link  static link
-            8)),                                    
-      rdi)                                          
-  Mov(t18,                                          any
-      rsi)                                          
-  Mov(t19,                                          var i := 0
-      0)                                            
-  Call(skipto,                                      
-       t38)                                         
-  Mov(t145,                                         push stmt up
-      +(t18,                                        
-        *(0,                                        
-          8)))                                      
-  Mov(t39,                                          
-      rbp)                                          
-  Mov(t40,                                  
-      Mem(-(Mem(-(rbp,                              static link  buffer
-                  8)),                              
-            16)))                                   
-  Call(isdigit,                                     
-       t39,                                         
-       t40)                                         
-  Mov(t41,                                          
-      rax)                                          
-  Mov(Mem(t145)                                     any.any  any.any := isdigit(buffer)
-      t41)                                          
-  test1:                                            
-  Mov(t42,                                          
-      rbp)                                          
-  Mov(t43,                                  
-      Mem(-(Mem(-(rbp,                              static link  buffer
-                  8)),                              
-            16)))                                   
-  Call(isdigit,                                     
-       t42,                                         
-       t43)                                         
-  Mov(t44,                                          
-      rax)                                          
-  CJmp(=,                                           isdigit(buffer)
-      t44,                                          
-      0,                                            
-      break1,                                       
-      body1)                                        
-  body1:                                            
-  Mov(t143,                                         push stmt up
-      *(t19,                                        
-        10))                                        
-  Call(ord,                                         
-       Mem(-(Mem(-(rbp,                             static link  buffer
-                   8)),                             
-             16)))                                  
-  Mov(t45,                                          
-      rax)                                          
-  Mov(t144,                                         push stmt up
-      +(t143,                                       
-        t45))                                       
-  Call(ord,                                         
-       str__0)                                      
-  Mov(t46,                                          
-      rax)                                          
-  Mov(t19,                                          i := i * 10 + ord(buffer) - ord("0")
-      -(t144,                                       
-        t46))                                       
-  Mov(t142,                                         push stmt up
-      -(Mem(-(rbp,                                  static link
-              8)),                                  
-        16))                                        
-  Call(get_char,                                    
-  )                                                 
-  Mov(t47,                                          
-      rax)                                          
-  Mov(Mem(t142)                                     buffer  buffer := get_char()
-      t47)                                          
-  Jmp(test1,                                        
-      [test1])                                      
-  break1:                                           
-  Mov(rax,                                          return ()
+  Mov(t54,                                
+      rbx)                                
+  Mov(t55,                                
+      r12)                                
+  Mov(t56,                                
+      r13)                                
+  Mov(t57,                                
+      r14)                                
+  Mov(t58,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t18,                                any
+      rsi)                                
+  Mov(t19,                                var i := 0
+      0)                                  
+  Mov(t42,                                %arg(static_link):skipto
+      rbp)                                
+  Call(skipto,                            
+       t42)                               
+  Mov(t158,                               push stmt up
+      +(t18,                              
+        *(0,                              
+          8)))                            
+  Mov(t43,                                %arg(static_link):isdigit
+      rbp)                                
+  Mov(t44,                                %arg1:isdigit
+      Mem(-(Mem(-(rbp,                    static link  buffer
+                  8)),                    
+            16)))                         
+  Call(isdigit,                           
+       t43,                               
+       t44)                               
+  Mov(t45,                                
+      rax)                                
+  Mov(Mem(t158)                           any.any  any.any := isdigit(buffer)
+      t45)                                
+  test1:                                  
+  Mov(t46,                                %arg(static_link):isdigit
+      rbp)                                
+  Mov(t47,                                %arg1:isdigit
+      Mem(-(Mem(-(rbp,                    static link  buffer
+                  8)),                    
+            16)))                         
+  Call(isdigit,                           
+       t46,                               
+       t47)                               
+  Mov(t48,                                
+      rax)                                
+  CJmp(=,                                 isdigit(buffer)
+      t48,                                
+      0,                                  
+      break1,                             
+      body1)                              
+  body1:                                  
+  Mov(t156,                               push stmt up
+      *(t19,                              
+        10))                              
+  Mov(t49,                                %arg1:ord
+      Mem(-(Mem(-(rbp,                    static link  buffer
+                  8)),                    
+            16)))                         
+  Call(ord,                               
+       t49)                               
+  Mov(t50,                                
+      rax)                                
+  Mov(t157,                               push stmt up
+      +(t156,                             
+        t50))                             
+  Mov(t51,                                %arg1:ord
+      str__0)                             
+  Call(ord,                               
+       t51)                               
+  Mov(t52,                                
+      rax)                                
+  Mov(t19,                                i := i * 10 + ord(buffer) - ord("0")
+      -(t157,                             
+        t52))                             
+  Mov(t155,                               push stmt up
+      -(Mem(-(rbp,                        static link
+              8)),                        
+        16))                              
+  Call(get_char,                          
+  )                                       
+  Mov(t53,                                
+      rax)                                
+  Mov(Mem(t155)                           buffer  buffer := get_char()
+      t53)                                
+  Jmp(test1,                              
+      [test1])                            
+  break1:                                 
+  Mov(rax,                                return ()
       t19)
   Mov(rbx,
-      t48)
+      t54)
   Mov(r12,
-      t49)
+      t55)
   Mov(r13,
-      t50)
+      t56)
   Mov(r14,
-      t51)
+      t57)
   Mov(r15,
-      t52)
+      t58)
 
 skipto:
-  Mov(t33,                                          
-      rbx)                                          
-  Mov(t34,                                          
-      r12)                                          
-  Mov(t35,                                          
-      r13)                                          
-  Mov(t36,                                          
-      r14)                                          
   Mov(t37,                                          
+      rbx)                                          
+  Mov(t38,                                          
+      r12)                                          
+  Mov(t39,                                          
+      r13)                                          
+  Mov(t40,                                          
+      r14)                                          
+  Mov(t41,                                          
       r15)                                          
   Mov(Mem(-(rbp,                                    static link  static link
             8)),                                    
       rdi)                                          
   test:                                             
-  Mov(t147,                                         push call up
+  Mov(t160,                                         push call up
       Call(stringEqual,                     
            Mem(-(Mem(-(Mem(-(rbp,                   static link  static link  buffer
                              8)),                   
@@ -604,12 +669,12 @@ skipto:
                  16)),                              
            str__1))                                 
   CJmp(!=,                                          
-      t147,                                         
+      t160,                                         
       0,                                            
       true1,                                        
       false1)                                       
   false1:                                           
-  Mov(t31,                                          else
+  Mov(t35,                                          else
       Call(stringEqual,                     
            Mem(-(Mem(-(Mem(-(rbp,                   static link  static link  buffer
                              8)),                   
@@ -618,113 +683,121 @@ skipto:
            str__))                                  
   join:                                             
   CJmp(=,                                           if buffer = " " then
-      t31,                                            1
+      t35,                                            1
       0,                                            else
       break,                                          buffer = "\n"
       body)                                         
   body:                                             
-  Mov(t146,                                         push stmt up
+  Mov(t159,                                         push stmt up
       -(Mem(-(Mem(-(rbp,                            static link  static link
                     8)),                            
               8)),                                  
         16))                                        
   Call(get_char,                                    
   )                                                 
-  Mov(t32,                                          
+  Mov(t36,                                          
       rax)                                          
-  Mov(Mem(t146)                                     buffer  buffer := get_char()
-      t32)                                          
+  Mov(Mem(t159)                                     buffer  buffer := get_char()
+      t36)                                          
   Jmp(test,                                         
       [test])                                       
   true1:                                            
-  Mov(t31,                                          then
+  Mov(t35,                                          then
       1)
   Jmp(join,
       [join])
   break:
   Mov(rbx,
-      t33)
-  Mov(r12,
-      t34)
-  Mov(r13,
-      t35)
-  Mov(r14,
-      t36)
-  Mov(r15,
       t37)
+  Mov(r12,
+      t38)
+  Mov(r13,
+      t39)
+  Mov(r14,
+      t40)
+  Mov(r15,
+      t41)
 
 isdigit:
-  Mov(t26,                                
-      rbx)                                
-  Mov(t27,                                
-      r12)                                
-  Mov(t28,                                
-      r13)                                
-  Mov(t29,                                
-      r14)                                
   Mov(t30,                                
+      rbx)                                
+  Mov(t31,                                
+      r12)                                
+  Mov(t32,                                
+      r13)                                
+  Mov(t33,                                
+      r14)                                
+  Mov(t34,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
   Mov(t20,                                s
       rsi)                                
-  Mov(t25,                                true
+  Mov(t29,                                true
       1)                                  
+  Mov(t25,                                %arg1:ord
+      Mem(-(Mem(-(Mem(-(rbp,              static link  static link  buffer
+                        8)),              
+                  8)),                    
+            16)))                         
   Call(ord,                               
-       Mem(-(Mem(-(Mem(-(rbp,             static link  static link  buffer
-                         8)),             
-                   8)),                   
-             16)))                        
-  Mov(t23,                                
+       t25)                               
+  Mov(t26,                                
       rax)                                
-  Mov(t149,                               push stmt up
-      t23)                                
+  Mov(t162,                               push stmt up
+      t26)                                
+  Mov(t27,                                %arg1:ord
+      str__0)                             
   Call(ord,                               
-       str__0)                            
-  Mov(t24,                                
+       t27)                               
+  Mov(t28,                                
       rax)                                
   CJmp(>=,                                ord(buffer) >= ord("0")
-      t149,                               
-      t24,                                
+      t162,                               
+      t28,                                
       if_t,                               
       if_f)                               
   if_f:                                   
   false:                                  
-  Mov(t25,                                false
+  Mov(t29,                                false
       0)                                  
   true:                                   
   Mov(rax,                                return ()
-      t25)                                
-  Mov(rbx,                                
-      t26)                                
-  Mov(r12,                                
-      t27)                                
-  Mov(r13,                                
-      t28)                                
-  Mov(r14,                                
       t29)                                
-  Mov(r15,                                
+  Mov(rbx,                                
       t30)                                
+  Mov(r12,                                
+      t31)                                
+  Mov(r13,                                
+      t32)                                
+  Mov(r14,                                
+      t33)                                
+  Mov(r15,                                
+      t34)                                
   Jmp(done8,                              
       [done8])                            
   if_t:                                   
+  Mov(t21,                                %arg1:ord
+      Mem(-(Mem(-(Mem(-(rbp,              static link  static link  buffer
+                        8)),              
+                  8)),                    
+            16)))                         
   Call(ord,                               
-       Mem(-(Mem(-(Mem(-(rbp,             static link  static link  buffer
-                         8)),             
-                   8)),                   
-             16)))                        
-  Mov(t21,                                
+       t21)                               
+  Mov(t22,                                
       rax)                                
-  Mov(t148,                               push stmt up
-      t21)
+  Mov(t161,                               push stmt up
+      t22)                                
+  Mov(t23,                                %arg1:ord
+      str__9)
   Call(ord,
-       str__9)
-  Mov(t22,
+       t23)
+  Mov(t24,
       rax)
   CJmp(<=,
-      t148,
-      t22,
+      t161,
+      t24,
       true,
       false_bridge)
   false_bridge:

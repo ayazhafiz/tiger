@@ -5,6 +5,7 @@ type temp
 
 val string_of_temp : temp -> string
 val newtemp : unit -> temp
+val tempeq : temp -> temp -> bool
 
 type label
 

@@ -1,3 +1,4 @@
+; syntax:nasm
 BITS 64
 section .text
 
@@ -5,26 +6,30 @@ global _start
 
 str__:
   dq 1
-  db " "
+  db ` `
 _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t19, rbx                            # liveout: rbp rsp rdi r12 r13 r14 r15 t19
-  mov t20, r12                            # liveout: rbp rsp rdi r13 r14 r15 t19 t20
-  mov t21, r13                            # liveout: rbp rsp rdi r14 r15 t19 t20 t21
-  mov t22, r14                            # liveout: rbp rsp rdi r15 t19 t20 t21 t22
-  mov t23, r15                            # liveout: rbp rsp rdi t19 t20 t21 t22 t23
-  mov [rbp - 8], rdi                      # liveout: rbp rsp t19 t20 t21 t22 t23
-  mov t17, 0                              # liveout: rbp rsp t19 t20 t21 t22 t23
-  lea t24, [rel str__]                    # liveout: rbp rsp t19 t20 t21 t22 t23 t24
-  mov t18, t24                            # liveout: rbp rsp t19 t20 t21 t22 t23
-  mov rax, 0                              # liveout: rax rbp rsp t19 t20 t21 t22 t23
-  mov rbx, t19                            # liveout: rax rbx rbp rsp t20 t21 t22 t23
-  mov r12, t20                            # liveout: rax rbx rbp rsp r12 t21 t22 t23
-  mov r13, t21                            # liveout: rax rbx rbp rsp r12 r13 t22 t23
-  mov r14, t22                            # liveout: rax rbx rbp rsp r12 r13 r14 t23
-  mov r15, t23                            # liveout: rax rbx rbp rsp r12 r13 r14 r15
+  mov t19, rbx                            ; liveout: rbp rsp rdi r12 r13 r14 r15 t19
+  mov t20, r12                            ; liveout: rbp rsp rdi r13 r14 r15 t19 t20
+  mov t21, r13                            ; liveout: rbp rsp rdi r14 r15 t19 t20 t21
+  mov t22, r14                            ; liveout: rbp rsp rdi r15 t19 t20 t21 t22
+  mov t23, r15                            ; liveout: rbp rsp rdi t19 t20 t21 t22 t23
+  mov [rbp - 8], rdi                      ; liveout: rbp rsp t19 t20 t21 t22 t23
+                                          ; static link
+  mov t17, 0                              ; liveout: rbp rsp t19 t20 t21 t22 t23
+                                          ; var a := 0
+  lea t24, [rel str__]                    ; liveout: rbp rsp t19 t20 t21 t22 t23 t24
+  mov t18, t24                            ; liveout: rbp rsp t19 t20 t21 t22 t23
+                                          ; var a := " "
+  mov rax, 0                              ; liveout: rax rbp rsp t19 t20 t21 t22 t23
+                                          ; return ()
+  mov rbx, t19                            ; liveout: rax rbx rbp rsp t20 t21 t22 t23
+  mov r12, t20                            ; liveout: rax rbx rbp rsp r12 t21 t22 t23
+  mov r13, t21                            ; liveout: rax rbx rbp rsp r12 r13 t22 t23
+  mov r14, t22                            ; liveout: rax rbx rbp rsp r12 r13 r14 t23
+  mov r15, t23                            ; liveout: rax rbx rbp rsp r12 r13 r14 r15
   mov rsp, rbp
   pop rbp
   ret

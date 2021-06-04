@@ -8,15 +8,15 @@ str__:
   " ."
 
 _start:
-  Mov(t43,                                          
-      rbx)                                          
-  Mov(t44,                                          
-      r12)                                          
-  Mov(t45,                                          
-      r13)                                          
   Mov(t46,                                          
-      r14)                                          
+      rbx)                                          
   Mov(t47,                                          
+      r12)                                          
+  Mov(t48,                                          
+      r13)                                          
+  Mov(t49,                                          
+      r14)                                          
+  Mov(t50,                                          
       r15)                                          
   Mov(Mem(-(rbp,                                    static link  static link
             8)),                                    
@@ -24,32 +24,32 @@ _start:
   Mov(Mem(-(rbp,                                    N  var N := 8
             16)),                                   
       8)                                            
-  Mov(t55,                                          push stmt up
+  Mov(t58,                                          push stmt up
       -(rbp,                                        
         24))                                        
-  Mov(t54,                                          push call up
+  Mov(t57,                                          push call up
       Call(initArray,                       
            *(Mem(-(rbp,                             N
                    16)),                            
              8),                                    
            0))                                      
-  Mov(Mem(t55)                                      row  var row := intArray[N] of 0
-      t54)                                          
-  Mov(t53,                                          push stmt up
+  Mov(Mem(t58)                                      row  var row := intArray[N] of 0
+      t57)                                          
+  Mov(t56,                                          push stmt up
       -(rbp,                                        
         32))                                        
-  Mov(t52,                                          push call up
+  Mov(t55,                                          push call up
       Call(initArray,                       
            *(Mem(-(rbp,                             N
                    16)),                            
              8),                                    
            0))                                      
-  Mov(Mem(t53)                                      col  var col := intArray[N] of 0
-      t52)                                          
-  Mov(t51,                                          push stmt up
+  Mov(Mem(t56)                                      col  var col := intArray[N] of 0
+      t55)                                          
+  Mov(t54,                                          push stmt up
       -(rbp,                                        
         40))                                        
-  Mov(t50,                                          push call up
+  Mov(t53,                                          push call up
       Call(initArray,                       
            *(-(+(Mem(-(rbp,                         N
                        16)),                
@@ -58,12 +58,12 @@ _start:
                1),                                  
              8),                                    
            0))                                      
-  Mov(Mem(t51)                                      diag1  var diag1 := intArray[N + N - 1] of 0
-      t50)                                          
-  Mov(t49,                                          push stmt up
+  Mov(Mem(t54)                                      diag1  var diag1 := intArray[N + N - 1] of 0
+      t53)                                          
+  Mov(t52,                                          push stmt up
       -(rbp,                                        
         48))                                        
-  Mov(t48,                                          push call up
+  Mov(t51,                                          push call up
       Call(initArray,                       
            *(-(+(Mem(-(rbp,                         N
                        16)),                
@@ -72,34 +72,38 @@ _start:
                1),                                  
              8),                                    
            0))                                      
-  Mov(Mem(t49)                                      diag2  var diag2 := intArray[N + N - 1] of 0
-      t48)                                          
+  Mov(Mem(t52)                                      diag2  var diag2 := intArray[N + N - 1] of 0
+      t51)                                          
+  Mov(t44,                                          %arg(static_link):try
+      rbp)                                          
+  Mov(t45,                                          %arg1:try
+      0)                                            
   Call(try,                                         
-       t41,                                         
-       t42)                                         
+       t44,                                         
+       t45)                                         
   Mov(rax,                                          return ()
       0)
   Mov(rbx,
-      t43)
-  Mov(r12,
-      t44)
-  Mov(r13,
-      t45)
-  Mov(r14,
       t46)
-  Mov(r15,
+  Mov(r12,
       t47)
+  Mov(r13,
+      t48)
+  Mov(r14,
+      t49)
+  Mov(r15,
+      t50)
 
 try:
-  Mov(t36,                                          
-      rbx)                                          
-  Mov(t37,                                          
-      r12)                                          
-  Mov(t38,                                          
-      r13)                                          
   Mov(t39,                                          
-      r14)                                          
+      rbx)                                          
   Mov(t40,                                          
+      r12)                                          
+  Mov(t41,                                          
+      r13)                                          
+  Mov(t42,                                          
+      r14)                                          
+  Mov(t43,                                          
       r15)                                          
   Mov(Mem(-(rbp,                                    static link  static link
             8)),                                    
@@ -114,27 +118,27 @@ try:
       true5,                                        
       false5)                                       
   false5:                                           
-  Mov(t30,                                          var r := 0
+  Mov(t33,                                          var r := 0
       0)                                            
-  Mov(t31,                                          var limit := N - 1
+  Mov(t34,                                          var limit := N - 1
       -(Mem(-(Mem(-(rbp,                            static link  N
                     8)),                            
               16)),                                 
         1))                                         
   test2:                                            
-  Mov(t34,                                          true
+  Mov(t37,                                          true
       1)                                            
   CJmp(<=,                                          r <= limit
-      t30,                                          
-      t31,                                          
+      t33,                                          
+      t34,                                          
       true4,                                        
       false4)                                       
   false4:                                           
-  Mov(t34,                                          false
+  Mov(t37,                                          false
       0)                                            
   true4:                                            
   CJmp(=,                                           r <= limit
-      t34,                                          
+      t37,                                          
       0,                                            
       break2,                                       
       body2)                                        
@@ -143,7 +147,7 @@ try:
       Mem(+(Mem(-(Mem(-(rbp,                        static link  row  row[r]
                         8)),                        
                   24)),                             
-            *(t30,                                  
+            *(t33,                                  
               8))),                                 
       0,                                            
       if_t1,                                        
@@ -151,25 +155,28 @@ try:
   if_f1:                                            
   if_f:                                             
   false3:                                           
-  Mov(t30,                                          r := r + 1
-      +(t30,                                        
+  Mov(t33,                                          r := r + 1
+      +(t33,                                        
         1))                                         
   Jmp(test2,                                        
       [test2])                                      
   true5:                                            
+  Mov(t38,                                          %arg(static_link):printboard
+      Mem(-(rbp,                                    static link
+            8)))                                    
   Call(printboard,                                  
-       t35)                                         
+       t38)                                         
   join1:                                            
   Mov(rbx,                                          
-      t36)                                          
-  Mov(r12,                                          
-      t37)                                          
-  Mov(r13,                                          
-      t38)                                          
-  Mov(r14,                                          
       t39)                                          
-  Mov(r15,                                          
+  Mov(r12,                                          
       t40)                                          
+  Mov(r13,                                          
+      t41)                                          
+  Mov(r14,                                          
+      t42)                                          
+  Mov(r15,                                          
+      t43)                                          
   Jmp(done1,                                        
       [done1])                                      
   if_t1:                                            
@@ -177,7 +184,7 @@ try:
       Mem(+(Mem(-(Mem(-(rbp,                        static link  diag1  diag1[r + c]
                         8)),                        
                   40)),                             
-            *(+(t30,                                
+            *(+(t33,                                
                 t17),                               
               8))),                                 
       0,                                            
@@ -188,7 +195,7 @@ try:
       Mem(+(Mem(-(Mem(-(rbp,                        static link  diag2  diag2[r + 7 - c]
                         8)),                        
                   48)),                             
-            *(-(+(t30,                              
+            *(-(+(t33,                              
                   7),                               
                 t17),                               
               8))),                                 
@@ -199,20 +206,20 @@ try:
   Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  row  row[r]  row[r] := 1
                         8)),                        
                   24)),                             
-            *(t30,                                  
+            *(t33,                                  
               8))),                                 
       1)                                            
   Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag1  diag1[r + c]  diag1[r + c] := 1
                         8)),                        
                   40)),                             
-            *(+(t30,                                
+            *(+(t33,                                
                 t17),                               
               8))),                                 
       1)                                            
   Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag2  diag2[r + 7 - c]  diag2[r + 7 - c] := 1
                         8)),                        
                   48)),                             
-            *(-(+(t30,                              
+            *(-(+(t33,                              
                   7),                               
                 t17),                               
               8))),                                 
@@ -222,27 +229,33 @@ try:
                   32)),                             
             *(t17,                                  
               8))),                                 
-      t30)                                          
+      t33)                                          
+  Mov(t35,                                          %arg(static_link):try
+      Mem(-(rbp,                                    static link
+            8)))                                    
+  Mov(t36,                                          %arg1:try
+      +(t17,                                        
+        1))                                         
   Call(try,                                         
-       t32,                                         
-       t33)                                         
+       t35,                                         
+       t36)                                         
   Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  row  row[r]  row[r] := 0
                         8)),                        
                   24)),                             
-            *(t30,                                  
+            *(t33,                                  
               8))),                                 
       0)                                            
   Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag1  diag1[r + c]  diag1[r + c] := 0
                         8)),                        
                   40)),                             
-            *(+(t30,                                
+            *(+(t33,                                
                 t17),                               
               8))),                                 
       0)                                            
   Mov(Mem(+(Mem(-(Mem(-(rbp,                        static link  diag2  diag2[r + 7 - c]  diag2[r + 7 - c] := 0
                         8)),
                   48)),
-            *(-(+(t30,
+            *(-(+(t33,
                   7),
                 t17),
               8))),
@@ -255,15 +268,15 @@ try:
   done1:
 
 printboard:
-  Mov(t25,                                
-      rbx)                                
-  Mov(t26,                                
-      r12)                                
-  Mov(t27,                                
-      r13)                                
   Mov(t28,                                
-      r14)                                
+      rbx)                                
   Mov(t29,                                
+      r12)                                
+  Mov(t30,                                
+      r13)                                
+  Mov(t31,                                
+      r14)                                
+  Mov(t32,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
@@ -276,7 +289,7 @@ printboard:
               16)),                       
         1))                               
   test1:                                  
-  Mov(t24,                                true
+  Mov(t26,                                true
       1)                                  
   CJmp(<=,                                i <= limit
       t18,                                
@@ -284,11 +297,11 @@ printboard:
       true2,                              
       false2)                             
   false2:                                 
-  Mov(t24,                                false
+  Mov(t26,                                false
       0)                                  
   true2:                                  
   CJmp(=,                                 i <= limit
-      t24,                                
+      t26,                                
       0,                                  
       break,                              
       body1)                              
@@ -301,7 +314,7 @@ printboard:
               16)),                       
         1))                               
   test:                                   
-  Mov(t23,                                true
+  Mov(t24,                                true
       1)                                  
   CJmp(<=,                                j <= limit
       t20,                                
@@ -309,11 +322,11 @@ printboard:
       true1,                              
       false1)                             
   false1:                                 
-  Mov(t23,                                false
+  Mov(t24,                                false
       0)                                  
   true1:                                  
   CJmp(=,                                 j <= limit
-      t23,                                
+      t24,                                
       0,                                  
       break1,                             
       body)                               
@@ -331,8 +344,10 @@ printboard:
   Mov(t22,                                else
       str__)                              
   join:                                   
+  Mov(t23,                                %arg1:print
+      t22)                                
   Call(print,                             
-       t22)                               
+       t23)                               
   Mov(t20,                                j := j + 1
       +(t20,                              
         1))                               
@@ -344,23 +359,27 @@ printboard:
   Jmp(join,                               
       [join])                             
   break1:                                 
+  Mov(t25,                                %arg1:print
+      str__1)                             
   Call(print,                             
-       str__1)                            
+       t25)                               
   Mov(t18,                                i := i + 1
-      +(t18,
-        1))
-  Jmp(test1,
-      [test1])
-  break:
+      +(t18,                              
+        1))                               
+  Jmp(test1,                              
+      [test1])                            
+  break:                                  
+  Mov(t27,                                %arg1:print
+      str__1)
   Call(print,
-       str__1)
+       t27)
   Mov(rbx,
-      t25)
-  Mov(r12,
-      t26)
-  Mov(r13,
-      t27)
-  Mov(r14,
       t28)
-  Mov(r15,
+  Mov(r12,
       t29)
+  Mov(r13,
+      t30)
+  Mov(r14,
+      t31)
+  Mov(r15,
+      t32)

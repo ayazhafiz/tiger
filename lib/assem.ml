@@ -33,6 +33,11 @@ let string_of_instr ?(string_of_temp = Temp.string_of_temp) instr =
       Printf.sprintf "%s (dst=%s, src=%s)\t\t%s" assem (string_of_temp dst)
         (string_of_temp src) (fmt_comments comments)
 
+let rec uniq = function
+  | [] -> []
+  | a :: rest when List.mem a rest -> uniq rest
+  | a :: rest -> a :: uniq rest
+
 let fmt_instr1 string_of_temp comment_prefix eliminate_moves instr =
   let explode s =
     let rec expl i l = if i < 0 then l else expl (i - 1) (s.[i] :: l) in
@@ -49,7 +54,11 @@ let fmt_instr1 string_of_temp comment_prefix eliminate_moves instr =
     in
     let base = walk (explode assem) in
     let comments =
-      List.map (fun cmt -> Printf.sprintf "%s %s" comment_prefix cmt) comments
+      uniq comments |> String.concat "\n" |> Print.lines
+      |> List.map (fun cmt ->
+             if String.length (String.trim cmt) <> 0 then
+               Printf.sprintf "%s %s" comment_prefix cmt
+             else "" )
       |> String.concat "\n"
     in
     Print.annotate comments base

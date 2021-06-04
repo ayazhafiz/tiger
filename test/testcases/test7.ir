@@ -1,133 +1,157 @@
 str__str2:
   "str2"
 
-str__:
-  " "
-
 str__str:
   "str"
 
 _start:
-  Mov(t41,                                
-      rbx)                                
   Mov(t42,                                
-      r12)                                
+      rbx)                                
   Mov(t43,                                
-      r13)                                
+      r12)                                
   Mov(t44,                                
-      r14)                                
+      r13)                                
   Mov(t45,                                
+      r14)                                
+  Mov(t46,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
-  Mov(t37,                                
-      rbp)                                
-  Mov(t38,                                
+  Mov(Mem(-(rbp,                          cnt  var cnt := 0
+            16)),                         
       0)                                  
-  Mov(t39,                                
+  Mov(t38,                                %arg(static_link):do_nothing1
+      rbp)                                
+  Mov(t39,                                %arg1:do_nothing1
+      0)                                  
+  Mov(t40,                                %arg2:do_nothing1
       str__str2)                          
   Call(do_nothing1,                       
-       t37,                               
        t38,                               
-       t39)                               
-  Mov(t40,                                
+       t39,                               
+       t40)                               
+  Mov(t41,                                
       rax)                                
   Mov(rax,                                return ()
-      t40)
-  Mov(rbx,
       t41)
-  Mov(r12,
+  Mov(rbx,
       t42)
-  Mov(r13,
+  Mov(r12,
       t43)
-  Mov(r14,
+  Mov(r13,
       t44)
-  Mov(r15,
+  Mov(r14,
       t45)
+  Mov(r15,
+      t46)
 
 do_nothing2:
-  Mov(t32,                                          
-      rbx)                                          
   Mov(t33,                                          
-      r12)                                          
+      rbx)                                          
   Mov(t34,                                          
-      r13)                                          
+      r12)                                          
   Mov(t35,                                          
-      r14)                                          
+      r13)                                          
   Mov(t36,                                          
+      r14)                                          
+  Mov(t37,                                          
       r15)                                          
   Mov(Mem(-(rbp,                                    static link  static link
             8)),                                    
       rdi)                                          
   Mov(t19,                                          d
       rsi)                                          
-  Mov(t28,                                  
+  Mov(Mem(-(Mem(-(rbp,                              static link  cnt  cnt := cnt + 1
+                  8)),                      
+            16)),                           
+      +(Mem(-(Mem(-(rbp,                            static link  cnt
+                    8)),                            
+              16)),                                 
+        1))                                         
+  Mov(t29,                                          %arg(static_link):do_nothing1
       Mem(-(rbp,                                    static link
             8)))                                    
-  Mov(t29,                                          
+  Mov(t30,                                          %arg1:do_nothing1
       t19)                                          
-  Mov(t30,                                          
+  Mov(t31,                                          %arg2:do_nothing1
       str__str)                                     
   Call(do_nothing1,                                 
-       t28,                                         
        t29,                                         
-       t30)                                         
-  Mov(t31,                                          
+       t30,                                         
+       t31)                                         
+  Mov(t32,                                          
       rax)                                          
-  t31                                               
   Mov(rax,                                          return ()
-      str__)
-  Mov(rbx,
       t32)
-  Mov(r12,
+  Mov(rbx,
       t33)
-  Mov(r13,
+  Mov(r12,
       t34)
-  Mov(r14,
+  Mov(r13,
       t35)
-  Mov(r15,
+  Mov(r14,
       t36)
+  Mov(r15,
+      t37)
 
 do_nothing1:
-  Mov(t23,                                          
-      rbx)                                          
-  Mov(t24,                                          
-      r12)                                          
-  Mov(t25,                                          
-      r13)                                          
-  Mov(t26,                                          
-      r14)                                          
-  Mov(t27,                                          
-      r15)                                          
-  Mov(Mem(-(rbp,                                    static link  static link
-            8)),                                    
-      rdi)                                          
-  Mov(t17,                                          a
-      rsi)                                          
-  Mov(t18,                                          b
-      rdx)                                          
-  Mov(t20,                                  
-      Mem(-(rbp,                                    static link
-            8)))                                    
-  Mov(t21,                                          
-      +(t17,                                        
-        1))                                         
-  Call(do_nothing2,                                 
-       t20,                                         
-       t21)                                         
-  Mov(t22,                                          
-      rax)                                          
-  t22                                               
-  Mov(rax,                                          return ()
-      0)
-  Mov(rbx,
-      t23)
-  Mov(r12,
-      t24)
-  Mov(r13,
-      t25)
-  Mov(r14,
-      t26)
-  Mov(r15,
-      t27)
+  Mov(t24,                                
+      rbx)                                
+  Mov(t25,                                
+      r12)                                
+  Mov(t26,                                
+      r13)                                
+  Mov(t27,                                
+      r14)                                
+  Mov(t28,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t17,                                a
+      rsi)                                
+  Mov(t18,                                b
+      rdx)                                
+  CJmp(<,                                 cnt < 100
+      Mem(-(Mem(-(rbp,                    static link  cnt
+                  8)),                    
+            16)),                         
+      100,                                
+      true,                               
+      false)                              
+  false:                                  
+  Mov(t23,                                else
+      t17)                                
+  join:                                   
+  Mov(rax,                                return ()
+      t23)                                
+  Mov(rbx,                                
+      t24)                                
+  Mov(r12,                                
+      t25)                                
+  Mov(r13,                                
+      t26)                                
+  Mov(r14,                                
+      t27)                                
+  Mov(r15,                                
+      t28)                                
+  Jmp(done2,                              
+      [done2])                            
+  true:                                   
+  Mov(t20,                                %arg(static_link):do_nothing2
+      Mem(-(rbp,                          static link
+            8)))                          
+  Mov(t21,                                %arg1:do_nothing2
+      +(t17,                              
+        1))                               
+  Call(do_nothing2,                       
+       t20,                               
+       t21)                               
+  Mov(t22,                                
+      rax)                                
+  Mov(t23,                                then
+      t22)
+  Jmp(join,
+      [join])
+  done2:

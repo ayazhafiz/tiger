@@ -6,6 +6,6 @@
 
 ~~~stderr
 
----killed
--10
----killed
+---exit
+100
+---exit

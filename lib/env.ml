@@ -24,6 +24,7 @@ let base_venv =
   add t (symbol "size") (FunEntry ([String], Int));
   add t (symbol "substring") (FunEntry ([String; Int; Int], String));
   add t (symbol "concat") (FunEntry ([String; String], String));
+  add t (symbol "string_of_int") (FunEntry ([Int], String));
   add t (symbol "not") (FunEntry ([Int], Int));
   add t (symbol "exit") (FunEntry ([Int], Unit));
   fun () -> copy t

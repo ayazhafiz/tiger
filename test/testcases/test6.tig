@@ -1,13 +1,17 @@
 /* define valid mutually recursive procedures */
 let
 
-function do_nothing1(a: int, b: string)=
-		do_nothing2(a+1)
+var cnt := 0
 
-function do_nothing2(d: int) =
-		do_nothing1(d, "str")
+function do_nothing1(a: int, b: string)=
+		if cnt < 100 then do_nothing2(a+1)
+
+function do_nothing2(d: int) = (
+		cnt := cnt + 1;
+		do_nothing1(d, "str") )
 
 in
-	do_nothing1(0, "str2")
+	do_nothing1(0, "str2");
+	cnt
 end
 

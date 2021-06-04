@@ -1,3 +1,4 @@
+; syntax:nasm
 BITS 64
 section .text
 
@@ -7,25 +8,32 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t27, rbx                            # liveout: rbp rsp rdi r12 r13 r14 r15 t27
-  mov t28, r12                            # liveout: rbp rsp rdi r13 r14 r15 t27 t28
-  mov t29, r13                            # liveout: rbp rsp rdi r14 r15 t27 t28 t29
-  mov t30, r14                            # liveout: rbp rsp rdi r15 t27 t28 t29 t30
-  mov t31, r15                            # liveout: rbp rsp rdi t27 t28 t29 t30 t31
-  mov [rbp - 8], rdi                      # liveout: rbp rsp t27 t28 t29 t30 t31
-  mov t17, 0                              # liveout: rbp rsp t27 t28 t29 t30 t31
-  mov t24, rbp                            # liveout: rbp rsp t24 t27 t28 t29 t30 t31
-  mov t25, 2                              # liveout: rbp rsp t24 t25 t27 t28 t29 t30 t31
-  mov rdi, t24                            # liveout: rbp rsp rdi t25 t27 t28 t29 t30 t31
-  mov rsi, t25                            # liveout: rbp rsp rsi rdi t27 t28 t29 t30 t31
-  call g                                  # liveout: rax rbp rsp t27 t28 t29 t30 t31
-  mov t26, rax                            # liveout: rbp rsp t26 t27 t28 t29 t30 t31
-  mov rax, t26                            # liveout: rax rbp rsp t27 t28 t29 t30 t31
-  mov rbx, t27                            # liveout: rax rbx rbp rsp t28 t29 t30 t31
-  mov r12, t28                            # liveout: rax rbx rbp rsp r12 t29 t30 t31
-  mov r13, t29                            # liveout: rax rbx rbp rsp r12 r13 t30 t31
-  mov r14, t30                            # liveout: rax rbx rbp rsp r12 r13 r14 t31
-  mov r15, t31                            # liveout: rax rbx rbp rsp r12 r13 r14 r15
+  mov t27, rbx                            ; liveout: rbp rsp rdi r12 r13 r14 r15 t27
+  mov t28, r12                            ; liveout: rbp rsp rdi r13 r14 r15 t27 t28
+  mov t29, r13                            ; liveout: rbp rsp rdi r14 r15 t27 t28 t29
+  mov t30, r14                            ; liveout: rbp rsp rdi r15 t27 t28 t29 t30
+  mov t31, r15                            ; liveout: rbp rsp rdi t27 t28 t29 t30 t31
+  mov [rbp - 8], rdi                      ; liveout: rbp rsp t27 t28 t29 t30 t31
+                                          ; static link
+  mov t17, 0                              ; liveout: rbp rsp t27 t28 t29 t30 t31
+                                          ; var a := 0
+  mov t24, rbp                            ; liveout: rbp rsp t24 t27 t28 t29 t30 t31
+                                          ; %arg(static_link):g
+  mov t25, 2                              ; liveout: rbp rsp t24 t25 t27 t28 t29 t30 t31
+                                          ; %arg1:g
+  mov rdi, t24                            ; liveout: rbp rsp rdi t25 t27 t28 t29 t30 t31
+                                          ; arg1:g
+  mov rsi, t25                            ; liveout: rbp rsp rsi rdi t27 t28 t29 t30 t31
+                                          ; arg2:g
+  call g                                  ; liveout: rax rbp rsp t27 t28 t29 t30 t31
+  mov t26, rax                            ; liveout: rbp rsp t26 t27 t28 t29 t30 t31
+  mov rax, t26                            ; liveout: rax rbp rsp t27 t28 t29 t30 t31
+                                          ; return ()
+  mov rbx, t27                            ; liveout: rax rbx rbp rsp t28 t29 t30 t31
+  mov r12, t28                            ; liveout: rax rbx rbp rsp r12 t29 t30 t31
+  mov r13, t29                            ; liveout: rax rbx rbp rsp r12 r13 t30 t31
+  mov r14, t30                            ; liveout: rax rbx rbp rsp r12 r13 r14 t31
+  mov r15, t31                            ; liveout: rax rbx rbp rsp r12 r13 r14 r15
   mov rsp, rbp
   pop rbp
   ret
@@ -33,19 +41,22 @@ g:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t19, rbx                            # liveout: rbp rsp rsi rdi r12 r13 r14 r15 t19
-  mov t20, r12                            # liveout: rbp rsp rsi rdi r13 r14 r15 t19 t20
-  mov t21, r13                            # liveout: rbp rsp rsi rdi r14 r15 t19 t20 t21
-  mov t22, r14                            # liveout: rbp rsp rsi rdi r15 t19 t20 t21 t22
-  mov t23, r15                            # liveout: rbp rsp rsi rdi t19 t20 t21 t22 t23
-  mov [rbp - 8], rdi                      # liveout: rbp rsp rsi t19 t20 t21 t22 t23
-  mov t18, rsi                            # liveout: rbp rsp t18 t19 t20 t21 t22 t23
-  mov rax, t18                            # liveout: rax rbp rsp t19 t20 t21 t22 t23
-  mov rbx, t19                            # liveout: rax rbx rbp rsp t20 t21 t22 t23
-  mov r12, t20                            # liveout: rax rbx rbp rsp r12 t21 t22 t23
-  mov r13, t21                            # liveout: rax rbx rbp rsp r12 r13 t22 t23
-  mov r14, t22                            # liveout: rax rbx rbp rsp r12 r13 r14 t23
-  mov r15, t23                            # liveout: rax rbx rbp rsp r12 r13 r14 r15
+  mov t19, rbx                            ; liveout: rbp rsp rsi rdi r12 r13 r14 r15 t19
+  mov t20, r12                            ; liveout: rbp rsp rsi rdi r13 r14 r15 t19 t20
+  mov t21, r13                            ; liveout: rbp rsp rsi rdi r14 r15 t19 t20 t21
+  mov t22, r14                            ; liveout: rbp rsp rsi rdi r15 t19 t20 t21 t22
+  mov t23, r15                            ; liveout: rbp rsp rsi rdi t19 t20 t21 t22 t23
+  mov [rbp - 8], rdi                      ; liveout: rbp rsp rsi t19 t20 t21 t22 t23
+                                          ; static link
+  mov t18, rsi                            ; liveout: rbp rsp t18 t19 t20 t21 t22 t23
+                                          ; a
+  mov rax, t18                            ; liveout: rax rbp rsp t19 t20 t21 t22 t23
+                                          ; return ()
+  mov rbx, t19                            ; liveout: rax rbx rbp rsp t20 t21 t22 t23
+  mov r12, t20                            ; liveout: rax rbx rbp rsp r12 t21 t22 t23
+  mov r13, t21                            ; liveout: rax rbx rbp rsp r12 r13 t22 t23
+  mov r14, t22                            ; liveout: rax rbx rbp rsp r12 r13 r14 t23
+  mov r15, t23                            ; liveout: rax rbx rbp rsp r12 r13 r14 r15
   mov rsp, rbp
   pop rbp
   ret

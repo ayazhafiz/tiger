@@ -19,8 +19,14 @@ _start:
            *(10,                          
              8),                          
            0))                            
+  Mov(Mem(+(t17,                          arr1[5]  arr1[5] := 6
+            *(5,                          
+              8))),                       
+      6)                                  
   Mov(rax,                                return ()
-      t17)
+      Mem(+(t17,                          arr1[5]
+            *(5,
+              8))))
   Mov(rbx,
       t18)
   Mov(r12,

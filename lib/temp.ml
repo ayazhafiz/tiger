@@ -7,6 +7,7 @@ let label = symbol
 let temp_cnt = ref 0
 let label_store = Hashtbl.create 128
 let string_of_temp t = "t" ^ string_of_int t
+let tempeq t u = t = u
 
 let newtemp () =
   temp_cnt := !temp_cnt + 1;

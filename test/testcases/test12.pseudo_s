@@ -1,3 +1,4 @@
+; syntax:nasm
 BITS 64
 section .text
 
@@ -7,39 +8,50 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t21, rbx                            # liveout: rbp rsp rdi r12 r13 r14 r15 t21
-  mov t22, r12                            # liveout: rbp rsp rdi r13 r14 r15 t21 t22
-  mov t23, r13                            # liveout: rbp rsp rdi r14 r15 t21 t22 t23
-  mov t24, r14                            # liveout: rbp rsp rdi r15 t21 t22 t23 t24
-  mov t25, r15                            # liveout: rbp rsp rdi t21 t22 t23 t24 t25
-  mov [rbp - 8], rdi                      # liveout: rbp rsp t21 t22 t23 t24 t25
-  mov t17, 0                              # liveout: rbp rsp t17 t21 t22 t23 t24 t25
-  mov t18, 0                              # liveout: rbp rsp t17 t18 t21 t22 t23 t24 t25
-  mov t19, 100                            # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-test:                                     # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-  mov t20, 1                              # liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
-  cmp t18, t19                            # liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
-  jle true                                # liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
-false:                                    # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-  mov t20, 0                              # liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
-true:                                     # liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
-  cmp t20, 0                              # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-  je break                                # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-body:                                     # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-  mov t26, t17                            # liveout: rbp rsp t18 t19 t21 t22 t23 t24 t25 t26
-  inc t26                                 # liveout: rbp rsp t18 t19 t21 t22 t23 t24 t25 t26
-  mov t17, t26                            # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-  mov t27, t18                            # liveout: rbp rsp t17 t19 t21 t22 t23 t24 t25 t27
-  inc t27                                 # liveout: rbp rsp t17 t19 t21 t22 t23 t24 t25 t27
-  mov t18, t27                            # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-  jmp test                                # liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-break:                                    # liveout: rbp rsp t17 t21 t22 t23 t24 t25
-  mov rax, t17                            # liveout: rax rbp rsp t21 t22 t23 t24 t25
-  mov rbx, t21                            # liveout: rax rbx rbp rsp t22 t23 t24 t25
-  mov r12, t22                            # liveout: rax rbx rbp rsp r12 t23 t24 t25
-  mov r13, t23                            # liveout: rax rbx rbp rsp r12 r13 t24 t25
-  mov r14, t24                            # liveout: rax rbx rbp rsp r12 r13 r14 t25
-  mov r15, t25                            # liveout: rax rbx rbp rsp r12 r13 r14 r15
+  mov t21, rbx                            ; liveout: rbp rsp rdi r12 r13 r14 r15 t21
+  mov t22, r12                            ; liveout: rbp rsp rdi r13 r14 r15 t21 t22
+  mov t23, r13                            ; liveout: rbp rsp rdi r14 r15 t21 t22 t23
+  mov t24, r14                            ; liveout: rbp rsp rdi r15 t21 t22 t23 t24
+  mov t25, r15                            ; liveout: rbp rsp rdi t21 t22 t23 t24 t25
+  mov [rbp - 8], rdi                      ; liveout: rbp rsp t21 t22 t23 t24 t25
+                                          ; static link
+  mov t17, 0                              ; liveout: rbp rsp t17 t21 t22 t23 t24 t25
+                                          ; var a := 0
+  mov t18, 0                              ; liveout: rbp rsp t17 t18 t21 t22 t23 t24 t25
+                                          ; var i := 0
+  mov t19, 100                            ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+                                          ; var limit := 100
+test:                                     ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+  mov t20, 1                              ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
+                                          ; true
+  cmp t18, t19                            ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
+                                          ; i <= limit
+  jle true                                ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
+false:                                    ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+  mov t20, 0                              ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
+                                          ; false
+true:                                     ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
+  cmp t20, 0                              ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+                                          ; i <= limit
+  je break                                ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+body:                                     ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+  mov t26, t17                            ; liveout: rbp rsp t18 t19 t21 t22 t23 t24 t25 t26
+  inc t26                                 ; liveout: rbp rsp t18 t19 t21 t22 t23 t24 t25 t26
+  mov t17, t26                            ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+                                          ; a := a + 1
+  mov t27, t18                            ; liveout: rbp rsp t17 t19 t21 t22 t23 t24 t25 t27
+  inc t27                                 ; liveout: rbp rsp t17 t19 t21 t22 t23 t24 t25 t27
+  mov t18, t27                            ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+                                          ; i := i + 1
+  jmp test                                ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
+break:                                    ; liveout: rbp rsp t17 t21 t22 t23 t24 t25
+  mov rax, t17                            ; liveout: rax rbp rsp t21 t22 t23 t24 t25
+                                          ; return ()
+  mov rbx, t21                            ; liveout: rax rbx rbp rsp t22 t23 t24 t25
+  mov r12, t22                            ; liveout: rax rbx rbp rsp r12 t23 t24 t25
+  mov r13, t23                            ; liveout: rax rbx rbp rsp r12 r13 t24 t25
+  mov r14, t24                            ; liveout: rax rbx rbp rsp r12 r13 r14 t25
+  mov r15, t25                            ; liveout: rax rbx rbp rsp r12 r13 r14 r15
   mov rsp, rbp
   pop rbp
   ret

@@ -14,6 +14,7 @@ char *chr(long) asm("chr");
 long size(char *) asm("size");
 char *substring(char *, long, long) asm("substring");
 char *concat(char *, char *) asm("concat");
+char *string_of_int(long) asm("string_of_int");
 long not(long) asm("not");
 
 // A Tiger string is of form
@@ -21,14 +22,16 @@ long not(long) asm("not");
 //     8 bytes   size byes
 
 char *mk_string(long size) {
-  return (char *)malloc(sizeof(long) + size * sizeof(char));
+  char *s = malloc(sizeof(long) + size * sizeof(char));
+  *((long *)s) = size;
+  return s;
 }
 
 char *empty_string = "\0\0\0\0\0\0\0\0";
 
 long size_of_string(char *string) { return *((long *)string); }
 
-char *chars_of_string(char *string) { return string + 4; }
+char *chars_of_string(char *string) { return string + sizeof(long); }
 
 long *initArray(long size, long init) {
   long *arr = (long *)malloc(size * sizeof(long));
@@ -51,7 +54,12 @@ long stringEqual(char *s, char *t) {
   return 1;
 }
 
-void print(char *s) { printf("%s", chars_of_string(s)); }
+void print(char *s) {
+  char *chars = chars_of_string(s);
+  for (int i = 0; i < size_of_string(s); ++i) {
+    putchar(chars[i]);
+  }
+}
 
 void flush() { fflush(stdout); }
 
@@ -120,6 +128,27 @@ char *concat(char *s, char *t) {
     c[len_s + i] = chs_t[i];
   }
   return concat;
+}
+
+char *string_of_int(long d) {
+  int maxlen = 1;
+  {
+    long d = d;
+    if (d < 0) {
+      ++maxlen;
+      d = -d;
+    }
+    while (d != 0) {
+      ++maxlen;
+      d /= 10;
+    }
+  }
+  char *buf = malloc(maxlen * sizeof(char));
+  long len = sprintf(buf, "%ld", d);
+  char *str = mk_string(len);
+  memcpy(chars_of_string(str), buf, len);
+  free(buf);
+  return str;
 }
 
 long not(long b) { return !b; }

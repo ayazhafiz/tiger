@@ -162,11 +162,18 @@ end = struct
       gen t;
       t
     in
-    let emit_oper assem dst src =
-      emit (A.Oper {assem; dst; src; jmp = None; comments = []})
+    let filter_cmts = List.filter (fun c -> c <> "") in
+    let emit_oper assem dst src cmts =
+      emit (A.Oper {assem; dst; src; jmp = None; comments = filter_cmts cmts})
     in
-    let emit_jmp assem jmp =
-      emit (A.Oper {assem; dst = []; src = []; jmp = Some jmp; comments = []})
+    let emit_jmp assem jmp cmts =
+      emit
+        (A.Oper
+           { assem
+           ; dst = []
+           ; src = []
+           ; jmp = Some jmp
+           ; comments = filter_cmts cmts } )
     in
     (* Maximal Munch *)
     let rec munch_stmt = function
@@ -180,56 +187,77 @@ end = struct
       (********)
       (* Move *)
       (********)
-      | Ir.Mov (Ir.Temp where, Ir.Const what, _) ->
-          emit_oper (Printf.sprintf "mov `d0, %d" what) [where] []
+      | Ir.Mov (Ir.Temp where, Ir.Const what, cmt) ->
+          emit_oper (Printf.sprintf "mov `d0, %d" what) [where] [] [cmt]
       | Ir.Mov
-          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, s0, Ir.Const off), _), _)
+          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, s0, Ir.Const off), _), cmt)
        |Ir.Mov
-          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, s0), _), _)
+          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, s0), _), cmt)
         ->
           emit_oper
             (Printf.sprintf "mov `d0, [`s0 + %d]" off)
-            [where] [munch_expr s0]
+            [where] [munch_expr s0] [cmt]
       | Ir.Mov
-          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Minus, s0, Ir.Const off), _), _)
+          (Ir.Temp where, Ir.Mem (Ir.BinOp (Ir.Minus, s0, Ir.Const off), _), cmt)
         ->
           emit_oper
             (Printf.sprintf "mov `d0, [`s0 - %d]" off)
-            [where] [munch_expr s0]
+            [where] [munch_expr s0] [cmt]
       (* Needed to enable fast-path for munch_expr@[Ir.Mem] *)
       | Ir.Mov (Ir.Temp where, Ir.Mem (what, _), cmt) ->
           let loc = newtemp () in
           munch_stmt (Ir.Mov (Ir.Temp loc, Ir.Temp (munch_expr what), cmt));
-          emit_oper "mov `d0, [`s0]" [where] [loc]
-      | Ir.Mov (Ir.Temp where, what, _) ->
+          emit_oper "mov `d0, [`s0]" [where] [loc] [cmt]
+      | Ir.Mov (Ir.Temp where, what, cmt) ->
           emit
             (A.Mov
                { assem = "mov `d0, `s0"
                ; dst = where
                ; src = munch_expr what
-               ; comments = [] } )
-      | Ir.Mov (Ir.Mem (Ir.BinOp (Ir.Plus, base, Ir.Const off), _), what, _)
-       |Ir.Mov (Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, base), _), what, _) ->
+               ; comments = filter_cmts [cmt] } )
+      | Ir.Mov
+          (Ir.Mem (Ir.BinOp (Ir.Plus, base, Ir.Const off), _), Ir.Const imm, cmt)
+       |Ir.Mov
+          (Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, base), _), Ir.Const imm, cmt)
+        ->
+          emit_oper
+            (Printf.sprintf "mov qword [`s0 + %d], %d" off imm)
+            [] [munch_expr base] [cmt]
+      | Ir.Mov (Ir.Mem (Ir.BinOp (Ir.Plus, base, Ir.Const off), _), what, cmt)
+       |Ir.Mov (Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Const off, base), _), what, cmt)
+        ->
           emit_oper
             (Printf.sprintf "mov [`s0 + %d], `s1" off)
             []
             [munch_expr base; munch_expr what]
-      | Ir.Mov (Ir.Mem (Ir.BinOp (Ir.Minus, base, Ir.Const off), _), what, _) ->
+            [cmt]
+      | Ir.Mov
+          ( Ir.Mem (Ir.BinOp (Ir.Minus, base, Ir.Const off), _)
+          , Ir.Const imm
+          , cmt ) ->
+          emit_oper
+            (Printf.sprintf "mov qword [`s0 - %d], %d" off imm)
+            [] [munch_expr base] [cmt]
+      | Ir.Mov (Ir.Mem (Ir.BinOp (Ir.Minus, base, Ir.Const off), _), what, cmt)
+        ->
           emit_oper
             (Printf.sprintf "mov [`s0 - %d], `s1" off)
             []
             [munch_expr base; munch_expr what]
-      | Ir.Mov (Ir.Mem (where, _), what, _) ->
-          emit_oper "mov qword [`s0], `s1" [] [munch_expr where; munch_expr what]
+            [cmt]
+      | Ir.Mov (Ir.Mem (where, _), what, cmt) ->
+          emit_oper "mov qword [`s0], `s1" []
+            [munch_expr where; munch_expr what]
+            [cmt]
       | Ir.Mov _ -> ice "not a move to a temp or mem"
       (********)
       (* Jump *)
       (********)
-      | Ir.Jmp (Ir.Name lab, _) -> emit_jmp "jmp `j0" [lab]
+      | Ir.Jmp (Ir.Name lab, _) -> emit_jmp "jmp `j0" [lab] []
       | Ir.Jmp _ -> ice "unlabeled jumps cannot be emitted"
-      | Ir.CJmp (op, e1, e2, t, f, _) ->
+      | Ir.CJmp (op, e1, e2, t, f, cmt) ->
           let mkop assem src =
-            A.Oper {assem; src; dst = []; jmp = None; comments = []}
+            A.Oper {assem; src; dst = []; jmp = None; comments = [cmt]}
           in
           let cmp_instr, op =
             match (e1, e2) with
@@ -258,7 +286,7 @@ end = struct
              canonicalization has already ensured that this [CJump] is
              followed by the "false" label. *)
           emit cmp_instr;
-          emit_jmp (jump ^ " `j0") [t; f]
+          emit_jmp (jump ^ " `j0") [t; f] []
       | Ir.Seq _ -> ice "Seqs should be destroyed during canonicalization"
     (* Creates a new temporary [d] assigning [lhs] to it, then applies a binary
        operation that writes back to [d]. Hence we can emit something like
@@ -311,19 +339,31 @@ end = struct
       (* Div *)
       | Ir.BinOp (Ir.Div, s0, s1) ->
           let divisor = munch_expr s1 in
-          alloc (fun result ->
-              (* 1. dividend must be placed in rax.
-                 2. extend qword to octoword rdx:rax.
-                 3. idiv divisor
-                 4. retrieve quotient from rax.
-                 No need to save/restore rax/rdx, as we should not assign any
-                 values other than these to them at this time. The register
-                 allocator will make suere rax/rdx are only used in places that
-                 do not interfere with this anyway. *)
-              munch_stmt (Ir.Mov (Ir.Temp rax, s0, "dividend"));
-              emit_oper "cqto" [rax; rdx] [rax];
-              emit_oper "idiv `s0" [rax; rdx] [divisor; rax; rdx];
-              munch_stmt (Ir.Mov (Ir.Temp result, Ir.Temp rax, "quotient")) )
+          (* 1. dividend must be placed in rax.
+             2. extend qword to octoword rdx:rax.
+             3. idiv divisor
+             4. retrieve quotient from rax.
+             No need to save/restore rax/rdx, as we should not assign any
+             values other than these to them at this time. The register
+             allocator will make suere rax/rdx are only used in places that
+             do not interfere with this anyway.
+
+             NB: still, we do have to be a bit careful. To avoid the case
+             where a temp serves as a dividend more than once, store it in a
+             fresh temp that gets moved into [rax]. This helps the register
+             allocator later on when it tries to determine what unique moves
+             are associated with a temp. *)
+          alloc (fun dividend ->
+              let _ =
+                alloc (fun result ->
+                    munch_stmt (Ir.Mov (Ir.Temp dividend, s0, ""));
+                    munch_stmt
+                      (Ir.Mov (Ir.Temp rax, Ir.Temp dividend, "dividend"));
+                    emit_oper "cqto" [rax; rdx] [rax] [];
+                    emit_oper "idiv `s0" [rax; rdx] [divisor; rax; rdx] [];
+                    munch_stmt (Ir.Mov (Ir.Temp result, Ir.Temp rax, "quotient")) )
+              in
+              () )
       (*********)
       (* Logic *)
       (*********)
@@ -356,12 +396,12 @@ end = struct
       (*********)
       | Ir.Temp t -> t
       | Ir.Const n ->
-          alloc (fun d -> emit_oper (Printf.sprintf "mov `d0, %d" n) [d] [])
+          alloc (fun d -> emit_oper (Printf.sprintf "mov `d0, %d" n) [d] [] [])
       | Ir.Name lab ->
           alloc (fun d ->
               emit_oper
                 (Printf.sprintf "lea `d0, [rel %s]" (string_of_label lab))
-                [d] [] )
+                [d] [] [] )
       | Ir.Mem (_, cmt) as mem ->
           alloc (fun d -> munch_stmt (Ir.Mov (Ir.Temp d, mem, cmt)))
       (********)
@@ -388,7 +428,7 @@ end = struct
              and we may allocate it in rR without a save anyway.
              See page 237.
           *)
-          let args = munch_args args in
+          let args = munch_args (string_of_label fn) args in
           emit
             (A.Oper
                { assem = Printf.sprintf "call %s" (string_of_label fn)
@@ -400,8 +440,8 @@ end = struct
           rv
       | Ir.Call _ -> ice "non-label calls not permitted"
       | Ir.ESeq _ -> ice "ESeqs should be eliminated during canonicalization"
-    and munch_args args =
-      let rec eat_stack = function
+    and munch_args fn args =
+      let rec eat_stack n = function
         | [] -> ()
         | arg1 :: argns ->
             (* Arguments are pushed onto stack in reverse order:
@@ -409,25 +449,26 @@ end = struct
                  ...
                  arg1
                so handle rest of args first. *)
-            eat_stack argns;
+            eat_stack (n + 1) argns;
             emit
               (A.Oper
                  { assem = "push `s0"
                  ; dst = [rsp]
                  ; src = [munch_expr arg1]
                  ; jmp = None
-                 ; comments = [] } )
+                 ; comments = ["arg" ^ string_of_int n ^ ":" ^ fn] } )
       in
-      let rec eat_argregs = function
+      let rec eat_argregs n = function
         | [], _ -> []
         | args, [] ->
-            eat_stack args;
+            eat_stack n args;
             []
         | arg :: rest_args, reg :: rest_regs ->
-            munch_stmt (Ir.Mov (Ir.Temp reg, arg, "" (* TODO *)));
-            reg :: eat_argregs (rest_args, rest_regs)
+            munch_stmt
+              (Ir.Mov (Ir.Temp reg, arg, "arg" ^ string_of_int n ^ ":" ^ fn));
+            reg :: eat_argregs (n + 1) (rest_args, rest_regs)
       in
-      eat_argregs (args, arg_regs)
+      eat_argregs 1 (args, arg_regs)
     in
     munch_stmt stmt;
     List.rev !ilist
@@ -547,7 +588,7 @@ end = struct
   let assem_of_string (lab, str) =
     Printf.sprintf {|%s:
   dq %d
-  db "%s"|} (Temp.string_of_label lab)
+  db `%s`|} (Temp.string_of_label lab)
       (String.length str) (String.escaped str)
 
   let assem_of_frame (frame, instrs, string_of_temp) =
@@ -556,7 +597,7 @@ end = struct
     let ws_of_label_marker = String.make (String.length label_marker) ' ' in
     let body =
       body
-      |> fmt_instrs string_of_temp "#" (* eliminate_moves *) true
+      |> fmt_instrs string_of_temp ";" (* eliminate_moves *) true
       |> Print.reflow 2 |> Print.lines
       (* pullback labels *)
       |> List.map (fun s ->
@@ -580,7 +621,7 @@ end = struct
     in
     let strings = List.map assem_of_string strings in
     let frames = List.map assem_of_frame frames in
-    ["BITS 64"; "section .text"]
+    ["; syntax:nasm"; "BITS 64"; "section .text"]
     @ (if externs = [] then [] else [""] (* newline padding for externs *))
     @ externs
     @ [""; Printf.sprintf "global %s" (string_of_label main); ""]

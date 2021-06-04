@@ -121,7 +121,6 @@ module Translate (F : FRAME) = struct
   let fragments = ref []
   let clear_frags _ = fragments := []
   let get_frags _ = !fragments
-  let toplevel = Toplevel
 
   let newlevel =
     let uuid = ref 0 in
@@ -357,32 +356,45 @@ module Translate (F : FRAME) = struct
       | Toplevel -> ice "caller of function is not toplevel?"
       | Nest {frame; _} -> frame
     in
-    let arg_moves, call =
+    let args, is_extern =
       match target with
-      | Toplevel -> ([], F.external_call calling_frame target_label args)
+      | Toplevel -> (args, true)
       | Nest {parent = Toplevel; _} -> ice "cannot call function on toplevel"
-      | Nest {parent; frame; _} ->
+      | Nest {parent; _} ->
           (* Need to pass static link to the parent level of the function level
              we are about to call, per our calling convention (page 133) *)
           let sl = sl_of_from parent caller in
-          let args', arg_moves =
-            List.map
-              (fun a ->
-                let a' = Ir.Temp (newtemp ()) in
-                (a', Ir.Mov (a', a, "")) )
-              (sl :: args)
-            |> List.split
-          in
-          (arg_moves, Ir.Call (Ir.Name (F.name frame), args'))
+          (sl :: args, false)
     in
-    if has_ret then
-      let rvtmp = Ir.Temp (Temp.newtemp ()) in
-      Ex
-        (Ir.ESeq
-           ( Ir.seq
-               (arg_moves @ [Ir.Expr call; Ir.Mov (rvtmp, Ir.Temp F.rv, "")])
-           , rvtmp ) )
-    else Nx (Ir.Expr call)
+    let arg_moves, args' =
+      List.mapi
+        (fun i a ->
+          let a' = Ir.Temp (newtemp ()) in
+          let argkind =
+            if is_extern then string_of_int (i + 1)
+            else if i = 0 then "(static_link)"
+            else string_of_int i
+          in
+          let cmt =
+            Printf.sprintf "%%arg%s:%s" argkind (string_of_label target_label)
+          in
+          (Ir.Mov (a', a, cmt), a') )
+        args
+      |> List.split
+    in
+    let call =
+      if is_extern then F.external_call calling_frame target_label args'
+      else Ir.Call (Ir.Name target_label, args')
+    in
+    match has_ret with
+    | true ->
+        let rvtmp = Ir.Temp (Temp.newtemp ()) in
+        Ex
+          (Ir.ESeq
+             ( Ir.seq
+                 (arg_moves @ [Ir.Expr call; Ir.Mov (rvtmp, Ir.Temp F.rv, "")])
+             , rvtmp ) )
+    | false -> Nx (Ir.seq (arg_moves @ [Ir.Expr call]))
 
   (** [ir_seq exprs has_val] translates a sequence of [expr]s, conditioned on
       whether the last expr returns a value or not. The sequence may also be
@@ -582,7 +594,7 @@ module Translate (F : FRAME) = struct
     clear_frags ();
     let expr = Desugar.expr_of_desugared expr in
     let mainlab = Temp.newlabel "_start" in
-    let mainlvl = newlevel toplevel mainlab [] [] in
+    let mainlvl = newlevel Toplevel mainlab [] [] in
     let main = lower_expr (base_venv (), mainlvl, None) expr in
     (* Add implicit return 0 if needed. *)
     let main =
@@ -591,5 +603,6 @@ module Translate (F : FRAME) = struct
       | false -> Ex (Ir.ESeq (unNx main, Ir.Const 0))
     in
     proc_entry_exit mainlvl main true;
+    Printf.eprintf "\nIR:\n%s\n\n" (Ir.string_of_ir string_of_temp (unNx main));
     (mainlab, get_frags ())
 end

@@ -1,3 +1,9 @@
+str__yearsold:
+  " years old\n"
+
+str__is:
+  " is "
+
 str__sdf:
   "sdf"
 
@@ -26,15 +32,15 @@ str__aname:
   "aname"
 
 _start:
-  Mov(t25,                                
+  Mov(t35,                                
       rbx)                                
-  Mov(t26,                                
+  Mov(t36,                                
       r12)                                
-  Mov(t27,                                
+  Mov(t37,                                
       r13)                                
-  Mov(t28,                                
+  Mov(t38,                                
       r14)                                
-  Mov(t29,                                
+  Mov(t39,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
@@ -44,7 +50,7 @@ _start:
            *(10,                          
              8),                          
            0))                            
-  Mov(t32,                                push stmt up
+  Mov(t42,                                push stmt up
       *(5,                                
         8))                               
   Mov(t19,                                
@@ -70,7 +76,7 @@ _start:
       0)                                  
   Mov(t18,                                var arr2 := arrtype2[5] of rectype1 {
       Call(initArray,                       name="aname",
-           t32,                             address="somewhere",
+           t42,                             address="somewhere",
            t19))                            id=0,
                                             age=0
                                           }
@@ -115,17 +121,17 @@ _start:
             *(0,                          
               8))),                       
       str__Allos)                         
-  Mov(t31,                                push stmt up
+  Mov(t41,                                push stmt up
       +(t24,                              
         *(1,                              
           8)))                            
-  Mov(t30,                                push call up
+  Mov(t40,                                push call up
       Call(initArray,                     
            *(3,                           
              8),                          
            1900))                         
-  Mov(Mem(t31)                            .dates  .dates=arrtype1[3] of 1900
-      t30)                                
+  Mov(Mem(t41)                            .dates  .dates=arrtype1[3] of 1900
+      t40)                                
   Mov(t23,                                var rec2 := rectype2 {
       t24)                                  name="Allos",
                                             dates=arrtype1[3] of 1900
@@ -170,15 +176,55 @@ _start:
             *(2,                          
               8))),                       
       2323)                               
+  Mov(t25,                                %arg1:concat
+      Mem(+(Mem(+(t18,                    arr2[3]  arr2[3].name
+                  *(3,                    
+                    8))),                 
+            *(0,                          
+              8))))                       
+  Mov(t26,                                %arg2:concat
+      str__is)                            
+  Call(concat,                            
+       t25,                               
+       t26)                               
+  Mov(t27,                                
+      rax)                                
+  Mov(t30,                                %arg1:concat
+      t27)                                
+  Mov(t28,                                %arg1:string_of_int
+      Mem(+(Mem(+(t18,                    arr2[3]  arr2[3].age
+                  *(3,                    
+                    8))),                 
+            *(3,                          
+              8))))                       
+  Call(string_of_int,                     
+       t28)                               
+  Mov(t29,                                
+      rax)                                
+  Mov(t31,                                %arg2:concat
+      t29)                                
+  Call(concat,                            
+       t30,                               
+       t31)                               
+  Mov(t32,                                
+      rax)                                
+  Mov(t33,                                %arg1:print
+      t32)                                
+  Call(print,                             
+       t33)                               
+  Mov(t34,                                %arg1:print
+      str__yearsold)                      
+  Call(print,                             
+       t34)                               
   Mov(rax,                                return ()
       0)
   Mov(rbx,
-      t25)
+      t35)
   Mov(r12,
-      t26)
+      t36)
   Mov(r13,
-      t27)
+      t37)
   Mov(r14,
-      t28)
+      t38)
   Mov(r15,
-      t29)
+      t39)

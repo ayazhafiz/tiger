@@ -5,5 +5,7 @@ let
     else
       n * nfactor(n - 1)
 in
-  nfactor(10)
+  print("10! = ");
+  print(string_of_int(nfactor(10)));
+  print("\n")
 end
