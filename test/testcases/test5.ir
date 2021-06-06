@@ -32,7 +32,9 @@ _start:
                                             tl=nil
                                           }
   Mov(rax,                                return ()
-      t17)
+      Mem(+(t17,                          lis.hd
+            *(0,
+              8))))
   Mov(rbx,
       t19)
   Mov(r12,

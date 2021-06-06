@@ -16,5 +16,5 @@ let
     tl=nil
   }
 in
-  lis
+  lis.hd
 end

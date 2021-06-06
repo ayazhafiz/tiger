@@ -27,6 +27,10 @@ _start:
   mov r10, rax                            
   add r10, r11                            
   mov qword [r10], r8                     ; .tl=nil
+  mov r10, 0                              
+  imul r10, r10, 8                        
+  add rax, r10                            
+  mov rax, [rax]                          ; return ()
   mov rsp, rbp
   pop rbp
   ret

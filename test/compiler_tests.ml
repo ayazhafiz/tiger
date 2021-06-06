@@ -80,9 +80,58 @@ let get_test_files =
          |> List.map (mkfi dir) ) )
     res
 
+type update_flags = Flags of int
+
+let ( *| ) (Flags a) (Flags b) = Flags (a lor b)
+let ( *^ ) (Flags a) (Flags b) = Flags (a lxor b)
+let ( *? ) (Flags a) (Flags b) = a land b > 0
+
+let update_flags_tbl =
+  [ ("pp", Flags 1); ("ir", Flags 2); ("p-asm", Flags 4); ("asm", Flags 8)
+  ; ("exec", Flags 16) ]
+
+let update_none = Flags 0
+
+let update_all =
+  List.fold_left ( *| ) update_none (List.map snd update_flags_tbl)
+
+let update_flags s = List.assoc s update_flags_tbl
+
 let update_goldens =
   let open Cmdliner in
-  Arg.(value & flag & info ["u"] ~doc:"Update goldens")
+  let parse_update_flags1 (f, errs) = function
+    | "all" -> (update_all, errs)
+    | s -> (
+      match List.assoc_opt s update_flags_tbl with
+      | None -> (f, s :: errs)
+      | Some u -> (f *| u, errs) )
+  in
+  let parse_update_flags s =
+    s |> String.split_on_char ',' |> List.map String.trim
+    |> List.fold_left parse_update_flags1 (update_none, [])
+    |> function
+    | f, [] -> Ok f
+    | _, errs ->
+        Error
+          (`Msg
+            (Printf.sprintf
+               "Unknown option(s) %s; valid\n        options are %s"
+               (List.rev errs |> String.concat ", ")
+               (List.map fst update_flags_tbl |> String.concat ", ") ) )
+  in
+  let rec print_update_flags fmt fs =
+    if fs = update_none then ()
+    else
+      let s, flag = List.find (fun (_, flag) -> fs *? flag) update_flags_tbl in
+      Format.pp_print_string fmt s;
+      Format.pp_print_space fmt ();
+      print_update_flags fmt (fs *^ flag)
+  in
+  let conv_update_flags = Arg.conv (parse_update_flags, print_update_flags) in
+  Arg.(
+    info ["u"] ~doc:"Update goldens"
+    |> opt conv_update_flags update_none
+    |> value)
 
 let cmd =
   let open Cmdliner in
@@ -124,7 +173,7 @@ let printtest update fi =
     in
     let pr_real = string_of_expr expr_real in
     let pr_expect = ref pr_real in
-    match update with
+    match update *? update_flags "pp" with
     | true -> writefi pr_path pr_real
     | false ->
         pr_expect := readfi pr_path;
@@ -167,7 +216,7 @@ let backend_golden update fi ext driver =
 let irtest update fi =
   let test _ =
     (* x86 *)
-    backend_golden update fi ".ir" X86_64_Backend.emit_ir
+    backend_golden (update *? update_flags "ir") fi ".ir" X86_64_Backend.emit_ir
   in
   ((fi.name, `Quick, wrap test), true)
 
@@ -176,14 +225,18 @@ let exclude_asm = ["merge"]
 let pseudo_asmtest update fi =
   let test _ =
     (* x86 *)
-    backend_golden update fi ".pseudo_s" X86_64_Backend.Debug.emit_pseudo_assem
+    backend_golden
+      (update *? update_flags "p-asm")
+      fi ".pseudo_s" X86_64_Backend.Debug.emit_pseudo_assem
   in
   ((fi.name, `Quick, wrap test), List.mem fi.name exclude_asm |> not)
 
 let asmtest update fi =
   let test _ =
     (* x86 *)
-    backend_golden update fi ".nasm" X86_64_Backend.emit_assem
+    backend_golden
+      (update *? update_flags "asm")
+      fi ".nasm" X86_64_Backend.emit_assem
   in
   ((fi.name, `Quick, wrap test), true)
 
@@ -201,7 +254,9 @@ let exectest update fi =
   in
   let test _ =
     (* x86 *)
-    backend_golden update fi ".exec" (exec X86_64_Backend.exec)
+    backend_golden
+      (update *? update_flags "exec")
+      fi ".exec" (exec X86_64_Backend.exec)
   in
   ((fi.name, `Slow, wrap test), true)
 

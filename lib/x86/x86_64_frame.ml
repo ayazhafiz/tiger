@@ -428,19 +428,29 @@ end = struct
              and we may allocate it in rR without a save anyway.
              See page 237.
           *)
-          let args = munch_args (string_of_label fn) args in
+          let args, nstk_pushed = munch_args (string_of_label fn) args in
+          let fnname = string_of_label fn in
           emit
             (A.Oper
-               { assem = Printf.sprintf "call %s" (string_of_label fn)
+               { assem = Printf.sprintf "call %s" fnname
                ; src = args
                ; dst = calldefs
                ; jmp = None
                ; comments = [] } );
-          (* TODO: need to cleanup stack of any pushed-on args after call. *)
+          (* Cleanup stack of any pushed-on args after call. *)
+          if nstk_pushed > 0 then
+            emit
+              (A.Oper
+                 { assem = Printf.sprintf "sub rsp, %d" (nstk_pushed * wordsize)
+                 ; src = [rsp]
+                 ; dst = [rsp]
+                 ; jmp = None
+                 ; comments = [Printf.sprintf "Deallocate %s args" fnname] } );
           rv
       | Ir.Call _ -> ice "non-label calls not permitted"
       | Ir.ESeq _ -> ice "ESeqs should be eliminated during canonicalization"
     and munch_args fn args =
+      let nstk_pushed = ref 0 in
       let rec eat_stack n = function
         | [] -> ()
         | arg1 :: argns ->
@@ -450,6 +460,7 @@ end = struct
                  arg1
                so handle rest of args first. *)
             eat_stack (n + 1) argns;
+            incr nstk_pushed;
             emit
               (A.Oper
                  { assem = "push `s0"
@@ -468,7 +479,7 @@ end = struct
               (Ir.Mov (Ir.Temp reg, arg, "arg" ^ string_of_int n ^ ":" ^ fn));
             reg :: eat_argregs (n + 1) (rest_args, rest_regs)
       in
-      eat_argregs 1 (args, arg_regs)
+      (eat_argregs 1 (args, arg_regs), !nstk_pushed)
     in
     munch_stmt stmt;
     List.rev !ilist
