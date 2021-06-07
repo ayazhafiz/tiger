@@ -1,5 +1,4 @@
 let 
-
  type any = {any : int}
  var buffer := get_char()
 
@@ -8,7 +7,7 @@ function readint(any: any) : int =
      function isdigit(s : string) : int = 
 		  ord(buffer)>=ord("0") & ord(buffer)<=ord("9")
      function skipto() =
-       while buffer=" " | buffer="\n"
+       while buffer=" "
          do buffer := get_char()
   in skipto();
      any.any := isdigit(buffer);
@@ -46,11 +45,9 @@ function readint(any: any) : int =
    if l=nil then print("\n")
    else (printint(l.first); print(" "); printlist(l.rest))
 
-   var list1 := readlist()
-   var list2 := (buffer:=get_char(); readlist())
-
-
-  /* BODY OF MAIN PROGRAM */
- in printlist(merge(list1,list2))
+ var list1 := readlist()
+ var list2 := (buffer:=get_char(); readlist())
+ in
+ printlist(merge(list1,list2))
 end
 

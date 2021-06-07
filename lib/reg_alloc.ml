@@ -110,7 +110,8 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
               move_list := TempMap.add t moves !move_list )
             (def_n @ use_n);
           assert (not (MoveSet.mem mv !worklist_moves));
-          worklist_moves := MoveSet.add mv !worklist_moves );
+          worklist_moves := MoveSet.add mv !worklist_moves )
+        else ();
         List.iter (fun t -> initial := TempSet.add t !initial) (def_n @ use_n);
         List.iter (fun d -> TempSet.iter (fun l -> add_edge l d) live_n) def_n
       in
@@ -158,6 +159,7 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
       degree := TempMap.add n (d - 1) !degree;
       if d = k then (
         enable_moves (TempSet.union (adjacent n) (TempSet.singleton n));
+        spill_worklist := TempSet.remove n !spill_worklist;
         if move_related n then
           (* assert (not (TempSet.mem freeze_worklist n)); *)
           freeze_worklist := TempSet.add n !freeze_worklist

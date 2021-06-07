@@ -12,10 +12,7 @@ let
         else
           0
       function skipto() =
-        while if buffer = " " then
-          1
-        else
-          buffer = "\n" do
+        while buffer = " " do
           buffer := get_char()
     in
       skipto();

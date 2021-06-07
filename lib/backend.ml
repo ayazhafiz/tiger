@@ -34,10 +34,15 @@ let read_in ic =
     failwith "not terminated"
   with End_of_file -> List.rev !lines |> String.concat "\n"
 
-let sh cmd =
-  let ((stdout, _, stderr) as exe) =
+let sh ?stdin:(stdin_str = None) cmd =
+  let ((stdout, stdin, stderr) as exe) =
     Unix.open_process_full cmd (Array.of_list [])
   in
+  Option.iter
+    (fun s ->
+      output_string stdin s;
+      close_out stdin )
+    stdin_str;
   let str_stdout = read_in stdout in
   let str_stderr = read_in stderr in
   let exit = Unix.close_process_full exe in
@@ -67,7 +72,7 @@ let writefi path content =
   output_string ch content;
   close_out ch
 
-let exec_macos_11 prog entry =
+let exec_macos_11 prog stdin entry =
   let temp_asm = Filename.temp_file "main" ".asm" in
   let temp_o = Filename.temp_file "main" ".o" in
   let temp_exe = Filename.temp_file "main" ".exe" in
@@ -86,7 +91,7 @@ let exec_macos_11 prog entry =
   writefi temp_asm prog;
   sh assemble |> assert_exit0;
   sh link |> assert_exit0;
-  let stdout, stderr, exit = sh temp_exe in
+  let stdout, stderr, exit = sh ~stdin temp_exe in
   let exit =
     match exit with
     | Unix.WEXITED n -> Exit n
@@ -171,12 +176,12 @@ module Backend (F : FRAME) = struct
     in
     Printf.sprintf "%s\n\n%s" strings frames
 
-  let exec expr =
+  let exec expr stdin =
     fresh_compilation ();
     let main, frames, strings = compile expr in
     let prog = F.emit strings frames main in
     let entry = string_of_label main in
-    match execution_target () with MacOS_11 -> exec_macos_11 prog entry
+    match execution_target () with MacOS_11 -> exec_macos_11 prog stdin entry
 
   module Debug = struct
     let emit_pseudo_assem expr =

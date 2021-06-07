@@ -11,9 +11,9 @@ module Backend (F : FRAME) : sig
   (** [emit_assem expr] compiles an expression to assembly.
       [expr] must be checked by [Semantic] before compilation. *)
 
-  val exec : Language.expr -> string * string * exit_status
-  (** [exec expr] compiles and executes an expression on the present machine.
-      Returns a tuple [(stdout, stderr, exit_status)]. *)
+  val exec : Language.expr -> string option -> string * string * exit_status
+  (** [exec expr stdin] compiles and executes an expression on the present
+      machine. Returns a tuple [(stdout, stderr, exit_status)]. *)
 
   module Debug : sig
     val emit_pseudo_assem : Language.expr -> string

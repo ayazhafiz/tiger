@@ -353,13 +353,13 @@ end = struct
              fresh temp that gets moved into [rax]. This helps the register
              allocator later on when it tries to determine what unique moves
              are associated with a temp. *)
-          alloc (fun dividend ->
+          alloc (fun result ->
               let _ =
-                alloc (fun result ->
+                alloc (fun dividend ->
                     munch_stmt (Ir.Mov (Ir.Temp dividend, s0, ""));
                     munch_stmt
                       (Ir.Mov (Ir.Temp rax, Ir.Temp dividend, "dividend"));
-                    emit_oper "cqto" [rax; rdx] [rax] [];
+                    emit_oper "cqo" [rdx; rax] [rax] [];
                     emit_oper "idiv `s0" [rax; rdx] [divisor; rax; rdx] [];
                     munch_stmt (Ir.Mov (Ir.Temp result, Ir.Temp rax, "quotient")) )
               in

@@ -68,6 +68,7 @@ let ensure_desugar fi =
   if Option.is_none fi.desugar then
     fi.desugar <- Option.some (desugar_expr parsed)
 
+(* Option: Path to test files *)
 let get_test_files =
   let open Cmdliner in
   let res =
@@ -80,6 +81,7 @@ let get_test_files =
          |> List.map (mkfi dir) ) )
     res
 
+(* Option: Update flags *)
 type update_flags = Flags of int
 
 let ( *| ) (Flags a) (Flags b) = Flags (a lor b)
@@ -133,10 +135,18 @@ let update_goldens =
     |> opt conv_update_flags update_none
     |> value)
 
-let cmd =
+(* Option: filter *)
+let test_filter =
   let open Cmdliner in
-  let join test_files update_goldens = (test_files, update_goldens) in
-  let cmdline = Term.(const join $ get_test_files $ update_goldens) in
+  Arg.(value & opt string "" & info ["f"] ~doc:"Test filter")
+
+let test_options =
+  let open Cmdliner in
+  let cmdline =
+    Term.(
+      const (fun a b c -> (a, b, c))
+      $ get_test_files $ update_goldens $ test_filter)
+  in
   let result = Term.eval (cmdline, Term.info "Test Options") in
   match result with `Ok r -> r | _ -> exit (Term.exit_status_of_result result)
 
@@ -220,8 +230,6 @@ let irtest update fi =
   in
   ((fi.name, `Quick, wrap test), true)
 
-let exclude_asm = ["merge"]
-
 let pseudo_asmtest update fi =
   let test _ =
     (* x86 *)
@@ -229,7 +237,7 @@ let pseudo_asmtest update fi =
       (update *? update_flags "p-asm")
       fi ".pseudo_s" X86_64_Backend.Debug.emit_pseudo_assem
   in
-  ((fi.name, `Quick, wrap test), List.mem fi.name exclude_asm |> not)
+  ((fi.name, `Quick, wrap test), true)
 
 let asmtest update fi =
   let test _ =
@@ -242,15 +250,30 @@ let asmtest update fi =
 
 let exectest update fi =
   let exec handler expr =
-    let stdout, stderr, exit = handler expr in
+    let expect = Filename.remove_extension fi.path ^ ".exec" in
+    let stdin =
+      let contents = readfi expect in
+      let re_stdin = Str.regexp "===stdin\n" in
+      if Str.string_match re_stdin contents 0 then
+        let stdin = Str.split (Str.regexp "===stdin\n") contents |> List.hd in
+        String.sub stdin 0 (String.length stdin - 1) |> Option.some
+      else None
+    in
+    let stdout, stderr, exit = handler expr stdin in
     let ekind, ecode =
       match exit with
       | Backend.Exit n -> ("exit", n)
       | Backend.Killed n -> Alcotest.fail (Printf.sprintf "Killed (%d)" n)
     in
-    String.concat "\n"
-      [ "~~~stdout"; stdout; "~~~stdout"; ""; "~~~stderr"; stderr; "~~~stderr"
-      ; ""; "---" ^ ekind; string_of_int ecode; "---" ^ ekind ]
+    let parts =
+      match stdin with None -> [] | Some s -> ["===stdin"; s; "===stdin"; ""]
+    in
+    let parts =
+      parts
+      @ [ "~~~stdout"; stdout; "~~~stdout"; ""; "~~~stderr"; stderr; "~~~stderr"
+        ; ""; "---" ^ ekind; string_of_int ecode; "---" ^ ekind ]
+    in
+    String.concat "\n" parts
   in
   let test _ =
     (* x86 *)
@@ -271,7 +294,14 @@ let mktests factory cases =
     cases ([], [])
 
 let () =
-  let cases, update_goldens = cmd in
+  let cases, update_goldens, test_filter = test_options in
+  let cases =
+    List.filter
+      (fun fi ->
+        try Str.search_forward (Str.regexp_string test_filter) fi.name 0 >= 0
+        with Not_found -> false )
+      cases
+  in
   let lexer_tests, cases = mktests lextest cases in
   let parser_tests, cases = mktests parsetest cases in
   let printer_tests, cases = mktests (printtest update_goldens) cases in
