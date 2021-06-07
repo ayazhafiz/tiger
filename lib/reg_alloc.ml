@@ -419,25 +419,9 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
     List.concat_map transform_instr instrs
 
   let rec reg_alloc1 fr instrs n =
-    if n > 1 then (
-      Printf.eprintf "Attempt %d...\n" n;
-      flush_all () );
-    if n > 90 then failwith "bye";
     (* TODO: real spill cost *)
     let select_spill _ = 1 in
     let coloring, spills = color instrs select_spill in
-    Printf.eprintf "assem:\n";
-    List.iter (fun a -> Printf.eprintf "%s\n" (Assem.string_of_instr a)) instrs;
-    (*
-    Printf.eprintf "coloring:\n";
-    Hashtbl.iter
-      (fun t r ->
-        Printf.eprintf "\t%s : %s\n" (string_of_temp t) (F.string_of_register r)
-        )
-      coloring;
-    *)
-    Printf.eprintf "spills:\n";
-    List.iter (fun t -> Printf.eprintf "\t%s\n" (string_of_temp t)) spills;
     match spills with
     | [] -> (instrs, coloring)
     | _ -> reg_alloc1 fr (rewrite_spills spills instrs fr) (n + 1)

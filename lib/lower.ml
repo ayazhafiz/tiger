@@ -603,6 +603,5 @@ module Translate (F : FRAME) = struct
       | false -> Ex (Ir.ESeq (unNx main, Ir.Const 0))
     in
     proc_entry_exit mainlvl main true;
-    Printf.eprintf "\nIR:\n%s\n\n" (Ir.string_of_ir string_of_temp (unNx main));
     (mainlab, get_frags ())
 end
