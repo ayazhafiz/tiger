@@ -11,6 +11,6 @@ jobs:
       - run: ./tool uitest
 
 workflows:
-  publish_site:
+  test:
     jobs:
       - test
