@@ -1,3 +1,5 @@
+(* TODO: better encapsulation of "bless"ing with dune *)
+
 open Tiger
 open Tiger.Backend_registry
 open Tiger.Desugar
@@ -5,7 +7,8 @@ open Tiger.Language
 open Tiger.Print
 open Tiger.Semantic
 
-let ext = ".tig"
+let baseline_local = "test/baseline/local"
+let baseline_golden = "test/baseline/golden"
 
 type fi =
   { name : string
@@ -27,6 +30,24 @@ let writefi path content =
   let ch = open_out path in
   output_string ch content;
   close_out ch
+
+let fi_local = Filename.concat baseline_local
+let fi_golden = Filename.concat baseline_golden
+let write_local name content = writefi (fi_local name) content
+let write_golden name content = writefi (fi_golden name) content
+
+let cmp_golden name =
+  let local = readfi (fi_local name) in
+  let golden =
+    try readfi (fi_golden name)
+    with _ ->
+      Alcotest.fail
+        (Printf.sprintf
+           {|Golden "%s" not present; run "--bless" to accept baselines first.|}
+           name )
+  in
+  if local <> golden then
+    Alcotest.fail (Printf.sprintf "Local baseline %s differs from golden." name)
 
 let mkfi dir name =
   let path = Filename.concat dir name in
@@ -68,72 +89,17 @@ let ensure_desugar fi =
   if Option.is_none fi.desugar then
     fi.desugar <- Option.some (desugar_expr parsed)
 
-(* Option: Path to test files *)
-let get_test_files =
+let all_cases =
+  let dir_cases = "test/cases" in
+  Sys.readdir dir_cases |> Array.to_list
+  |> List.filter (fun file -> Filename.extension file = ".tig")
+  |> List.map (mkfi dir_cases)
+
+(* Option: Accept goldens *)
+let bless =
   let open Cmdliner in
-  let res =
-    Arg.(value & opt string "test/testcases" & info ["p"] ~doc:"Path to tests")
-  in
-  Term.app
-    (Term.const (fun dir ->
-         Sys.readdir dir |> Array.to_list
-         |> List.filter (fun file -> Filename.extension file = ext)
-         |> List.map (mkfi dir) ) )
-    res
-
-(* Option: Update flags *)
-type update_flags = Flags of int
-
-let ( *| ) (Flags a) (Flags b) = Flags (a lor b)
-let ( *^ ) (Flags a) (Flags b) = Flags (a lxor b)
-let ( *? ) (Flags a) (Flags b) = a land b > 0
-
-let update_flags_tbl =
-  [ ("pp", Flags 1); ("ir", Flags 2); ("p-asm", Flags 4); ("asm", Flags 8)
-  ; ("exec", Flags 16) ]
-
-let update_none = Flags 0
-
-let update_all =
-  List.fold_left ( *| ) update_none (List.map snd update_flags_tbl)
-
-let update_flags s = List.assoc s update_flags_tbl
-
-let update_goldens =
-  let open Cmdliner in
-  let parse_update_flags1 (f, errs) = function
-    | "all" -> (update_all, errs)
-    | s -> (
-      match List.assoc_opt s update_flags_tbl with
-      | None -> (f, s :: errs)
-      | Some u -> (f *| u, errs) )
-  in
-  let parse_update_flags s =
-    s |> String.split_on_char ',' |> List.map String.trim
-    |> List.fold_left parse_update_flags1 (update_none, [])
-    |> function
-    | f, [] -> Ok f
-    | _, errs ->
-        Error
-          (`Msg
-            (Printf.sprintf
-               "Unknown option(s) %s; valid\n        options are %s"
-               (List.rev errs |> String.concat ", ")
-               (List.map fst update_flags_tbl |> String.concat ", ") ) )
-  in
-  let rec print_update_flags fmt fs =
-    if fs = update_none then ()
-    else
-      let s, flag = List.find (fun (_, flag) -> fs *? flag) update_flags_tbl in
-      Format.pp_print_string fmt s;
-      Format.pp_print_space fmt ();
-      print_update_flags fmt (fs *^ flag)
-  in
-  let conv_update_flags = Arg.conv (parse_update_flags, print_update_flags) in
   Arg.(
-    info ["u"] ~doc:"Update goldens"
-    |> opt conv_update_flags update_none
-    |> value)
+    value & flag & info ["bless"] ~doc:"Accept local baselines as new goldens.")
 
 (* Option: filter *)
 let test_filter =
@@ -142,11 +108,7 @@ let test_filter =
 
 let test_options =
   let open Cmdliner in
-  let cmdline =
-    Term.(
-      const (fun a b c -> (a, b, c))
-      $ get_test_files $ update_goldens $ test_filter)
-  in
+  let cmdline = Term.(const (fun a b -> (a, b)) $ test_filter $ bless) in
   let result = Term.eval (cmdline, Term.info "Test Options") in
   match result with `Ok r -> r | _ -> exit (Term.exit_status_of_result result)
 
@@ -174,20 +136,16 @@ let parsetest fi =
   in
   ((fi.name, `Quick, wrap test), not fi.syntax_error)
 
-let printtest update fi =
+let printtest fi =
   let test _ =
     ensure_parsed fi;
-    let pr_path = Filename.remove_extension fi.path ^ ".parse" in
     let expr_real =
       get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name)
     in
+    let parsefi = fi.name ^ ".parse" in
     let pr_real = string_of_expr expr_real in
-    let pr_expect = ref pr_real in
-    match update *? update_flags "pp" with
-    | true -> writefi pr_path pr_real
-    | false ->
-        pr_expect := readfi pr_path;
-        Alcotest.(check string) fi.name !pr_expect pr_real
+    write_local parsefi pr_real;
+    cmp_golden parsefi
     (* TODO *)
     (* let expr_expect = parse @@ lex !pr_expect in
        Alcotest.(check testable_expr) fi.name expr_expect expr_real *)
@@ -212,43 +170,35 @@ let sematest fi =
   in
   ((fi.name, `Quick, test), Option.is_none fi.semantic_error)
 
-let backend_golden update fi ext driver =
+let backend_golden fi ext driver =
   ensure_parsed fi;
-  let golden_path = Filename.remove_extension fi.path ^ ext in
+  let name = fi.name ^ ext in
   let expr = get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name) in
-  let real = driver expr in
-  match update with
-  | true -> writefi golden_path real
-  | false ->
-      let expect = readfi golden_path in
-      Alcotest.(check string) fi.name expect real
+  write_local name (driver expr);
+  cmp_golden name
 
-let irtest update fi =
+let irtest fi =
   let test _ =
     (* x86 *)
-    backend_golden (update *? update_flags "ir") fi ".ir" X86_64_Backend.emit_ir
+    backend_golden fi ".ir" X86_64_Backend.emit_ir
   in
   ((fi.name, `Quick, wrap test), true)
 
-let pseudo_asmtest update fi =
+let pseudo_asmtest fi =
   let test _ =
     (* x86 *)
-    backend_golden
-      (update *? update_flags "p-asm")
-      fi ".pseudo_s" X86_64_Backend.Debug.emit_pseudo_assem
+    backend_golden fi ".pseudo_s" X86_64_Backend.Debug.emit_pseudo_assem
   in
   ((fi.name, `Quick, wrap test), true)
 
-let asmtest update fi =
+let asmtest fi =
   let test _ =
     (* x86 *)
-    backend_golden
-      (update *? update_flags "asm")
-      fi ".nasm" X86_64_Backend.emit_assem
+    backend_golden fi ".nasm" X86_64_Backend.emit_assem
   in
   ((fi.name, `Quick, wrap test), true)
 
-let exectest update fi =
+let exectest fi =
   let exec handler expr =
     let expect = Filename.remove_extension fi.path ^ ".exec" in
     let stdin =
@@ -277,9 +227,7 @@ let exectest update fi =
   in
   let test _ =
     (* x86 *)
-    backend_golden
-      (update *? update_flags "exec")
-      fi ".exec" (exec X86_64_Backend.exec)
+    backend_golden fi ".exec" (exec X86_64_Backend.exec)
   in
   ((fi.name, `Slow, wrap test), true)
 
@@ -294,25 +242,29 @@ let mktests factory cases =
     cases ([], [])
 
 let () =
-  let cases, update_goldens, test_filter = test_options in
-  let cases =
-    List.filter
-      (fun fi ->
-        try Str.search_forward (Str.regexp_string test_filter) fi.name 0 >= 0
-        with Not_found -> false )
-      cases
-  in
-  let lexer_tests, cases = mktests lextest cases in
-  let parser_tests, cases = mktests parsetest cases in
-  let printer_tests, cases = mktests (printtest update_goldens) cases in
-  let semantic_tests, cases = mktests sematest cases in
-  let ir_tests, cases = mktests (irtest update_goldens) cases in
-  let pseudo_asm_tests, cases = mktests (pseudo_asmtest update_goldens) cases in
-  let asm_tests, cases = mktests (asmtest update_goldens) cases in
-  let exec_tests, _cases = mktests (exectest update_goldens) cases in
-  let fakeargv = Array.make 1 "compiler_tests" in
-  Alcotest.run "compiler_tests" ~argv:fakeargv
-    [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
-    ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
-    ; ("lowering tests", ir_tests); ("pseudo-emit tests", pseudo_asm_tests)
-    ; ("emit tests", asm_tests); ("execution tests", exec_tests) ]
+  let test_filter, bless = test_options in
+  if bless then
+    ignore
+      (Backend.sh (Printf.sprintf "cp %s/* %s" baseline_local baseline_golden))
+  else
+    let cases =
+      List.filter
+        (fun fi ->
+          try Str.search_forward (Str.regexp_string test_filter) fi.name 0 >= 0
+          with Not_found -> false )
+        all_cases
+    in
+    let lexer_tests, cases = mktests lextest cases in
+    let parser_tests, cases = mktests parsetest cases in
+    let printer_tests, cases = mktests printtest cases in
+    let semantic_tests, cases = mktests sematest cases in
+    let ir_tests, cases = mktests irtest cases in
+    let pseudo_asm_tests, cases = mktests pseudo_asmtest cases in
+    let asm_tests, cases = mktests asmtest cases in
+    let exec_tests, _cases = mktests exectest cases in
+    let fakeargv = Array.make 1 "compiler_tests" in
+    Alcotest.run "compiler_tests" ~argv:fakeargv
+      [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
+      ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
+      ; ("lowering tests", ir_tests); ("pseudo-emit tests", pseudo_asm_tests)
+      ; ("emit tests", asm_tests); ("execution tests", exec_tests) ]

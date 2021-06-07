@@ -2,6 +2,8 @@ open Frame
 
 type exit_status = Exit of int | Killed of int
 
+val sh : ?stdin:string option -> string -> string * string * Unix.process_status
+
 module Backend (F : FRAME) : sig
   val emit_ir : Language.expr -> string
   (** [emit_ir expr] emits a canonicalized IR of all function frames in the

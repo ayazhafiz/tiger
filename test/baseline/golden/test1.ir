@@ -20,7 +20,9 @@ _start:
              8),                          
            0))                            
   Mov(rax,                                return ()
-      t17)
+      Mem(+(t17,                          arr1[0]
+            *(0,
+              8))))
   Mov(rbx,
       t18)
   Mov(r12,

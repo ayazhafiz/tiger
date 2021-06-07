@@ -14,7 +14,11 @@ _start:
   mov r10, 10                             
   imul rdi, r10, 8                        
   mov rsi, 0                              ; arg2:initArray
-  call initArray
+  call initArray                          
+  mov r10, 0                              
+  imul r10, r10, 8                        
+  add rax, r10                            
+  mov rax, [rax]                          ; return ()
   mov rsp, rbp
   pop rbp
   ret
