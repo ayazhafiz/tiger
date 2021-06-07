@@ -1,0 +1,16 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+       - image: ocaml/opam2
+    steps:
+      - checkout
+      - run: opam install -y dune menhir
+      - run: ./tool unittest
+      - run: ./tool uitest
+
+workflows:
+  publish_site:
+    jobs:
+      - test
