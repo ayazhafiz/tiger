@@ -1,7 +1,8 @@
 (tests
-  (names flow_live_test)
-  (modules Flow_live_test)
-  (libraries Tiger alcotest))
+  (names flow_live_test runtime_test)
+  (modules Flow_live_test Runtime_test)
+  (libraries Tiger alcotest)
+  (deps (source_tree ../runtime)))
 
 (executable
   (name compiler)

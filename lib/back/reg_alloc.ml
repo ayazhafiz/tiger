@@ -1,7 +1,6 @@
-(* vim: foldmethod=marker
- *)
 open Frame
 open Temp
+open Data
 module LL = Linked_list
 module G = Graph.Graph
 module UDG = Graph.UndirectedGraph

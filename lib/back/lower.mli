@@ -1,7 +1,7 @@
 (** Lowers the Tiger [Language] to an [Ir]. *)
 
 open Frame
-open Desugar
+open Front.Desugar
 
 module Translate (F : FRAME) : sig
   val lower : desugared_expr -> Temp.label * F.frag list

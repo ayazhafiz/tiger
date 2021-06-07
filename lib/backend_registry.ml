@@ -1,12 +1,9 @@
-open Backend
-open Lower
+open Driver
 
 (* MIPS *)
-open Mips_frame
-module MipsTranslate = Translate (MipsFrame)
+open Back.Mips_frame
 module MipsBackend = Backend (MipsFrame)
 
 (* X86 64 Bit *)
-open X86_64_frame
-module X86_64_Translate = Translate (X86_64_Frame)
+open Back.X86_64_frame
 module X86_64_Backend = Backend (X86_64_Frame)

@@ -1,4 +1,4 @@
-open Symbol
+open Front.Symbol
 
 type temp = int
 type label = symbol

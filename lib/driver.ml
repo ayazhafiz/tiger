@@ -1,12 +1,14 @@
-open Canon
-open Desugar
-open Escape
-open Frame
-open Lower
-open Reg_alloc
-module G = Graph.Graph
-module UDG = Graph.UndirectedGraph
-module TempSet = Temp.TempSet
+open Front.Desugar
+open Front.Escape
+open Back
+open Back.Reg_alloc
+open Back.Canon
+open Back.Frame
+open Back.Lower
+module Print = Util.Print
+module G = Data.Graph.Graph
+module UDG = Data.Graph.UndirectedGraph
+module TempSet = Back.Temp.TempSet
 
 type version = {major : int; minor : int; patch : int option}
 
@@ -23,7 +25,7 @@ let parse_version version =
 
 type machine = MacOS_11
 
-let lkg = function MacOS_11 -> "runtime/lkg/runtime_macos_11.o"
+let lkg_runtime = function MacOS_11 -> "runtime/lkg/runtime_macos_11.o"
 
 let read_in ic =
   let lines = ref [] in
@@ -76,7 +78,7 @@ let exec_macos_11 prog stdin entry =
   let temp_asm = Filename.temp_file "main" ".asm" in
   let temp_o = Filename.temp_file "main" ".o" in
   let temp_exe = Filename.temp_file "main" ".exe" in
-  let runtime_o = lkg MacOS_11 in
+  let runtime_o = lkg_runtime MacOS_11 in
   let assemble = Printf.sprintf "nasm -f macho64 %s -o %s" temp_asm temp_o in
   let ld_lib_paths =
     ["-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"]

@@ -1,8 +1,12 @@
-open Frame
+open Front
+open Back.Frame
 
 type exit_status = Exit of int | Killed of int
+type machine = MacOS_11
 
 val sh : ?stdin:string option -> string -> string * string * Unix.process_status
+val lkg_runtime : machine -> string
+(* Maps a machine to a last-known-good object file containing the runtime. *)
 
 module Backend (F : FRAME) : sig
   val emit_ir : Language.expr -> string

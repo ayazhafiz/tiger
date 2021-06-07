@@ -1,11 +1,11 @@
 (** Tests [Tiger.Flow] and [Tiger.Live]. *)
 
-open Tiger.Assem
-open Tiger.Flow
-open Tiger.Live
-open Tiger.Temp
-module DG = Tiger.Graph.DirectedGraph
-module UDG = Tiger.Graph.UndirectedGraph
+open Tiger.Back.Assem
+open Tiger.Back.Flow
+open Tiger.Back.Live
+open Tiger.Back.Temp
+module DG = Tiger.Data.Graph.DirectedGraph
+module UDG = Tiger.Data.Graph.UndirectedGraph
 
 let pair l1 l2 = List.map2 (fun k v -> (k, v)) l1 l2
 let revpair l = List.map (fun (k, v) -> (v, k)) l

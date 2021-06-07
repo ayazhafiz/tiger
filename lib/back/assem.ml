@@ -1,4 +1,5 @@
 open Temp
+module Print = Util.Print
 
 type instr =
   | Oper of

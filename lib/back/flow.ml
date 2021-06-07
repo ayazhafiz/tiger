@@ -1,3 +1,4 @@
+open Data
 open Graph
 
 let ice why = failwith ("ICE (graph): " ^ why)
@@ -29,7 +30,7 @@ let flowgraph_of_instrs instrs =
     List.map
       (fun i ->
         let node = Graph.new_node graph (flownode_of_instr i) in
-        (i, node))
+        (i, node) )
       instrs
   in
   (* 2. assemble table label->node *)
@@ -37,7 +38,7 @@ let flowgraph_of_instrs instrs =
   List.iter
     (function
       | Assem.Label {lab; _}, node -> Hashtbl.add node_of_label lab node
-      | _ -> ())
+      | _ -> () )
     flownodes;
   (* 3. create flow graph. *)
   let rec sequence = function
@@ -46,7 +47,7 @@ let flowgraph_of_instrs instrs =
         jumps_of_instr i
         |> List.iter (fun lab ->
                let lab_node = Hashtbl.find node_of_label lab in
-               DirectedGraph.add_edge node lab_node);
+               DirectedGraph.add_edge node lab_node );
         sequence rest
     | [_last_no_jump] -> ()
     | (_, node1) :: ((_, node2) :: _ as rest) ->

@@ -59,7 +59,7 @@ let seq lst =
   | fst :: rest -> List.fold_left (fun sq next -> Seq (sq, next)) fst rest
 
 let string_of_irs string_of_temp stmts =
-  let open Print in
+  let open Util.Print in
   let binop = function
     | Plus -> "+"
     | Minus -> "-"

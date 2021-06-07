@@ -1,5 +1,3 @@
-open Language
-
 val lines : string -> string list
 
 val reflow : int -> string -> string
@@ -7,12 +5,6 @@ val reflow : int -> string -> string
 
 val reflown1 : int -> string -> string
 (** Like [reflow], but does not indent the first line. *)
-
-val string_of_var : var -> string
-val string_of_expr : expr -> string
-val string_of_decl : decl -> string
-val string_of_ty : ty -> string
-val fmt_expr : Format.formatter -> expr -> unit
 
 (* TODO: hide result of annotate behind [annotated_string] type. *)
 

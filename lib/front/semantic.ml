@@ -1,13 +1,13 @@
 open Env
 open Language
 open Symbol
-module P = Print
 module Tbl = Symbol.Table
 module Ty = Type
 
 exception SemanticError of string
 
 let ice why = raise (SemanticError why)
+let string_of_expr = Language.string_of_expr
 
 let scoped venv tenv go =
   Tbl.scoped venv (fun venv -> Tbl.scoped tenv (fun tenv -> go venv tenv))
@@ -189,7 +189,7 @@ and ck_expr venv tenv = function
       let test_ty = ck_expr venv tenv test in
       let then_ty = ck_expr venv tenv then' in
       if test_ty <> Ty.Int then
-        ice (Printf.sprintf "test %s must be int" (P.string_of_expr test));
+        ice (Printf.sprintf "test %s must be int" (string_of_expr test));
       if then_ty <> Ty.Unit then ice "if-then not unitary";
       realty := Some Ty.Unit;
       Ty.Unit
@@ -198,7 +198,7 @@ and ck_expr venv tenv = function
       let tthen = ck_expr venv tenv then' in
       let telse = ck_expr venv tenv else' in
       if test_ty <> Ty.Int then
-        ice (Printf.sprintf "test %s must be int" (P.string_of_expr e));
+        ice (Printf.sprintf "test %s must be int" (string_of_expr e));
       expect_ty2 tyeq tthen telse "branches of if expr differ";
       realty := Some tthen;
       tthen

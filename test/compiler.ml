@@ -1,11 +1,11 @@
 (* TODO: better encapsulation of "bless"ing with dune *)
 
-open Tiger
 open Tiger.Backend_registry
-open Tiger.Desugar
-open Tiger.Language
-open Tiger.Print
-open Tiger.Semantic
+open Tiger.Front
+open Tiger.Front.Desugar
+open Tiger.Front.Language
+open Tiger.Front.Semantic
+module Driver = Tiger.Driver
 
 let baseline_local = "test/baseline/local"
 let baseline_golden = "test/baseline/golden"
@@ -73,7 +73,7 @@ let mkfi dir name =
 let get opt err = match opt with Some v -> v | None -> failwith err
 let lex = Lexing.from_string ~with_positions:true
 let parse = Parser.toplevel Lexer.read
-let testable_expr = Alcotest.testable Print.fmt_expr ( = )
+let testable_expr = Alcotest.testable Language.fmt_expr ( = )
 
 let ensure_lexed fi =
   if Option.is_none fi.lexed then fi.lexed <- Option.some (lex fi.content)
@@ -200,7 +200,7 @@ let asmtest fi =
 
 let exectest fi =
   let exec handler expr =
-    let expect = Filename.remove_extension fi.path ^ ".exec" in
+    let expect = fi_golden (fi.name ^ ".exec") in
     let stdin =
       let contents = readfi expect in
       let re_stdin = Str.regexp "===stdin\n" in
@@ -212,8 +212,8 @@ let exectest fi =
     let stdout, stderr, exit = handler expr stdin in
     let ekind, ecode =
       match exit with
-      | Backend.Exit n -> ("exit", n)
-      | Backend.Killed n -> Alcotest.fail (Printf.sprintf "Killed (%d)" n)
+      | Driver.Exit n -> ("exit", n)
+      | Driver.Killed n -> Alcotest.fail (Printf.sprintf "Killed (%d)" n)
     in
     let parts =
       match stdin with None -> [] | Some s -> ["===stdin"; s; "===stdin"; ""]
@@ -245,7 +245,7 @@ let () =
   let test_filter, bless = test_options in
   if bless then
     ignore
-      (Backend.sh (Printf.sprintf "cp %s/* %s" baseline_local baseline_golden))
+      (Driver.sh (Printf.sprintf "cp %s/* %s" baseline_local baseline_golden))
   else
     let cases =
       List.filter

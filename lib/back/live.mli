@@ -1,5 +1,5 @@
 open Flow
-open Graph
+open Data.Graph
 open Temp
 
 (** A node in an [ifgraph]. *)

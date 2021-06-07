@@ -1,9 +1,11 @@
-open Symbol
+open Front.Symbol
 open Frame
 open Temp
-module Ast = Language
-module Tbl = Symbol.Table
-module Ty = Type
+module Tbl = Front.Symbol.Table
+module Env = Front.Env
+module Ty = Front.Type
+module Ast = Front.Language
+module Print = Util.Print
 
 let ice why = failwith ("ICE (lower): " ^ why)
 
@@ -86,16 +88,16 @@ let unravel ty what =
   | None -> ice ("type of " ^ what ^ " not checked")
 
 let ty_of_var v =
-  let open Language in
-  let vs = Print.string_of_var v in
+  let open Ast in
+  let vs = string_of_var v in
   match v with
   | SimpleVar (_, ty) -> unravel ty vs
   | FieldVar (_, _, ty) -> unravel ty vs
   | SubscriptVar (_, _, ty) -> unravel ty vs
 
 let ty_of_expr expr =
-  let open Language in
-  let es = Print.string_of_expr expr in
+  let open Ast in
+  let es = string_of_expr expr in
   match expr with
   | NilExpr -> Ty.Nil
   | VarExpr (_, ty) -> unravel ty es
@@ -324,7 +326,7 @@ module Translate (F : FRAME) = struct
     let init_field idx field =
       let offset = Ir.BinOp (Ir.Mul, Ir.Const idx, Ir.Const F.wordsize) in
       let fname = "." ^ (List.nth field_names idx |> name) in
-      let fexpr = Print.string_of_expr (List.nth field_exprs idx) in
+      let fexpr = Ast.string_of_expr (List.nth field_exprs idx) in
       let access = Ir.Mem (Ir.BinOp (Ir.Plus, rcd, offset), fname) in
       Ir.Mov (access, field, Printf.sprintf "%s=%s" fname fexpr)
     in
@@ -334,7 +336,7 @@ module Translate (F : FRAME) = struct
   (** [ir_while test body break] creates a while loop with [test], [body], and
       break label [break]. *)
   let ir_while test test_expr body finish =
-    let testcmt = Print.string_of_expr test_expr in
+    let testcmt = Ast.string_of_expr test_expr in
     let ltest = newlabel "test" in
     let lbody = newlabel "body" in
     let test = unEx test in
@@ -474,7 +476,7 @@ module Translate (F : FRAME) = struct
 
   let rec lower_var ctx =
     let venv, usage_lvl, _break = ctx in
-    let open Language in
+    let open Ast in
     function
     | SimpleVar (v, _) ->
         let decl_lvl, access = getvar venv v in
@@ -483,17 +485,17 @@ module Translate (F : FRAME) = struct
       match ty_of_var v with
       | Ty.Record (fields, _) ->
           ir_field_var (lower_var ctx v) (List.map fst fields) f
-            (Print.string_of_var va)
+            (Ast.string_of_var va)
       | t ->
           ice ("field receiver checked as " ^ Ty.string_of_ty t ^ ", not record")
       )
     | SubscriptVar (v, idx, _) as va ->
         ir_subscript_var (lower_var ctx v) (lower_expr ctx idx)
-          (Print.string_of_var va)
+          (Ast.string_of_var va)
 
   and lower_expr ctx =
     let venv, usage_lvl, break = ctx in
-    let open Language in
+    let open Ast in
     function
     | NilExpr -> Ex (Ir.Const 0)
     | VarExpr (v, _) -> lower_var ctx v
@@ -512,7 +514,7 @@ module Translate (F : FRAME) = struct
           | EqOp -> ir_stringeq usage_lvl left' right'
           | NeqOp -> ir_stringneq usage_lvl left' right'
           | _ -> ice "non-equality string operator" )
-        | _ -> ir_binop oper left' right' (Print.string_of_expr op) )
+        | _ -> ir_binop oper left' right' (Ast.string_of_expr op) )
     | RecordExpr {fields; _} ->
         let field_names, field_exprs = List.split fields in
         ir_record usage_lvl
@@ -523,7 +525,7 @@ module Translate (F : FRAME) = struct
     | AssignExpr {var; expr} as ae ->
         let lv = lower_var ctx var in
         let rv = lower_expr ctx expr in
-        ir_assign lv rv (Print.string_of_expr ae)
+        ir_assign lv rv (Ast.string_of_expr ae)
     | IfExpr {test; then'; else' = None; _} ->
         ir_ifthen (lower_expr ctx test) (lower_expr ctx then')
     | IfExpr {test; then'; else' = Some else'; _} ->
@@ -536,8 +538,7 @@ module Translate (F : FRAME) = struct
         ir_while test test_expr body break'
     | ForExpr _ as f ->
         ice
-          ( "for (" ^ Print.string_of_expr f
-          ^ ") must be desugared by this point" )
+          ("for (" ^ Ast.string_of_expr f ^ ") must be desugared by this point")
     | BreakExpr ->
         let break = br break in
         Nx (Ir.Jmp (Ir.Name break, [break]))
@@ -553,7 +554,7 @@ module Translate (F : FRAME) = struct
 
   and lower_decl ctx =
     let venv, usage_lvl, break = ctx in
-    let open Language in
+    let open Ast in
     function
     | FunctionDecl decls ->
         (* 1. Create [level]s for each function. *)
@@ -582,17 +583,17 @@ module Translate (F : FRAME) = struct
         []
     | VarDecl {name; escape; init; _} as vd ->
         let lvl, access =
-          alloc_local usage_lvl (Some (Symbol.name name)) !escape
+          alloc_local usage_lvl (Some (Front.Symbol.name name)) !escape
         in
         let var = ir_basic_var lvl access lvl in
         let init = lower_expr ctx init in
         Tbl.add venv name (VarEntry (lvl, access));
-        [ir_assign var init (Print.string_of_decl vd)]
+        [ir_assign var init (Ast.string_of_decl vd)]
     | TypeDecl _ -> []
 
   let lower expr =
     clear_frags ();
-    let expr = Desugar.expr_of_desugared expr in
+    let expr = Front.Desugar.expr_of_desugared expr in
     let mainlab = Temp.newlabel "_start" in
     let mainlvl = newlevel Toplevel mainlab [] [] in
     let main = lower_expr (base_venv (), mainlvl, None) expr in

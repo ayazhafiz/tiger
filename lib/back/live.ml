@@ -1,5 +1,5 @@
 open Flow
-open Graph
+open Data.Graph
 open Temp
 module G = Graph
 module DG = DirectedGraph
@@ -34,7 +34,7 @@ let interference_graph (flowgraph : flowgraph) : ifgraph * liveout_of_node =
         ; live_out = TempSet.empty
         ; defs = TempSet.of_list defs
         ; uses = TempSet.of_list uses
-        ; is_mov })
+        ; is_mov } )
   in
   (* page 214, Algorithm 10.4 *)
   let rec solve () =
@@ -61,7 +61,7 @@ let interference_graph (flowgraph : flowgraph) : ifgraph * liveout_of_node =
         fixedpoint :=
           !fixedpoint
           && TempSet.equal live_in1 data.live_in
-          && TempSet.equal live_out1 data.live_out)
+          && TempSet.equal live_out1 data.live_out )
       (G.nodes lgraph);
     if not !fixedpoint then solve ()
   in
@@ -73,7 +73,7 @@ let interference_graph (flowgraph : flowgraph) : ifgraph * liveout_of_node =
     List.fold_left
       (fun all node ->
         let {defs; uses; _} = G.get_data node in
-        TempSet.(union all (union defs uses)))
+        TempSet.(union all (union defs uses)) )
       TempSet.empty (G.nodes lgraph)
   in
   let ifgraph = G.new_graph () in
@@ -81,7 +81,7 @@ let interference_graph (flowgraph : flowgraph) : ifgraph * liveout_of_node =
   TempSet.iter
     (fun temp ->
       let ifnode = G.new_node ifgraph temp in
-      Hashtbl.add ifnode_of_temp temp ifnode)
+      Hashtbl.add ifnode_of_temp temp ifnode )
     alltemps;
   (* Time to populate the graph. *)
   let moves = ref [] in
@@ -113,7 +113,7 @@ let interference_graph (flowgraph : flowgraph) : ifgraph * liveout_of_node =
                          this node. This is okay because d is now equal to t! *)
                       | Some source when source = t ->
                           moves := (d, t') :: !moves
-                      | _ -> UDG.add_edge d t')))
+                      | _ -> UDG.add_edge d t' ) ) )
     (G.nodes lgraph);
   let ifgraph =
     { graph = ifgraph

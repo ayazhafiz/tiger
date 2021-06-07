@@ -1,4 +1,5 @@
 module LabelSet = Temp.LabelSet
+module Print = Util.Print
 
 module X86_64_Frame : sig
   include Frame.FRAME
