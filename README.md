@@ -14,3 +14,4 @@ Extensions to add to the compiler and tool suite, besides the present "TODO"s:
 - [ ] Language server
 - [ ] Code formatter
 - [ ] Language Server
+- [ ] Constant propogation after IR lowering (see `baselines/many_params.nasm`)
