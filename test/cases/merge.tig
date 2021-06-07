@@ -48,6 +48,7 @@ function readint(any: any) : int =
  var list1 := readlist()
  var list2 := (buffer:=get_char(); readlist())
  in
- printlist(merge(list1,list2))
+ printlist(merge(list1,list2));
+ 0
 end
 

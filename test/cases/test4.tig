@@ -11,5 +11,6 @@ in
 	print("10! = ");
 	print(string_of_int(nfactor(10)));
 	print("\n");
+	0
 end
 

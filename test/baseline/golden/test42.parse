@@ -40,5 +40,6 @@ in
   rec2.dates[0] := 2323;
   rec2.dates[2] := 2323;
   print(concat(concat(arr2[3].name, " is "), string_of_int(arr2[3].age)));
-  print(" years old\n")
+  print(" years old\n");
+  0
 end

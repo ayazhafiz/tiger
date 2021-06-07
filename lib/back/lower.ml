@@ -593,16 +593,13 @@ module Translate (F : FRAME) = struct
 
   let lower expr =
     clear_frags ();
-    let expr = Front.Desugar.expr_of_desugared expr in
-    let mainlab = Temp.newlabel "_start" in
-    let mainlvl = newlevel Toplevel mainlab [] [] in
-    let main = lower_expr (base_venv (), mainlvl, None) expr in
-    (* Add implicit return 0 if needed. *)
     let main =
-      match is_val expr with
-      | true -> main
-      | false -> Ex (Ir.ESeq (unNx main, Ir.Const 0))
+      Ast.FunctionDecl
+        [ { fn_name = symbol "_start"
+          ; params = []
+          ; result = Some (symbol "int")
+          ; body = Front.Desugar.expr_of_desugared expr } ]
     in
-    proc_entry_exit mainlvl main true;
-    (mainlab, get_frags ())
+    ignore (lower_decl (base_venv (), Toplevel, None) main);
+    (strlabel "_start", get_frags ())
 end

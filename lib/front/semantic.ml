@@ -322,6 +322,7 @@ and ck_ty ?(resolve = true) tenv = function
 
 let check_prog expr =
   try
-    let _ = ck_expr (base_venv ()) (base_tenv ()) expr in
+    let main_ty = ck_expr (base_venv ()) (base_tenv ()) expr in
+    expect_ty2 tyeq main_ty Ty.Int "toplevel result must be an int";
     Ok ()
   with SemanticError what -> Error what
