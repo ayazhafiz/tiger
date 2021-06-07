@@ -1,4 +1,9 @@
 (tests
-  (names compiler_tests flow_live_test)
-  (libraries Tiger alcotest)
-  (deps (glob_files testcases/*)))
+  (names flow_live_test)
+  (modules Flow_live_test)
+  (libraries Tiger alcotest))
+
+(executable
+  (name compiler)
+  (modules Compiler)
+  (libraries Tiger alcotest))
