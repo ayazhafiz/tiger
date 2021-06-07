@@ -92,7 +92,7 @@ end = struct
 
   let callee_saves = ["rbx"; "r12"; "r13"; "r14"; "r15"] |> List.map temp_of_reg
   let caller_saves = arg_regs @ (["rax"; "r10"; "r11"] |> List.map temp_of_reg)
-  let calldefs = (* rsp :: rbp :: *) caller_saves
+  let calldefs = rsp :: rbp :: caller_saves
   (* registers modified/defined by a [call] instr.
      [rsp] - RA is pushed on.
      [rbp] - Updated by function prolog.
@@ -429,29 +429,27 @@ end = struct
              and we may allocate it in rR without a save anyway.
              See page 237.
           *)
-          let args, nstk_pushed = munch_args (string_of_label fn) args in
+          let args_on_stack = max (List.length args - List.length arg_regs) 0 in
+          let args_stack_sz = ((args_on_stack * wordsize) + 15) / 16 * 16 in
+          let args_stack_padding = args_stack_sz - (args_on_stack * wordsize) in
+          if args_stack_padding > 0 then
+            emit_oper
+              (Printf.sprintf "sub rsp, %d" args_stack_padding)
+              [rsp] [rsp]
+              ["Pad stack for alignment"];
+          let args = munch_args (string_of_label fn) args in
           let fnname = string_of_label fn in
-          emit
-            (A.Oper
-               { assem = Printf.sprintf "call %s" fnname
-               ; src = args
-               ; dst = calldefs
-               ; jmp = None
-               ; comments = [] } );
+          emit_oper (Printf.sprintf "call %s" fnname) calldefs args [];
           (* Cleanup stack of any pushed-on args after call. *)
-          if nstk_pushed > 0 then
-            emit
-              (A.Oper
-                 { assem = Printf.sprintf "sub rsp, %d" (nstk_pushed * wordsize)
-                 ; src = [rsp]
-                 ; dst = [rsp]
-                 ; jmp = None
-                 ; comments = [Printf.sprintf "Deallocate %s args" fnname] } );
+          if args_stack_sz > 0 then
+            emit_oper
+              (Printf.sprintf "add rsp, %d" args_stack_sz)
+              [rsp] [rsp]
+              [Printf.sprintf "Deallocate %s args" fnname];
           rv
       | Ir.Call _ -> ice "non-label calls not permitted"
       | Ir.ESeq _ -> ice "ESeqs should be eliminated during canonicalization"
     and munch_args fn args =
-      let nstk_pushed = ref 0 in
       let rec eat_stack n = function
         | [] -> ()
         | arg1 :: argns ->
@@ -461,14 +459,8 @@ end = struct
                  arg1
                so handle rest of args first. *)
             eat_stack (n + 1) argns;
-            incr nstk_pushed;
-            emit
-              (A.Oper
-                 { assem = "push `s0"
-                 ; dst = [rsp]
-                 ; src = [munch_expr arg1]
-                 ; jmp = None
-                 ; comments = ["arg" ^ string_of_int n ^ ":" ^ fn] } )
+            emit_oper "push `s0" [rsp] [munch_expr arg1; rsp]
+              ["arg" ^ string_of_int n ^ ":" ^ fn]
       in
       let rec eat_argregs n = function
         | [], _ -> []
@@ -480,7 +472,7 @@ end = struct
               (Ir.Mov (Ir.Temp reg, arg, "arg" ^ string_of_int n ^ ":" ^ fn));
             reg :: eat_argregs (n + 1) (rest_args, rest_regs)
       in
-      (eat_argregs 1 (args, arg_regs), !nstk_pushed)
+      eat_argregs 1 (args, arg_regs)
     in
     munch_stmt stmt;
     List.rev !ilist
@@ -518,7 +510,7 @@ end = struct
             ( expr_of_access (formal1, Ir.Temp fp)
             , Ir.Mem (Ir.BinOp (Ir.Plus, Ir.Temp fp, Ir.Const offset), name)
             , name )
-          :: eat_stack n formalns
+          :: eat_stack (n + 1) formalns
     in
     let rec eat_argregs = function
       | [], _ -> []

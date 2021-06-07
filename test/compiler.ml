@@ -9,6 +9,7 @@ module Driver = Tiger.Driver
 
 let baseline_local = "test/baseline/local"
 let baseline_golden = "test/baseline/golden"
+let do_bless = ref false
 
 type fi =
   { name : string
@@ -37,17 +38,20 @@ let write_local name content = writefi (fi_local name) content
 let write_golden name content = writefi (fi_golden name) content
 
 let cmp_golden name =
-  let local = readfi (fi_local name) in
-  let golden =
-    try readfi (fi_golden name)
-    with _ ->
+  if !do_bless then ()
+  else
+    let local = readfi (fi_local name) in
+    let golden =
+      try readfi (fi_golden name)
+      with _ ->
+        Alcotest.fail
+          (Printf.sprintf
+             {|Golden "%s" not present; run "--bless" to accept baselines first.|}
+             name )
+    in
+    if local <> golden then
       Alcotest.fail
-        (Printf.sprintf
-           {|Golden "%s" not present; run "--bless" to accept baselines first.|}
-           name )
-  in
-  if local <> golden then
-    Alcotest.fail (Printf.sprintf "Local baseline %s differs from golden." name)
+        (Printf.sprintf "Local baseline %s differs from golden." name)
 
 let mkfi dir name =
   let path = Filename.concat dir name in
@@ -202,7 +206,7 @@ let exectest fi =
   let exec handler expr =
     let expect = fi_golden (fi.name ^ ".exec") in
     let stdin =
-      let contents = readfi expect in
+      let contents = try readfi expect with _ -> "" in
       let re_stdin = Str.regexp "===stdin\n" in
       if Str.string_match re_stdin contents 0 then
         let stdin = Str.split (Str.regexp "===stdin\n") contents |> List.hd in
@@ -231,6 +235,10 @@ let exectest fi =
   in
   ((fi.name, `Slow, wrap test), true)
 
+let blessing =
+  let cmd = Printf.sprintf "cp %s/* %s" baseline_local baseline_golden in
+  ("blessing", `Quick, fun _ -> ignore (Driver.sh cmd))
+
 let mktests factory cases =
   List.fold_right
     (fun case (tests, cases) ->
@@ -243,28 +251,28 @@ let mktests factory cases =
 
 let () =
   let test_filter, bless = test_options in
-  if bless then
-    ignore
-      (Driver.sh (Printf.sprintf "cp %s/* %s" baseline_local baseline_golden))
-  else
-    let cases =
-      List.filter
-        (fun fi ->
-          try Str.search_forward (Str.regexp_string test_filter) fi.name 0 >= 0
-          with Not_found -> false )
-        all_cases
-    in
-    let lexer_tests, cases = mktests lextest cases in
-    let parser_tests, cases = mktests parsetest cases in
-    let printer_tests, cases = mktests printtest cases in
-    let semantic_tests, cases = mktests sematest cases in
-    let ir_tests, cases = mktests irtest cases in
-    let pseudo_asm_tests, cases = mktests pseudo_asmtest cases in
-    let asm_tests, cases = mktests asmtest cases in
-    let exec_tests, _cases = mktests exectest cases in
-    let fakeargv = Array.make 1 "compiler_tests" in
-    Alcotest.run "compiler_tests" ~argv:fakeargv
-      [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
-      ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
-      ; ("lowering tests", ir_tests); ("pseudo-emit tests", pseudo_asm_tests)
-      ; ("emit tests", asm_tests); ("execution tests", exec_tests) ]
+  do_bless := bless;
+  let cases =
+    List.filter
+      (fun fi ->
+        try Str.search_forward (Str.regexp_string test_filter) fi.name 0 >= 0
+        with Not_found -> false )
+      all_cases
+  in
+  let lexer_tests, cases = mktests lextest cases in
+  let parser_tests, cases = mktests parsetest cases in
+  let printer_tests, cases = mktests printtest cases in
+  let semantic_tests, cases = mktests sematest cases in
+  let ir_tests, cases = mktests irtest cases in
+  let pseudo_asm_tests, cases = mktests pseudo_asmtest cases in
+  let asm_tests, cases = mktests asmtest cases in
+  let exec_tests, _cases = mktests exectest cases in
+  let fakeargv = Array.make 1 "compiler_tests" in
+  let compiler_tests =
+    [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
+    ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
+    ; ("lowering tests", ir_tests); ("pseudo-emit tests", pseudo_asm_tests)
+    ; ("emit tests", asm_tests); ("execution tests", exec_tests) ]
+    @ if !do_bless then [("blessing", [blessing])] else []
+  in
+  Alcotest.run "compiler_tests" ~argv:fakeargv compiler_tests
