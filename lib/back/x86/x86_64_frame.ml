@@ -188,6 +188,8 @@ end = struct
       (********)
       (* Move *)
       (********)
+      | Ir.Mov (Ir.Temp where, Ir.Const 0, cmt) ->
+          emit_oper "xor `d0, `d0" [where] [where] [cmt]
       | Ir.Mov (Ir.Temp where, Ir.Const what, cmt) ->
           emit_oper (Printf.sprintf "mov `d0, %d" what) [where] [] [cmt]
       | Ir.Mov
