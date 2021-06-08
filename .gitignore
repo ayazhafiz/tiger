@@ -6,3 +6,5 @@ www/*.js
 www/*.map
 www/*.ml
 test/baseline/local
+*.ir
+*.pseudo_s

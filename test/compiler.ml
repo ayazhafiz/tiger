@@ -218,24 +218,29 @@ let sematest fi =
   in
   ((fi.name, `Quick, test), Option.is_none fi.semantic_error)
 
-let backend_golden fi ext driver =
+let backend_golden ?(compare_golden = true) fi ext driver =
   ensure_parsed fi;
   let name = fi.name ^ ext in
   let expr = get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name) in
   write_local name (driver expr);
-  cmp_golden name
+  if compare_golden then cmp_golden name
 
+(** Not a real test: writes an ir file in the local baselines for debug
+    purposes. *)
 let irtest fi =
   let test _ =
     (* x86 *)
-    backend_golden fi ".ir" X86_64_Backend.emit_ir
+    backend_golden ~compare_golden:true fi ".ir" X86_64_Backend.emit_ir
   in
   ((fi.name, `Quick, wrap test), true)
 
+(** Not a real test: writes a pseudo_s file in the local baselines for debug
+    purposes. *)
 let pseudo_asmtest fi =
   let test _ =
     (* x86 *)
-    backend_golden fi ".pseudo_s" X86_64_Backend.Debug.emit_pseudo_assem
+    backend_golden ~compare_golden:false fi ".pseudo_s"
+      X86_64_Backend.Debug.emit_pseudo_assem
   in
   ((fi.name, `Quick, wrap test), true)
 
