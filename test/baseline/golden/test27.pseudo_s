@@ -8,14 +8,14 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t27, rbx                            ; liveout: rbp rdi r12 r13 r14 r15 t27
-  mov t28, r12                            ; liveout: rbp rdi r13 r14 r15 t27 t28
-  mov t29, r13                            ; liveout: rbp rdi r14 r15 t27 t28 t29
-  mov t30, r14                            ; liveout: rbp rdi r15 t27 t28 t29 t30
-  mov t31, r15                            ; liveout: rbp rdi t27 t28 t29 t30 t31
-  mov [rbp - 8], rdi                      ; liveout: rbp t27 t28 t29 t30 t31
+  mov t27, rbx                            ; liveout: rbp rdi r12 r13 r14 r15 t17 t27
+  mov t28, r12                            ; liveout: rbp rdi r13 r14 r15 t17 t27 t28
+  mov t29, r13                            ; liveout: rbp rdi r14 r15 t17 t27 t28 t29
+  mov t30, r14                            ; liveout: rbp rdi r15 t17 t27 t28 t29 t30
+  mov t31, r15                            ; liveout: rbp rdi t17 t27 t28 t29 t30 t31
+  mov [rbp - 8], rdi                      ; liveout: rbp t17 t27 t28 t29 t30 t31
                                           ; static link
-  mov t17, 0                              ; liveout: rbp t27 t28 t29 t30 t31
+  xor t17, t17                            ; liveout: rbp t27 t28 t29 t30 t31
                                           ; var a := 0
   mov t24, rbp                            ; liveout: t24 t27 t28 t29 t30 t31
                                           ; %arg(static_link):g

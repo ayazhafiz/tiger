@@ -8,16 +8,16 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t21, rbx                            ; liveout: rbp rsp rdi r12 r13 r14 r15 t21
-  mov t22, r12                            ; liveout: rbp rsp rdi r13 r14 r15 t21 t22
-  mov t23, r13                            ; liveout: rbp rsp rdi r14 r15 t21 t22 t23
-  mov t24, r14                            ; liveout: rbp rsp rdi r15 t21 t22 t23 t24
-  mov t25, r15                            ; liveout: rbp rsp rdi t21 t22 t23 t24 t25
-  mov [rbp - 8], rdi                      ; liveout: rbp rsp t21 t22 t23 t24 t25
+  mov t21, rbx                            ; liveout: rbp rsp rdi r12 r13 r14 r15 t17 t18 t21
+  mov t22, r12                            ; liveout: rbp rsp rdi r13 r14 r15 t17 t18 t21 t22
+  mov t23, r13                            ; liveout: rbp rsp rdi r14 r15 t17 t18 t21 t22 t23
+  mov t24, r14                            ; liveout: rbp rsp rdi r15 t17 t18 t21 t22 t23 t24
+  mov t25, r15                            ; liveout: rbp rsp rdi t17 t18 t21 t22 t23 t24 t25
+  mov [rbp - 8], rdi                      ; liveout: rbp rsp t17 t18 t21 t22 t23 t24 t25
                                           ; static link
-  mov t17, 0                              ; liveout: rbp rsp t17 t21 t22 t23 t24 t25
+  xor t17, t17                            ; liveout: rbp rsp t17 t18 t21 t22 t23 t24 t25
                                           ; var a := 0
-  mov t18, 0                              ; liveout: rbp rsp t17 t18 t21 t22 t23 t24 t25
+  xor t18, t18                            ; liveout: rbp rsp t17 t18 t21 t22 t23 t24 t25
                                           ; var i := 0
   mov t19, 100                            ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
                                           ; var limit := 100
@@ -27,8 +27,8 @@ test:                                     ; liveout: rbp rsp t17 t18 t19 t21 t22
   cmp t18, t19                            ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
                                           ; i <= limit
   jle true                                ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
-false:                                    ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25
-  mov t20, 0                              ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
+false:                                    ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
+  xor t20, t20                            ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
                                           ; false
 true:                                     ; liveout: rbp rsp t17 t18 t19 t20 t21 t22 t23 t24 t25
   cmp t20, 0                              ; liveout: rbp rsp t17 t18 t19 t21 t22 t23 t24 t25

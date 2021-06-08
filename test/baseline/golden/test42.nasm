@@ -54,14 +54,14 @@ _start:
   mov [rbp - 8], rdi                      ; static link
   mov r10, 10                             
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov rbx, rax                            ; var arr1 := arrtype1[10] of 0
   mov r10, 5                              
   imul r12, r10, 8                        
   mov r10, 4                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov rsi, rax                            
   lea r13, [rel str__aname]               
@@ -103,7 +103,7 @@ _start:
   mov r15, rax                            ; var arr3 : arrtype3 := arrtype3[100] of ""
   mov r10, 4                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov r14, rax                            
   lea r13, [rel str__Kapoios]             
@@ -132,7 +132,7 @@ _start:
   mov qword [r10], r13                    ; .age=44
   mov r10, 2                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov r13, rax                            
   lea r8, [rel str__Allos]                
@@ -240,7 +240,7 @@ _start:
   call print                              
   lea rdi, [rel str__yearsold]            
   call print                              
-  mov rax, 0                              ; return ()
+  xor rax, rax                            ; return ()
   mov rbx, [rbp - 16]                     ; fetch spilled t35
   mov r12, [rbp - 24]                     ; fetch spilled t36
   mov r13, [rbp - 32]                     ; fetch spilled t37

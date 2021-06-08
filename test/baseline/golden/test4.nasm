@@ -29,7 +29,7 @@ _start:
   call print                              
   lea rdi, [rel str__]                    
   call print                              
-  mov rax, 0                              ; return ()
+  xor rax, rax                            ; return ()
   mov rsp, rbp
   pop rbp
   ret

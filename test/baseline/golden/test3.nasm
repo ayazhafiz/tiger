@@ -19,7 +19,7 @@ _start:
   mov [rbp - 8], rdi                      ; static link
   mov r10, 2                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   lea r8, [rel str__Nobody]               
   mov r10, 0                              

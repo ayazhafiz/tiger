@@ -20,21 +20,21 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 64
-  mov [rbp - 56], rbx                     ; store spilled t46
+  mov [rbp - 64], rbx                     ; store spilled t46
   mov [rbp - 8], rdi                      ; static link
   mov qword [rbp - 16], 8                 ; var N := 8
   mov rbx, rbp                            
   sub rbx, 24                             
   mov r10, [rbp - 16]                     ; N
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov qword [rbx], rax                    ; var row := intArray[N] of 0
   mov rbx, rbp                            
   sub rbx, 32                             
   mov r10, [rbp - 16]                     ; N
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov qword [rbx], rax                    ; var col := intArray[N] of 0
   mov rbx, rbp                            
@@ -44,7 +44,7 @@ _start:
   add r10, r11                            
   dec r10                                 
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov qword [rbx], rax                    ; var diag1 := intArray[N + N - 1] of 0
   mov rbx, rbp                            
@@ -54,14 +54,17 @@ _start:
   add r10, r11                            
   dec r10                                 
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov qword [rbx], rax                    ; var diag2 := intArray[N + N - 1] of 0
   mov rdi, rbp                            ; %arg(static_link):try
-  mov rsi, 0                              ; %arg1:try
+  mov r10, [rbp - 56]                     ; fetch spilled t45
+  xor r10, r10                            ; %arg1:try
+  mov [rbp - 56], r10                     ; store spilled t45
+  mov rsi, [rbp - 56]                     ; fetch spilled t45
   call try                                
-  mov rax, 0                              ; return ()
-  mov rbx, [rbp - 56]                     ; fetch spilled t46
+  xor rax, rax                            ; return ()
+  mov rbx, [rbp - 64]                     ; fetch spilled t46
   mov rsp, rbp
   pop rbp
   ret
@@ -77,7 +80,8 @@ try:
   cmp r10, r11                            ; c = N
   je true5                                
 false5:                                   
-  mov r10, 0                              ; var r := 0
+  mov r10, [rbp - 24]                     ; fetch spilled t33
+  xor r10, r10                            ; var r := 0
   mov [rbp - 24], r10                     ; store spilled t33
   mov r10, [rbp - 8]                      ; static link
   mov r10, [r10 - 16]                     ; N
@@ -90,7 +94,7 @@ test2:
   cmp r11, r10                            ; r <= limit
   jle true4                               
 false4:                                   
-  mov r8, 0                               ; false
+  xor r8, r8                              ; false
 true4:                                    
   cmp r8, 0                               ; r <= limit
   je break2                               
@@ -214,7 +218,8 @@ printboard:
   mov rbp, rsp
   sub rsp, 48
   mov [rbp - 8], rdi                      ; static link
-  mov r10, 0                              ; var i := 0
+  mov r10, [rbp - 16]                     ; fetch spilled t18
+  xor r10, r10                            ; var i := 0
   mov [rbp - 16], r10                     ; store spilled t18
   mov r10, [rbp - 8]                      ; static link
   mov r10, [r10 - 16]                     ; N
@@ -227,12 +232,13 @@ test1:
   cmp r11, r10                            ; i <= limit
   jle true2                               
 false2:                                   
-  mov r8, 0                               ; false
+  xor r8, r8                              ; false
 true2:                                    
   cmp r8, 0                               ; i <= limit
   je break                                
 body1:                                    
-  mov r10, 0                              ; var j := 0
+  mov r10, [rbp - 32]                     ; fetch spilled t20
+  xor r10, r10                            ; var j := 0
   mov [rbp - 32], r10                     ; store spilled t20
   mov r10, [rbp - 8]                      ; static link
   mov r10, [r10 - 16]                     ; N
@@ -245,7 +251,7 @@ test:
   cmp r11, r10                            ; j <= limit
   jle true1                               
 false1:                                   
-  mov r8, 0                               ; false
+  xor r8, r8                              ; false
 true1:                                    
   cmp r8, 0                               ; j <= limit
   je break1                               

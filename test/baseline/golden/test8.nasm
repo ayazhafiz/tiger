@@ -14,7 +14,7 @@ _start:
   cmp r10, 20                             ; 10 > 20
   jg true                                 
 false:                                    
-  mov r11, 0                              ; false
+  xor r11, r11                            ; false
 true:                                     
   cmp r11, 0                              
   jne true1                               

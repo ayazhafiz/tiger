@@ -92,8 +92,8 @@ _start:
                                           ; arg1:printlist
   mov rsi, t142                           ; liveout: rsi rdi t143 t144 t145 t146 t147
                                           ; arg2:printlist
-  call printlist                          ; liveout: rbp rsp t143 t144 t145 t146 t147
-  mov rax, 0                              ; liveout: rax rbp rsp t143 t144 t145 t146 t147
+  call printlist                          ; liveout: rax rbp rsp t143 t144 t145 t146 t147
+  xor rax, rax                            ; liveout: rax rbp rsp t143 t144 t145 t146 t147
                                           ; return ()
   mov rbx, t143                           ; liveout: rax rbx rbp rsp t144 t145 t146 t147
   mov r12, t144                           ; liveout: rax rbx rbp rsp r12 t145 t146 t147
@@ -335,43 +335,43 @@ merge:
   mov t94, r15                            ; liveout: rdx rbp rsp rsi rdi t90 t91 t92 t93 t94
   mov [rbp - 8], rdi                      ; liveout: rdx rbp rsp rsi t90 t91 t92 t93 t94
                                           ; static link
-  mov t58, rsi                            ; liveout: rdx rbp rsp t58 t90 t91 t92 t93 t94
+  mov t58, rsi                            ; liveout: rdx rbp rsp rsi t58 t90 t91 t92 t93 t94
                                           ; a
-  mov t59, rdx                            ; liveout: rbp rsp t58 t59 t90 t91 t92 t93 t94
+  mov t59, rdx                            ; liveout: rbp rsp rsi t58 t59 t90 t91 t92 t93 t94
                                           ; b
-  cmp t58, 0                              ; liveout: rbp rsp t58 t59 t90 t91 t92 t93 t94
+  cmp t58, 0                              ; liveout: rbp rsp rsi t58 t59 t90 t91 t92 t93 t94
                                           ; a = nil
-  je true4                                ; liveout: rbp rsp t58 t59 t90 t91 t92 t93 t94
-false4:                                   ; liveout: rbp rsp t58 t59 t90 t91 t92 t93 t94
-  cmp t59, 0                              ; liveout: rbp rsp t58 t59 t90 t91 t92 t93 t94
+  je true4                                ; liveout: rbp rsp rsi t58 t59 t90 t91 t92 t93 t94
+false4:                                   ; liveout: rbp rsp rsi t58 t59 t90 t91 t92 t93 t94
+  cmp t59, 0                              ; liveout: rbp rsp rsi t58 t59 t90 t91 t92 t93 t94
                                           ; b = nil
-  je true3                                ; liveout: rbp rsp t58 t59 t90 t91 t92 t93 t94
-false3:                                   ; liveout: t58 t59 t90 t91 t92 t93 t94
-  mov t191, 0                             ; liveout: t58 t59 t90 t91 t92 t93 t94 t191
-  imul t190, t191, 8                      ; liveout: t58 t59 t90 t91 t92 t93 t94 t190
-  mov t192, t59                           ; liveout: t58 t59 t90 t91 t92 t93 t94 t190 t192
-  add t192, t190                          ; liveout: t58 t59 t90 t91 t92 t93 t94 t192
-  mov t189, t192                          ; liveout: t58 t59 t90 t91 t92 t93 t94 t189
+  je true3                                ; liveout: rbp rsp rsi t58 t59 t90 t91 t92 t93 t94
+false3:                                   ; liveout: rsi t58 t59 t90 t91 t92 t93 t94
+  mov t191, 0                             ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t191
+  imul t190, t191, 8                      ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t190
+  mov t192, t59                           ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t190 t192
+  add t192, t190                          ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t192
+  mov t189, t192                          ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t189
                                           ; b.first
-  mov t188, [t189]                        ; liveout: t58 t59 t90 t91 t92 t93 t94 t188
+  mov t188, [t189]                        ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t188
                                           ; b.first
-  mov t196, 0                             ; liveout: t58 t59 t90 t91 t92 t93 t94 t188 t196
-  imul t195, t196, 8                      ; liveout: t58 t59 t90 t91 t92 t93 t94 t188 t195
-  mov t197, t58                           ; liveout: t58 t59 t90 t91 t92 t93 t94 t188 t195 t197
-  add t197, t195                          ; liveout: t58 t59 t90 t91 t92 t93 t94 t188 t197
-  mov t194, t197                          ; liveout: t58 t59 t90 t91 t92 t93 t94 t188 t194
+  mov t196, 0                             ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t188 t196
+  imul t195, t196, 8                      ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t188 t195
+  mov t197, t58                           ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t188 t195 t197
+  add t197, t195                          ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t188 t197
+  mov t194, t197                          ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t188 t194
                                           ; a.first
-  mov t193, [t194]                        ; liveout: t58 t59 t90 t91 t92 t93 t94 t188 t193
+  mov t193, [t194]                        ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t188 t193
                                           ; a.first
-  cmp t193, t188                          ; liveout: t58 t59 t90 t91 t92 t93 t94
+  cmp t193, t188                          ; liveout: rsi t58 t59 t90 t91 t92 t93 t94
                                           ; a.first < b.first
-  jl true2                                ; liveout: t58 t59 t90 t91 t92 t93 t94
-false2:                                   ; liveout: t58 t59 t90 t91 t92 t93 t94
-  mov t199, 2                             ; liveout: t58 t59 t90 t91 t92 t93 t94 t199
-  imul t198, t199, 8                      ; liveout: t58 t59 t90 t91 t92 t93 t94 t198
-  mov rdi, t198                           ; liveout: rdi t58 t59 t90 t91 t92 t93 t94
+  jl true2                                ; liveout: rsi t58 t59 t90 t91 t92 t93 t94
+false2:                                   ; liveout: rsi t58 t59 t90 t91 t92 t93 t94
+  mov t199, 2                             ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t199
+  imul t198, t199, 8                      ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t198
+  mov rdi, t198                           ; liveout: rsi rdi t58 t59 t90 t91 t92 t93 t94
                                           ; arg1:initArray
-  mov rsi, 0                              ; liveout: rsi rdi t58 t59 t90 t91 t92 t93 t94
+  xor rsi, rsi                            ; liveout: rsi rdi t58 t59 t90 t91 t92 t93 t94
                                           ; arg2:initArray
   call initArray                          ; liveout: rax rbp t58 t59 t90 t91 t92 t93 t94
   mov t81, rax                            ; liveout: rbp t58 t59 t81 t90 t91 t92 t93 t94
@@ -442,12 +442,12 @@ true3:                                    ; liveout: rbp rsp t58 t90 t91 t92 t93
   mov t88, t58                            ; liveout: rbp rsp t88 t90 t91 t92 t93 t94
                                           ; then
   jmp join2                               ; liveout: rbp rsp t88 t90 t91 t92 t93 t94
-true2:                                    ; liveout: t58 t59 t90 t91 t92 t93 t94
-  mov t216, 2                             ; liveout: t58 t59 t90 t91 t92 t93 t94 t216
-  imul t215, t216, 8                      ; liveout: t58 t59 t90 t91 t92 t93 t94 t215
-  mov rdi, t215                           ; liveout: rdi t58 t59 t90 t91 t92 t93 t94
+true2:                                    ; liveout: rsi t58 t59 t90 t91 t92 t93 t94
+  mov t216, 2                             ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t216
+  imul t215, t216, 8                      ; liveout: rsi t58 t59 t90 t91 t92 t93 t94 t215
+  mov rdi, t215                           ; liveout: rsi rdi t58 t59 t90 t91 t92 t93 t94
                                           ; arg1:initArray
-  mov rsi, 0                              ; liveout: rsi rdi t58 t59 t90 t91 t92 t93 t94
+  xor rsi, rsi                            ; liveout: rsi rdi t58 t59 t90 t91 t92 t93 t94
                                           ; arg2:initArray
   call initArray                          ; liveout: rax rbp t58 t59 t90 t91 t92 t93 t94
   mov t86, rax                            ; liveout: rbp t58 t59 t86 t90 t91 t92 t93 t94
@@ -504,57 +504,57 @@ readlist:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t72, rbx                            ; liveout: rbp rdi r12 r13 r14 r15 t72
-  mov t73, r12                            ; liveout: rbp rdi r13 r14 r15 t72 t73
-  mov t74, r13                            ; liveout: rbp rdi r14 r15 t72 t73 t74
-  mov t75, r14                            ; liveout: rbp rdi r15 t72 t73 t74 t75
-  mov t76, r15                            ; liveout: rbp rdi t72 t73 t74 t75 t76
-  mov [rbp - 8], rdi                      ; liveout: t72 t73 t74 t75 t76
+  mov t72, rbx                            ; liveout: rbp rsi rdi r12 r13 r14 r15 t71 t72
+  mov t73, r12                            ; liveout: rbp rsi rdi r13 r14 r15 t71 t72 t73
+  mov t74, r13                            ; liveout: rbp rsi rdi r14 r15 t71 t72 t73 t74
+  mov t75, r14                            ; liveout: rbp rsi rdi r15 t71 t72 t73 t74 t75
+  mov t76, r15                            ; liveout: rbp rsi rdi t71 t72 t73 t74 t75 t76
+  mov [rbp - 8], rdi                      ; liveout: rsi t71 t72 t73 t74 t75 t76
                                           ; static link
-  mov t233, 1                             ; liveout: t72 t73 t74 t75 t76 t233
-  imul t232, t233, 8                      ; liveout: t72 t73 t74 t75 t76 t232
-  mov rdi, t232                           ; liveout: rdi t72 t73 t74 t75 t76
+  mov t233, 1                             ; liveout: rsi t71 t72 t73 t74 t75 t76 t233
+  imul t232, t233, 8                      ; liveout: rsi t71 t72 t73 t74 t75 t76 t232
+  mov rdi, t232                           ; liveout: rsi rdi t71 t72 t73 t74 t75 t76
                                           ; arg1:initArray
-  mov rsi, 0                              ; liveout: rsi rdi t72 t73 t74 t75 t76
+  xor rsi, rsi                            ; liveout: rsi rdi t71 t72 t73 t74 t75 t76
                                           ; arg2:initArray
-  call initArray                          ; liveout: rax rbp t72 t73 t74 t75 t76
-  mov t63, rax                            ; liveout: rbp t63 t72 t73 t74 t75 t76
-  mov t234, 0                             ; liveout: rbp t63 t72 t73 t74 t75 t76 t234
-  mov t236, 0                             ; liveout: rbp t63 t72 t73 t74 t75 t76 t234 t236
-  imul t235, t236, 8                      ; liveout: rbp t63 t72 t73 t74 t75 t76 t234 t235
-  mov t237, t63                           ; liveout: rbp t63 t72 t73 t74 t75 t76 t234 t235 t237
-  add t237, t235                          ; liveout: rbp t63 t72 t73 t74 t75 t76 t234 t237
-  mov qword [t237], t234                  ; liveout: rbp t63 t72 t73 t74 t75 t76
+  call initArray                          ; liveout: rax rbp t71 t72 t73 t74 t75 t76
+  mov t63, rax                            ; liveout: rbp t63 t71 t72 t73 t74 t75 t76
+  mov t234, 0                             ; liveout: rbp t63 t71 t72 t73 t74 t75 t76 t234
+  mov t236, 0                             ; liveout: rbp t63 t71 t72 t73 t74 t75 t76 t234 t236
+  imul t235, t236, 8                      ; liveout: rbp t63 t71 t72 t73 t74 t75 t76 t234 t235
+  mov t237, t63                           ; liveout: rbp t63 t71 t72 t73 t74 t75 t76 t234 t235 t237
+  add t237, t235                          ; liveout: rbp t63 t71 t72 t73 t74 t75 t76 t234 t237
+  mov qword [t237], t234                  ; liveout: rbp t63 t71 t72 t73 t74 t75 t76
                                           ; .any=0
-  mov t62, t63                            ; liveout: rbp t62 t72 t73 t74 t75 t76
+  mov t62, t63                            ; liveout: rbp t62 t71 t72 t73 t74 t75 t76
                                           ; var any := any {
                                           ;   any=0
                                           ; }
-  mov t65, [rbp - 8]                      ; liveout: t62 t65 t72 t73 t74 t75 t76
+  mov t65, [rbp - 8]                      ; liveout: t62 t65 t71 t72 t73 t74 t75 t76
                                           ; %arg(static_link):readint
-  mov t66, t62                            ; liveout: t62 t65 t66 t72 t73 t74 t75 t76
+  mov t66, t62                            ; liveout: t62 t65 t66 t71 t72 t73 t74 t75 t76
                                           ; %arg1:readint
-  mov rdi, t65                            ; liveout: rdi t62 t66 t72 t73 t74 t75 t76
+  mov rdi, t65                            ; liveout: rdi t62 t66 t71 t72 t73 t74 t75 t76
                                           ; arg1:readint
-  mov rsi, t66                            ; liveout: rsi rdi t62 t72 t73 t74 t75 t76
+  mov rsi, t66                            ; liveout: rsi rdi t62 t71 t72 t73 t74 t75 t76
                                           ; arg2:readint
-  call readint                            ; liveout: rax rbp rsp t62 t72 t73 t74 t75 t76
-  mov t67, rax                            ; liveout: rbp rsp t62 t67 t72 t73 t74 t75 t76
-  mov t64, t67                            ; liveout: rbp rsp t62 t64 t72 t73 t74 t75 t76
+  call readint                            ; liveout: rax rbp rsp rsi t62 t71 t72 t73 t74 t75 t76
+  mov t67, rax                            ; liveout: rbp rsp rsi t62 t67 t71 t72 t73 t74 t75 t76
+  mov t64, t67                            ; liveout: rbp rsp rsi t62 t64 t71 t72 t73 t74 t75 t76
                                           ; var i := readint(any)
-  mov t241, 0                             ; liveout: rbp rsp t62 t64 t72 t73 t74 t75 t76 t241
-  imul t240, t241, 8                      ; liveout: rbp rsp t62 t64 t72 t73 t74 t75 t76 t240
-  mov t242, t62                           ; liveout: rbp rsp t64 t72 t73 t74 t75 t76 t240 t242
-  add t242, t240                          ; liveout: rbp rsp t64 t72 t73 t74 t75 t76 t242
-  mov t239, t242                          ; liveout: rbp rsp t64 t72 t73 t74 t75 t76 t239
+  mov t241, 0                             ; liveout: rbp rsp rsi t62 t64 t71 t72 t73 t74 t75 t76 t241
+  imul t240, t241, 8                      ; liveout: rbp rsp rsi t62 t64 t71 t72 t73 t74 t75 t76 t240
+  mov t242, t62                           ; liveout: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76 t240 t242
+  add t242, t240                          ; liveout: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76 t242
+  mov t239, t242                          ; liveout: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76 t239
                                           ; any.any
-  mov t238, [t239]                        ; liveout: rbp rsp t64 t72 t73 t74 t75 t76 t238
+  mov t238, [t239]                        ; liveout: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76 t238
                                           ; any.any
-  cmp t238, 0                             ; liveout: rbp rsp t64 t72 t73 t74 t75 t76
+  cmp t238, 0                             ; liveout: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76
                                           ; any.any
-  jne true1                               ; liveout: rbp rsp t64 t72 t73 t74 t75 t76
-false1:                                   ; liveout: rbp rsp t72 t73 t74 t75 t76
-  mov t71, 0                              ; liveout: rbp rsp t71 t72 t73 t74 t75 t76
+  jne true1                               ; liveout: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76
+false1:                                   ; liveout: rbp rsp t71 t72 t73 t74 t75 t76
+  xor t71, t71                            ; liveout: rbp rsp t71 t72 t73 t74 t75 t76
                                           ; else
 join:                                     ; liveout: rbp rsp t71 t72 t73 t74 t75 t76
   mov rax, t71                            ; liveout: rax rbp rsp t72 t73 t74 t75 t76
@@ -565,12 +565,12 @@ join:                                     ; liveout: rbp rsp t71 t72 t73 t74 t75
   mov r14, t75                            ; liveout: rax rbx rbp rsp r12 r13 r14 t76
   mov r15, t76                            ; liveout: rax rbx rbp rsp r12 r13 r14 r15
   jmp done5                               ; liveout: rax rbx rbp rsp r12 r13 r14 r15
-true1:                                    ; liveout: t64 t72 t73 t74 t75 t76
-  mov t244, 2                             ; liveout: t64 t72 t73 t74 t75 t76 t244
-  imul t243, t244, 8                      ; liveout: t64 t72 t73 t74 t75 t76 t243
-  mov rdi, t243                           ; liveout: rdi t64 t72 t73 t74 t75 t76
+true1:                                    ; liveout: rsi t64 t72 t73 t74 t75 t76
+  mov t244, 2                             ; liveout: rsi t64 t72 t73 t74 t75 t76 t244
+  imul t243, t244, 8                      ; liveout: rsi t64 t72 t73 t74 t75 t76 t243
+  mov rdi, t243                           ; liveout: rsi rdi t64 t72 t73 t74 t75 t76
                                           ; arg1:initArray
-  mov rsi, 0                              ; liveout: rsi rdi t64 t72 t73 t74 t75 t76
+  xor rsi, rsi                            ; liveout: rsi rdi t64 t72 t73 t74 t75 t76
                                           ; arg2:initArray
   call initArray                          ; liveout: rax rbp t64 t72 t73 t74 t75 t76
   mov t70, rax                            ; liveout: rbp t64 t70 t72 t73 t74 t75 t76
@@ -605,16 +605,16 @@ readint:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t53, rbx                            ; liveout: rbp rsi rdi r12 r13 r14 r15 t53
-  mov t54, r12                            ; liveout: rbp rsi rdi r13 r14 r15 t53 t54
-  mov t55, r13                            ; liveout: rbp rsi rdi r14 r15 t53 t54 t55
-  mov t56, r14                            ; liveout: rbp rsi rdi r15 t53 t54 t55 t56
-  mov t57, r15                            ; liveout: rbp rsi rdi t53 t54 t55 t56 t57
-  mov [rbp - 8], rdi                      ; liveout: rbp rsi t53 t54 t55 t56 t57
+  mov t53, rbx                            ; liveout: rbp rsi rdi r12 r13 r14 r15 t19 t53
+  mov t54, r12                            ; liveout: rbp rsi rdi r13 r14 r15 t19 t53 t54
+  mov t55, r13                            ; liveout: rbp rsi rdi r14 r15 t19 t53 t54 t55
+  mov t56, r14                            ; liveout: rbp rsi rdi r15 t19 t53 t54 t55 t56
+  mov t57, r15                            ; liveout: rbp rsi rdi t19 t53 t54 t55 t56 t57
+  mov [rbp - 8], rdi                      ; liveout: rbp rsi t19 t53 t54 t55 t56 t57
                                           ; static link
-  mov t18, rsi                            ; liveout: rbp t18 t53 t54 t55 t56 t57
+  mov t18, rsi                            ; liveout: rbp t18 t19 t53 t54 t55 t56 t57
                                           ; any
-  mov t19, 0                              ; liveout: rbp t18 t19 t53 t54 t55 t56 t57
+  xor t19, t19                            ; liveout: rbp t18 t19 t53 t54 t55 t56 t57
                                           ; var i := 0
   mov t41, rbp                            ; liveout: t18 t19 t41 t53 t54 t55 t56 t57
                                           ; %arg(static_link):skipto
@@ -793,9 +793,9 @@ isdigit:
   cmp t161, t28                                     ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
                                                     ; ord(buffer) >= ord("0")
   jge if_t                                          ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
-if_f:                                               ; liveout: rbp rsp t30 t31 t32 t33 t34
-false:                                              ; liveout: rbp rsp t30 t31 t32 t33 t34
-  mov t29, 0                                        ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
+if_f:                                               ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
+false:                                              ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
+  xor t29, t29                                      ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
                                                     ; false
 true:                                               ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
   mov rax, t29                                      ; liveout: rax rbp rsp t30 t31 t32 t33 t34
@@ -829,8 +829,8 @@ if_t:                                               ; liveout: rbp t29 t30 t31 t
   cmp t160, t24                                     ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
                                             
   jle true                                          ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
-false_bridge:                                       ; liveout: rbp rsp t30 t31 t32 t33 t34
-  jmp false                                         ; liveout: rbp rsp t30 t31 t32 t33 t34
+false_bridge:                                       ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
+  jmp false                                         ; liveout: rbp rsp t29 t30 t31 t32 t33 t34
 done8:                                              ; liveout: rax rbx rbp rsp r12 r13 r14 r15
   mov rsp, rbp
   pop rbp
@@ -838,18 +838,18 @@ done8:                                              ; liveout: rax rbx rbp rsp r
 
 === Interferences ===
 
-rax: rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t96 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161 t178 t182
+rax: rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t71 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t96 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161 t178 t182
 rbx: rax rbp rsp r12 r13 r14 r15 t31 t32 t33 t34 t37 t38 t39 t40 t54 t55 t56 t57 t73 t74 t75 t76 t91 t92 t93 t94 t104 t105 t106 t107 t115 t116 t117 t118 t126 t127 t128 t129 t144 t145 t146 t147
-rcx: rax rbp rsp t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
-rdx: rax rbp rsp rsi rdi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t96 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161 t178 t182
+rcx: rax rbp rsp rsi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t71 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
+rdx: rax rbp rsp rsi rdi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t71 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t96 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161 t178 t182
 rbp: rax rbx rcx rdx rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t24 t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t39 t40 t44 t47 t51 t52 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t63 t64 t67 t69 t70 t71 t72 t73 t74 t75 t76 t80 t81 t85 t86 t87 t88 t89 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t132 t133 t134 t136 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t159 t160 t161 t200 t201 t202 t203 t204 t205 t206 t207 t208 t209 t210 t217 t218 t219 t220 t221 t222 t223 t224 t225 t226 t227 t234 t235 t236 t237 t238 t239 t240 t241 t242 t245 t246 t247 t248 t249 t250 t251 t252 t253 t256 t260
 rsp: rax rbx rcx rdx rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t18 t19 t24 t28 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t47 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t67 t69 t70 t71 t72 t73 t74 t75 t76 t80 t81 t85 t86 t87 t88 t89 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t159 t160 t161 t238 t239 t240 t241 t242
-rsi: rax rdx rbp rsp rdi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t79 t81 t84 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t139 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
-rdi: rax rdx rbp rsp rsi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t43 t46 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t66 t70 t72 t73 t74 t75 t76 t78 t79 t81 t83 t84 t86 t90 t91 t92 t93 t94 t95 t97 t103 t104 t105 t106 t107 t110 t113 t114 t115 t116 t117 t118 t120 t123 t125 t126 t127 t128 t129 t130 t138 t139 t141 t142 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161 t265
-r8: rax rbp rsp t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
-r9: rax rbp rsp t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
-r10: rax rbp rsp t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
-r11: rax rbp rsp t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
+rsi: rax rcx rdx rbp rsp rdi r8 r9 r10 r11 t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t67 t70 t71 t72 t73 t74 t75 t76 t79 t81 t84 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t139 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161 t188 t189 t190 t191 t192 t193 t194 t195 t196 t197 t198 t199 t215 t216 t232 t233 t238 t239 t240 t241 t242 t243 t244
+rdi: rax rdx rbp rsp rsi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t43 t46 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t66 t70 t71 t72 t73 t74 t75 t76 t78 t79 t81 t83 t84 t86 t90 t91 t92 t93 t94 t95 t97 t103 t104 t105 t106 t107 t110 t113 t114 t115 t116 t117 t118 t120 t123 t125 t126 t127 t128 t129 t130 t138 t139 t141 t142 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161 t265
+r8: rax rbp rsp rsi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t71 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
+r9: rax rbp rsp rsi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t71 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
+r10: rax rbp rsp rsi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t71 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
+r11: rax rbp rsp rsi t18 t19 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t40 t53 t54 t55 t56 t57 t58 t59 t60 t61 t62 t64 t70 t71 t72 t73 t74 t75 t76 t81 t86 t90 t91 t92 t93 t94 t95 t103 t104 t105 t106 t107 t114 t115 t116 t117 t118 t125 t126 t127 t128 t129 t130 t141 t143 t144 t145 t146 t147 t148 t149 t150 t151 t152 t153 t154 t155 t156 t157 t158 t160 t161
 r12: rax rbx rbp rsp r13 r14 r15 t30 t32 t33 t34 t36 t38 t39 t40 t53 t55 t56 t57 t72 t74 t75 t76 t90 t92 t93 t94 t103 t105 t106 t107 t114 t116 t117 t118 t125 t127 t128 t129 t143 t145 t146 t147
 r13: rax rbx rbp rsp r12 r14 r15 t30 t31 t33 t34 t36 t37 t39 t40 t53 t54 t56 t57 t72 t73 t75 t76 t90 t91 t93 t94 t103 t104 t106 t107 t114 t115 t117 t118 t125 t126 t128 t129 t143 t144 t146 t147
 r14: rax rbx rbp rsp r12 r13 r15 t30 t31 t32 t34 t36 t37 t38 t40 t53 t54 t55 t57 t72 t73 t74 t76 t90 t91 t92 t94 t103 t104 t105 t107 t114 t115 t116 t118 t125 t126 t127 t129 t143 t144 t145 t147
@@ -899,16 +899,16 @@ t58: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t59 t77 t81 t82 t86 t90 t91 t92 t
 t59: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t58 t77 t78 t81 t82 t83 t86 t90 t91 t92 t93 t94 t151 t152 t188 t189 t190 t191 t192 t193 t194 t195 t196 t197 t198 t199 t200 t201 t202 t203 t204 t205 t206 t207 t208 t209 t210 t212 t213 t215 t216 t217 t218 t219 t220 t221 t222 t223 t224 t225 t226 t227 t228 t229 t230 t231
 t60: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t109 t111 t112 t114 t115 t116 t117 t118 t175 t176 t177
 t61: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t119 t120 t121 t122 t125 t126 t127 t128 t129 t164 t165 t166 t167 t168 t170 t171
-t62: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t64 t65 t67 t72 t73 t74 t75 t76 t240 t241
-t63: rbp t72 t73 t74 t75 t76 t234 t235 t236 t237
-t64: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t62 t70 t72 t73 t74 t75 t76 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247
-t65: t62 t66 t72 t73 t74 t75 t76
-t66: rdi t65 t72 t73 t74 t75 t76
-t67: rbp rsp t62 t72 t73 t74 t75 t76
+t62: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t64 t65 t67 t71 t72 t73 t74 t75 t76 t240 t241
+t63: rbp t71 t72 t73 t74 t75 t76 t234 t235 t236 t237
+t64: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t62 t70 t71 t72 t73 t74 t75 t76 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247
+t65: t62 t66 t71 t72 t73 t74 t75 t76
+t66: rdi t65 t71 t72 t73 t74 t75 t76
+t67: rbp rsp rsi t62 t71 t72 t73 t74 t75 t76
 t68: t70 t72 t73 t74 t75 t76 t153
 t69: rbp rsp t70 t72 t73 t74 t75 t76 t153
 t70: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t64 t68 t69 t72 t73 t74 t75 t76 t153 t245 t246 t247 t248 t249 t250
-t71: rbp rsp t72 t73 t74 t75 t76
+t71: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t62 t63 t64 t65 t66 t67 t72 t73 t74 t75 t76 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242
 t72: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t73 t74 t75 t76 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
 t73: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t72 t74 t75 t76 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
 t74: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t72 t73 t75 t76 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
@@ -1025,18 +1025,18 @@ t184: t103 t104 t105 t106 t107 t182
 t185: t103 t104 t105 t106 t107 t181
 t186: t103 t104 t105 t106 t107 t150
 t187: t99 t103 t104 t105 t106 t107
-t188: t58 t59 t90 t91 t92 t93 t94 t193 t194 t195 t196 t197
-t189: t58 t59 t90 t91 t92 t93 t94
-t190: t58 t59 t90 t91 t92 t93 t94 t192
-t191: t58 t59 t90 t91 t92 t93 t94
-t192: t58 t59 t90 t91 t92 t93 t94 t190
-t193: t58 t59 t90 t91 t92 t93 t94 t188
-t194: t58 t59 t90 t91 t92 t93 t94 t188
-t195: t58 t59 t90 t91 t92 t93 t94 t188 t197
-t196: t58 t59 t90 t91 t92 t93 t94 t188
-t197: t58 t59 t90 t91 t92 t93 t94 t188 t195
-t198: t58 t59 t90 t91 t92 t93 t94
-t199: t58 t59 t90 t91 t92 t93 t94
+t188: rsi t58 t59 t90 t91 t92 t93 t94 t193 t194 t195 t196 t197
+t189: rsi t58 t59 t90 t91 t92 t93 t94
+t190: rsi t58 t59 t90 t91 t92 t93 t94 t192
+t191: rsi t58 t59 t90 t91 t92 t93 t94
+t192: rsi t58 t59 t90 t91 t92 t93 t94 t190
+t193: rsi t58 t59 t90 t91 t92 t93 t94 t188
+t194: rsi t58 t59 t90 t91 t92 t93 t94 t188
+t195: rsi t58 t59 t90 t91 t92 t93 t94 t188 t197
+t196: rsi t58 t59 t90 t91 t92 t93 t94 t188
+t197: rsi t58 t59 t90 t91 t92 t93 t94 t188 t195
+t198: rsi t58 t59 t90 t91 t92 t93 t94
+t199: rsi t58 t59 t90 t91 t92 t93 t94
 t200: rbp t58 t59 t81 t90 t91 t92 t93 t94 t205 t206 t207
 t201: rbp t58 t59 t81 t90 t91 t92 t93 t94
 t202: rbp t58 t59 t81 t90 t91 t92 t93 t94 t204
@@ -1052,8 +1052,8 @@ t211: t77 t78 t81 t90 t91 t92 t93 t94 t151
 t212: t59 t77 t78 t81 t90 t91 t92 t93 t94 t151 t214
 t213: t59 t77 t78 t81 t90 t91 t92 t93 t94 t151
 t214: t77 t78 t81 t90 t91 t92 t93 t94 t151 t212
-t215: t58 t59 t90 t91 t92 t93 t94
-t216: t58 t59 t90 t91 t92 t93 t94
+t215: rsi t58 t59 t90 t91 t92 t93 t94
+t216: rsi t58 t59 t90 t91 t92 t93 t94
 t217: rbp t58 t59 t86 t90 t91 t92 t93 t94 t222 t223 t224
 t218: rbp t58 t59 t86 t90 t91 t92 t93 t94
 t219: rbp t58 t59 t86 t90 t91 t92 t93 t94 t221
@@ -1069,19 +1069,19 @@ t228: t59 t82 t86 t90 t91 t92 t93 t94 t152
 t229: t58 t59 t82 t86 t90 t91 t92 t93 t94 t152 t231
 t230: t58 t59 t82 t86 t90 t91 t92 t93 t94 t152
 t231: t59 t82 t86 t90 t91 t92 t93 t94 t152 t229
-t232: t72 t73 t74 t75 t76
-t233: t72 t73 t74 t75 t76
-t234: rbp t63 t72 t73 t74 t75 t76 t235 t236 t237
-t235: rbp t63 t72 t73 t74 t75 t76 t234 t237
-t236: rbp t63 t72 t73 t74 t75 t76 t234
-t237: rbp t63 t72 t73 t74 t75 t76 t234 t235
-t238: rbp rsp t64 t72 t73 t74 t75 t76
-t239: rbp rsp t64 t72 t73 t74 t75 t76
-t240: rbp rsp t62 t64 t72 t73 t74 t75 t76 t242
-t241: rbp rsp t62 t64 t72 t73 t74 t75 t76
-t242: rbp rsp t64 t72 t73 t74 t75 t76 t240
-t243: t64 t72 t73 t74 t75 t76
-t244: t64 t72 t73 t74 t75 t76
+t232: rsi t71 t72 t73 t74 t75 t76
+t233: rsi t71 t72 t73 t74 t75 t76
+t234: rbp t63 t71 t72 t73 t74 t75 t76 t235 t236 t237
+t235: rbp t63 t71 t72 t73 t74 t75 t76 t234 t237
+t236: rbp t63 t71 t72 t73 t74 t75 t76 t234
+t237: rbp t63 t71 t72 t73 t74 t75 t76 t234 t235
+t238: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76
+t239: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76
+t240: rbp rsp rsi t62 t64 t71 t72 t73 t74 t75 t76 t242
+t241: rbp rsp rsi t62 t64 t71 t72 t73 t74 t75 t76
+t242: rbp rsp rsi t64 t71 t72 t73 t74 t75 t76 t240
+t243: rsi t64 t72 t73 t74 t75 t76
+t244: rsi t64 t72 t73 t74 t75 t76
 t245: rbp t64 t70 t72 t73 t74 t75 t76 t247
 t246: rbp t64 t70 t72 t73 t74 t75 t76
 t247: rbp t64 t70 t72 t73 t74 t75 t76 t245
@@ -1234,55 +1234,55 @@ nbhd rcx = rax rbp rsp t18 t19 t53 t54 t55 t56 t57 t154 t155 t156 t157
 nbhd t43 = rdi t19 t42 t53 t54 t55 t56 t57 t157
 nbhd t68 = t70 t72 t73 t74 t75 t76 t153
 nbhd t245 = rbp t64 t70 t72 t73 t74 t75 t76 t247
-nbhd t64 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t62 t70 t72 t73 t74 t75 t76 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247
-nbhd t65 = t62 t66 t72 t73 t74 t75 t76
-nbhd t232 = t72 t73 t74 t75 t76
-nbhd t63 = rbp t72 t73 t74 t75 t76 t234 t235 t236 t237
+nbhd t64 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t62 t70 t71 t72 t73 t74 t75 t76 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247
+nbhd t65 = t62 t66 t71 t72 t73 t74 t75 t76
+nbhd t232 = rsi t71 t72 t73 t74 t75 t76
+nbhd t63 = rbp t71 t72 t73 t74 t75 t76 t234 t235 t236 t237
 nbhd t250 = rbp t70 t72 t73 t74 t75 t76 t248
 nbhd rbx = rax rbp rsp r12 r13 r14 r15 t73 t74 t75 t76
 nbhd t74 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t72 t73 t75 t76 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
 nbhd t69 = rbp rsp t70 t72 t73 t74 t75 t76 t153
-nbhd t71 = rbp rsp t72 t73 t74 t75 t76
-nbhd t240 = rbp rsp t62 t64 t72 t73 t74 t75 t76 t242
+nbhd t71 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t62 t63 t64 t65 t66 t67 t72 t73 t74 t75 t76 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242
+nbhd t240 = rbp rsp rsi t62 t64 t71 t72 t73 t74 t75 t76 t242
 nbhd t247 = rbp t64 t70 t72 t73 t74 t75 t76 t245
-nbhd t244 = t64 t72 t73 t74 t75 t76
+nbhd t244 = rsi t64 t72 t73 t74 t75 t76
 nbhd t249 = rbp t70 t72 t73 t74 t75 t76
 nbhd rbp = rax rbx rcx rdx rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t62 t63 t64 t67 t69 t70 t71 t72 t73 t74 t75 t76 t153 t234 t235 t236 t237 t238 t239 t240 t241 t242 t245 t246 t247 t248 t249 t250
 nbhd rsp = rax rbx rcx rdx rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t62 t64 t67 t69 t70 t71 t72 t73 t74 t75 t76 t153 t238 t239 t240 t241 t242
-nbhd rdx = rax rbp rsp t62 t64 t70 t72 t73 t74 t75 t76 t153
+nbhd rdx = rax rbp rsp rsi t62 t64 t70 t71 t72 t73 t74 t75 t76 t153
 nbhd t76 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t72 t73 t74 t75 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
-nbhd t62 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t64 t65 t67 t72 t73 t74 t75 t76 t240 t241
+nbhd t62 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t64 t65 t67 t71 t72 t73 t74 t75 t76 t240 t241
 nbhd t70 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t64 t68 t69 t72 t73 t74 t75 t76 t153 t245 t246 t247 t248 t249 t250
 nbhd r14 = rax rbx rbp rsp r12 r13 r15 t72 t73 t74 t76
-nbhd t67 = rbp rsp t62 t72 t73 t74 t75 t76
-nbhd t233 = t72 t73 t74 t75 t76
-nbhd t237 = rbp t63 t72 t73 t74 t75 t76 t234 t235
-nbhd t236 = rbp t63 t72 t73 t74 t75 t76 t234
-nbhd rsi = rax rbp rsp rdi t62 t64 t70 t72 t73 t74 t75 t76 t153
+nbhd t67 = rbp rsp rsi t62 t71 t72 t73 t74 t75 t76
+nbhd t233 = rsi t71 t72 t73 t74 t75 t76
+nbhd t237 = rbp t63 t71 t72 t73 t74 t75 t76 t234 t235
+nbhd t236 = rbp t63 t71 t72 t73 t74 t75 t76 t234
+nbhd rsi = rax rcx rdx rbp rsp rdi r8 r9 r10 r11 t62 t64 t67 t70 t71 t72 t73 t74 t75 t76 t153 t232 t233 t238 t239 t240 t241 t242 t243 t244
 nbhd r15 = rax rbx rbp rsp r12 r13 r14 t72 t73 t74 t75
-nbhd t241 = rbp rsp t62 t64 t72 t73 t74 t75 t76
+nbhd t241 = rbp rsp rsi t62 t64 t71 t72 t73 t74 t75 t76
 nbhd t73 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t72 t74 t75 t76 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
-nbhd r10 = rax rbp rsp t62 t64 t70 t72 t73 t74 t75 t76 t153
+nbhd r10 = rax rbp rsp rsi t62 t64 t70 t71 t72 t73 t74 t75 t76 t153
 nbhd t72 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t73 t74 t75 t76 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
-nbhd t238 = rbp rsp t64 t72 t73 t74 t75 t76
-nbhd t242 = rbp rsp t64 t72 t73 t74 t75 t76 t240
-nbhd rax = rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t62 t64 t70 t72 t73 t74 t75 t76 t153
-nbhd r11 = rax rbp rsp t62 t64 t70 t72 t73 t74 t75 t76 t153
-nbhd r9 = rax rbp rsp t62 t64 t70 t72 t73 t74 t75 t76 t153
+nbhd t238 = rbp rsp rsi t64 t71 t72 t73 t74 t75 t76
+nbhd t242 = rbp rsp rsi t64 t71 t72 t73 t74 t75 t76 t240
+nbhd rax = rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t62 t64 t70 t71 t72 t73 t74 t75 t76 t153
+nbhd r11 = rax rbp rsp rsi t62 t64 t70 t71 t72 t73 t74 t75 t76 t153
+nbhd r9 = rax rbp rsp rsi t62 t64 t70 t71 t72 t73 t74 t75 t76 t153
 nbhd t153 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t68 t69 t70 t72 t73 t74 t75 t76
 nbhd r12 = rax rbx rbp rsp r13 r14 r15 t72 t74 t75 t76
 nbhd t246 = rbp t64 t70 t72 t73 t74 t75 t76
 nbhd r13 = rax rbx rbp rsp r12 r14 r15 t72 t73 t75 t76
-nbhd t239 = rbp rsp t64 t72 t73 t74 t75 t76
-nbhd rdi = rax rbp rsp rsi t62 t64 t66 t70 t72 t73 t74 t75 t76 t153
-nbhd t234 = rbp t63 t72 t73 t74 t75 t76 t235 t236 t237
-nbhd r8 = rax rbp rsp t62 t64 t70 t72 t73 t74 t75 t76 t153
-nbhd t235 = rbp t63 t72 t73 t74 t75 t76 t234 t237
+nbhd t239 = rbp rsp rsi t64 t71 t72 t73 t74 t75 t76
+nbhd rdi = rax rbp rsp rsi t62 t64 t66 t70 t71 t72 t73 t74 t75 t76 t153
+nbhd t234 = rbp t63 t71 t72 t73 t74 t75 t76 t235 t236 t237
+nbhd r8 = rax rbp rsp rsi t62 t64 t70 t71 t72 t73 t74 t75 t76 t153
+nbhd t235 = rbp t63 t71 t72 t73 t74 t75 t76 t234 t237
 nbhd t248 = rbp t70 t72 t73 t74 t75 t76 t250
 nbhd t75 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t62 t63 t64 t65 t66 t67 t68 t69 t70 t71 t72 t73 t74 t76 t153 t232 t233 t234 t235 t236 t237 t238 t239 t240 t241 t242 t243 t244 t245 t246 t247 t248 t249 t250
-nbhd t243 = t64 t72 t73 t74 t75 t76
-nbhd rcx = rax rbp rsp t62 t64 t70 t72 t73 t74 t75 t76 t153
-nbhd t66 = rdi t65 t72 t73 t74 t75 t76
+nbhd t243 = rsi t64 t72 t73 t74 t75 t76
+nbhd rcx = rax rbp rsp rsi t62 t64 t70 t71 t72 t73 t74 t75 t76 t153
+nbhd t66 = rdi t65 t71 t72 t73 t74 t75 t76
 nbhd t77 = t58 t59 t78 t79 t81 t90 t91 t92 t93 t94 t151 t211 t212 t213 t214
 nbhd t78 = rdi t59 t77 t79 t81 t90 t91 t92 t93 t94 t151 t211 t212 t213 t214
 nbhd t91 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t58 t59 t77 t78 t79 t80 t81 t82 t83 t84 t85 t86 t87 t88 t89 t90 t92 t93 t94 t151 t152 t188 t189 t190 t191 t192 t193 t194 t195 t196 t197 t198 t199 t200 t201 t202 t203 t204 t205 t206 t207 t208 t209 t210 t211 t212 t213 t214 t215 t216 t217 t218 t219 t220 t221 t222 t223 t224 t225 t226 t227 t228 t229 t230 t231
@@ -1290,8 +1290,8 @@ nbhd t59 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t58 t77 t78 t81 t82 t83 t86
 nbhd t200 = rbp t58 t59 t81 t90 t91 t92 t93 t94 t205 t206 t207
 nbhd t230 = t58 t59 t82 t86 t90 t91 t92 t93 t94 t152
 nbhd t84 = rsi rdi t82 t83 t86 t90 t91 t92 t93 t94 t152
-nbhd t190 = t58 t59 t90 t91 t92 t93 t94 t192
-nbhd t199 = t58 t59 t90 t91 t92 t93 t94
+nbhd t190 = rsi t58 t59 t90 t91 t92 t93 t94 t192
+nbhd t199 = rsi t58 t59 t90 t91 t92 t93 t94
 nbhd t202 = rbp t58 t59 t81 t90 t91 t92 t93 t94 t204
 nbhd t217 = rbp t58 t59 t86 t90 t91 t92 t93 t94 t222 t223 t224
 nbhd rbp = rax rbx rcx rdx rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t58 t59 t80 t81 t85 t86 t87 t88 t89 t90 t91 t92 t93 t94 t151 t152 t200 t201 t202 t203 t204 t205 t206 t207 t208 t209 t210 t217 t218 t219 t220 t221 t222 t223 t224 t225 t226 t227
@@ -1301,10 +1301,10 @@ nbhd t212 = t59 t77 t78 t81 t90 t91 t92 t93 t94 t151 t214
 nbhd t210 = rbp t58 t59 t81 t90 t91 t92 t93 t94 t208
 nbhd r14 = rax rbx rbp rsp r12 r13 r15 t90 t91 t92 t94
 nbhd t209 = rbp t58 t59 t81 t90 t91 t92 t93 t94
-nbhd rsi = rax rdx rbp rsp rdi t58 t59 t79 t81 t84 t86 t90 t91 t92 t93 t94 t151 t152
+nbhd rsi = rax rdx rbp rsp rdi t58 t59 t79 t81 t84 t86 t90 t91 t92 t93 t94 t151 t152 t188 t189 t190 t191 t192 t193 t194 t195 t196 t197 t198 t199 t215 t216
 nbhd r15 = rax rbx rbp rsp r12 r13 r14 t90 t91 t92 t93
 nbhd t86 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t58 t59 t82 t83 t84 t85 t90 t91 t92 t93 t94 t152 t217 t218 t219 t220 t221 t222 t223 t224 t225 t226 t227 t228 t229 t230 t231
-nbhd t188 = t58 t59 t90 t91 t92 t93 t94 t193 t194 t195 t196 t197
+nbhd t188 = rsi t58 t59 t90 t91 t92 t93 t94 t193 t194 t195 t196 t197
 nbhd t206 = rbp t58 t59 t81 t90 t91 t92 t93 t94 t200
 nbhd t211 = t77 t78 t81 t90 t91 t92 t93 t94 t151
 nbhd t229 = t58 t59 t82 t86 t90 t91 t92 t93 t94 t152 t231
@@ -1316,10 +1316,10 @@ nbhd t219 = rbp t58 t59 t86 t90 t91 t92 t93 t94 t221
 nbhd t224 = rbp t58 t59 t86 t90 t91 t92 t93 t94 t217 t222
 nbhd r8 = rax rbp rsp t58 t59 t81 t86 t90 t91 t92 t93 t94 t151 t152
 nbhd t225 = rbp t58 t59 t86 t90 t91 t92 t93 t94 t227
-nbhd t198 = t58 t59 t90 t91 t92 t93 t94
+nbhd t198 = rsi t58 t59 t90 t91 t92 t93 t94
 nbhd t221 = rbp t58 t59 t86 t90 t91 t92 t93 t94 t219
 nbhd t81 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t58 t59 t77 t78 t79 t80 t90 t91 t92 t93 t94 t151 t200 t201 t202 t203 t204 t205 t206 t207 t208 t209 t210 t211 t212 t213 t214
-nbhd t195 = t58 t59 t90 t91 t92 t93 t94 t188 t197
+nbhd t195 = rsi t58 t59 t90 t91 t92 t93 t94 t188 t197
 nbhd t204 = rbp t58 t59 t81 t90 t91 t92 t93 t94 t202
 nbhd t228 = t59 t82 t86 t90 t91 t92 t93 t94 t152
 nbhd rbx = rax rbp rsp r12 r13 r14 r15 t91 t92 t93 t94
@@ -1327,11 +1327,11 @@ nbhd t87 = rbp rsp t90 t91 t92 t93 t94
 nbhd t203 = rbp t58 t59 t81 t90 t91 t92 t93 t94
 nbhd t231 = t59 t82 t86 t90 t91 t92 t93 t94 t152 t229
 nbhd t82 = t58 t59 t83 t84 t86 t90 t91 t92 t93 t94 t152 t228 t229 t230 t231
-nbhd t215 = t58 t59 t90 t91 t92 t93 t94
+nbhd t215 = rsi t58 t59 t90 t91 t92 t93 t94
 nbhd t227 = rbp t58 t59 t86 t90 t91 t92 t93 t94 t225
-nbhd t197 = t58 t59 t90 t91 t92 t93 t94 t188 t195
+nbhd t197 = rsi t58 t59 t90 t91 t92 t93 t94 t188 t195
 nbhd t223 = rbp t58 t59 t86 t90 t91 t92 t93 t94 t217
-nbhd t194 = t58 t59 t90 t91 t92 t93 t94 t188
+nbhd t194 = rsi t58 t59 t90 t91 t92 t93 t94 t188
 nbhd rsp = rax rbx rcx rdx rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t58 t59 t80 t81 t85 t86 t87 t88 t89 t90 t91 t92 t93 t94 t151 t152
 nbhd t220 = rbp t58 t59 t86 t90 t91 t92 t93 t94
 nbhd rdx = rax rbp rsp rsi rdi t58 t59 t81 t86 t90 t91 t92 t93 t94 t151 t152
@@ -1344,25 +1344,25 @@ nbhd t152 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t58 t59 t82 t83 t84 t85 t8
 nbhd t214 = t77 t78 t81 t90 t91 t92 t93 t94 t151 t212
 nbhd t151 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t58 t59 t77 t78 t79 t80 t81 t90 t91 t92 t93 t94 t211 t212 t213 t214
 nbhd t226 = rbp t58 t59 t86 t90 t91 t92 t93 t94
-nbhd t191 = t58 t59 t90 t91 t92 t93 t94
+nbhd t191 = rsi t58 t59 t90 t91 t92 t93 t94
 nbhd t207 = rbp t58 t59 t81 t90 t91 t92 t93 t94 t200 t205
 nbhd t218 = rbp t58 t59 t86 t90 t91 t92 t93 t94
 nbhd r10 = rax rbp rsp t58 t59 t81 t86 t90 t91 t92 t93 t94 t151 t152
 nbhd t85 = rbp rsp t86 t90 t91 t92 t93 t94 t152
-nbhd t192 = t58 t59 t90 t91 t92 t93 t94 t190
+nbhd t192 = rsi t58 t59 t90 t91 t92 t93 t94 t190
 nbhd rax = rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t58 t59 t81 t86 t90 t91 t92 t93 t94 t151 t152
 nbhd r11 = rax rbp rsp t58 t59 t81 t86 t90 t91 t92 t93 t94 t151 t152
 nbhd r9 = rax rbp rsp t58 t59 t81 t86 t90 t91 t92 t93 t94 t151 t152
-nbhd t196 = t58 t59 t90 t91 t92 t93 t94 t188
+nbhd t196 = rsi t58 t59 t90 t91 t92 t93 t94 t188
 nbhd r13 = rax rbx rbp rsp r12 r14 r15 t90 t91 t93 t94
-nbhd t189 = t58 t59 t90 t91 t92 t93 t94
+nbhd t189 = rsi t58 t59 t90 t91 t92 t93 t94
 nbhd t213 = t59 t77 t78 t81 t90 t91 t92 t93 t94 t151
-nbhd t216 = t58 t59 t90 t91 t92 t93 t94
+nbhd t216 = rsi t58 t59 t90 t91 t92 t93 t94
 nbhd rdi = rax rdx rbp rsp rsi t58 t59 t78 t79 t81 t83 t84 t86 t90 t91 t92 t93 t94 t151 t152
 nbhd t94 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t58 t59 t77 t78 t79 t80 t81 t82 t83 t84 t85 t86 t87 t88 t89 t90 t91 t92 t93 t151 t152 t188 t189 t190 t191 t192 t193 t194 t195 t196 t197 t198 t199 t200 t201 t202 t203 t204 t205 t206 t207 t208 t209 t210 t211 t212 t213 t214 t215 t216 t217 t218 t219 t220 t221 t222 t223 t224 t225 t226 t227 t228 t229 t230 t231
 nbhd t201 = rbp t58 t59 t81 t90 t91 t92 t93 t94
 nbhd t88 = rbp rsp t90 t91 t92 t93 t94
-nbhd t193 = t58 t59 t90 t91 t92 t93 t94 t188
+nbhd t193 = rsi t58 t59 t90 t91 t92 t93 t94 t188
 nbhd rcx = rax rbp rsp t58 t59 t81 t86 t90 t91 t92 t93 t94 t151 t152
 nbhd t79 = rsi rdi t77 t78 t81 t90 t91 t92 t93 t94 t151
 nbhd t101 = t103 t104 t105 t106 t107

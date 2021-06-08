@@ -9,15 +9,15 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov rax, 0                              ; var a := 0
-  mov r10, 0                              ; var i := 0
+  xor rax, rax                            ; var a := 0
+  xor r10, r10                            ; var i := 0
   mov r8, 100                             ; var limit := 100
 test:                                     
   mov r11, 1                              ; true
   cmp r10, r8                             ; i <= limit
   jle true                                
 false:                                    
-  mov r11, 0                              ; false
+  xor r11, r11                            ; false
 true:                                     
   cmp r11, 0                              ; i <= limit
   je break

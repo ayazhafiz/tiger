@@ -9,7 +9,7 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov rax, 0                              ; return ()
+  xor rax, rax                            ; return ()
   mov rsp, rbp
   pop rbp
   ret

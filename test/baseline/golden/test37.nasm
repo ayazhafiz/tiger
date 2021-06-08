@@ -12,9 +12,9 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, 0                              ; var a := 0
+  xor r10, r10                            ; var a := 0
   lea r10, [rel str__]                    
-  mov rax, 0                              ; return ()
+  xor rax, rax                            ; return ()
   mov rsp, rbp
   pop rbp
   ret

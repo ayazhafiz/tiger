@@ -14,18 +14,18 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t42, rbx                            ; liveout: rbp rdi r12 r13 r14 r15 t42
-  mov t43, r12                            ; liveout: rbp rdi r13 r14 r15 t42 t43
-  mov t44, r13                            ; liveout: rbp rdi r14 r15 t42 t43 t44
-  mov t45, r14                            ; liveout: rbp rdi r15 t42 t43 t44 t45
-  mov t46, r15                            ; liveout: rbp rdi t42 t43 t44 t45 t46
-  mov [rbp - 8], rdi                      ; liveout: rbp t42 t43 t44 t45 t46
+  mov t42, rbx                            ; liveout: rbp rdi r12 r13 r14 r15 t39 t42
+  mov t43, r12                            ; liveout: rbp rdi r13 r14 r15 t39 t42 t43
+  mov t44, r13                            ; liveout: rbp rdi r14 r15 t39 t42 t43 t44
+  mov t45, r14                            ; liveout: rbp rdi r15 t39 t42 t43 t44 t45
+  mov t46, r15                            ; liveout: rbp rdi t39 t42 t43 t44 t45 t46
+  mov [rbp - 8], rdi                      ; liveout: rbp t39 t42 t43 t44 t45 t46
                                           ; static link
-  mov qword [rbp - 16], 0                 ; liveout: rbp t42 t43 t44 t45 t46
+  mov qword [rbp - 16], 0                 ; liveout: rbp t39 t42 t43 t44 t45 t46
                                           ; var cnt := 0
-  mov t38, rbp                            ; liveout: t38 t42 t43 t44 t45 t46
+  mov t38, rbp                            ; liveout: t38 t39 t42 t43 t44 t45 t46
                                           ; %arg(static_link):do_nothing1
-  mov t39, 0                              ; liveout: t38 t39 t42 t43 t44 t45 t46
+  xor t39, t39                            ; liveout: t38 t39 t42 t43 t44 t45 t46
                                           ; %arg1:do_nothing1
   lea t47, [rel str__str2]                ; liveout: t38 t39 t42 t43 t44 t45 t46 t47
   mov t40, t47                            ; liveout: t38 t39 t40 t42 t43 t44 t45 t46

@@ -17,7 +17,7 @@ _start:
   mov [rbp - 8], rdi                      ; static link
   mov qword [rbp - 16], 0                 ; var cnt := 0
   mov rdi, rbp                            ; %arg(static_link):do_nothing1
-  mov rsi, 0                              ; %arg1:do_nothing1
+  xor rsi, rsi                            ; %arg1:do_nothing1
   lea rdx, [rel str__str2]                
   call do_nothing1                        
   mov rax, [rbp - 16]                     ; return ()

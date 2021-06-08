@@ -56,8 +56,8 @@ _start:
                                           ; %arg1:print
   mov rdi, t34                            ; liveout: rdi t35 t36 t37 t38 t39
                                           ; arg1:print
-  call print                              ; liveout: rbp rsp t35 t36 t37 t38 t39
-  mov rax, 0                              ; liveout: rax rbp rsp t35 t36 t37 t38 t39
+  call print                              ; liveout: rax rbp rsp t35 t36 t37 t38 t39
+  xor rax, rax                            ; liveout: rax rbp rsp t35 t36 t37 t38 t39
                                           ; return ()
   mov rbx, t35                            ; liveout: rax rbx rbp rsp t36 t37 t38 t39
   mov r12, t36                            ; liveout: rax rbx rbp rsp r12 t37 t38 t39

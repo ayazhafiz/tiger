@@ -8,14 +8,14 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t29, rbx                            ; liveout: rbp rsp rdi r12 r13 r14 r15 t29
-  mov t30, r12                            ; liveout: rbp rsp rdi r13 r14 r15 t29 t30
-  mov t31, r13                            ; liveout: rbp rsp rdi r14 r15 t29 t30 t31
-  mov t32, r14                            ; liveout: rbp rsp rdi r15 t29 t30 t31 t32
-  mov t33, r15                            ; liveout: rbp rsp rdi t29 t30 t31 t32 t33
-  mov [rbp - 8], rdi                      ; liveout: rbp rsp t29 t30 t31 t32 t33
+  mov t29, rbx                            ; liveout: rax rbp rsp rdi r12 r13 r14 r15 t29
+  mov t30, r12                            ; liveout: rax rbp rsp rdi r13 r14 r15 t29 t30
+  mov t31, r13                            ; liveout: rax rbp rsp rdi r14 r15 t29 t30 t31
+  mov t32, r14                            ; liveout: rax rbp rsp rdi r15 t29 t30 t31 t32
+  mov t33, r15                            ; liveout: rax rbp rsp rdi t29 t30 t31 t32 t33
+  mov [rbp - 8], rdi                      ; liveout: rax rbp rsp t29 t30 t31 t32 t33
                                           ; static link
-  mov rax, 0                              ; liveout: rax rbp rsp t29 t30 t31 t32 t33
+  xor rax, rax                            ; liveout: rax rbp rsp t29 t30 t31 t32 t33
                                           ; return ()
   mov rbx, t29                            ; liveout: rax rbx rbp rsp t30 t31 t32 t33
   mov r12, t30                            ; liveout: rax rbx rbp rsp r12 t31 t32 t33

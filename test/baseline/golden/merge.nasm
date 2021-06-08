@@ -53,7 +53,7 @@ _start:
   mov rsi, rax                            ; %arg1:printlist
   mov rdi, rbx                            ; arg1:printlist
   call printlist                          
-  mov rax, 0                              ; return ()
+  xor rax, rax                            ; return ()
   mov rbx, [rbp - 32]                     ; fetch spilled t143
   mov rsp, rbp
   pop rbp
@@ -201,7 +201,7 @@ false3:
 false2:                                   
   mov r10, 2                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov r12, rax                            
   mov r10, 0                              
@@ -245,7 +245,7 @@ true3:
 true2:                                    
   mov r10, 2                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
   mov r12, rax                            
   mov r10, 0                              
@@ -279,55 +279,60 @@ done4:
 readlist:
   push rbp
   mov rbp, rsp
-  sub rsp, 32
+  sub rsp, 48
   mov [rbp - 32], rbx                     ; store spilled t72
+  mov [rbp - 40], r12                     ; store spilled t73
   mov [rbp - 8], rdi                      ; static link
   mov r10, 1                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
-  mov rbx, rax                            
+  mov r12, rax                            
   mov r8, 0                               
   mov r10, 0                              
   imul r11, r10, 8                        
-  mov r10, rbx                            
+  mov r10, r12                            
   add r10, r11                            
   mov qword [r10], r8                     ; .any=0
   mov rdi, [rbp - 8]                      ; %arg(static_link):readint
-  mov rsi, rbx                            ; %arg1:readint
+  mov rsi, r12                            ; %arg1:readint
   call readint                            
   mov [rbp - 16], rax                     ; store spilled t64
   mov r10, 0                              
   imul r10, r10, 8                        
-  add rbx, r10                            
-  mov r10, [rbx]                          ; any.any
+  add r12, r10                            
+  mov r10, [r12]                          ; any.any
   cmp r10, 0                              ; any.any
   jne true1                               
 false1:                                   
-  mov rax, 0                              ; else
+  mov r10, [rbp - 24]                     ; fetch spilled t71
+  xor r10, r10                            ; else
+  mov [rbp - 24], r10                     ; store spilled t71
 join:                                     
+  mov rax, [rbp - 24]                     ; fetch spilled t71
   mov rbx, [rbp - 32]                     ; fetch spilled t72
+  mov r12, [rbp - 40]                     ; fetch spilled t73
   jmp done5                               
 true1:                                    
   mov r10, 2                              
   imul rdi, r10, 8                        
-  mov rsi, 0                              ; arg2:initArray
+  xor rsi, rsi                            ; arg2:initArray
   call initArray                          
-  mov [rbp - 24], rax                     ; store spilled t70
+  mov r12, rax                            
   mov r10, 0                              
   imul r11, r10, 8                        
-  mov r10, [rbp - 24]                     ; fetch spilled t70
+  mov r10, r12                            
   add r10, r11                            
   mov r11, [rbp - 16]                     ; fetch spilled t64
   mov qword [r10], r11                    ; .first=i
   mov r10, 1                              
   imul r10, r10, 8                        
-  mov rbx, [rbp - 24]                     ; fetch spilled t70
+  mov rbx, r12                            
   add rbx, r10                            
   mov rdi, [rbp - 8]                      ; %arg(static_link):readlist
   call readlist                           
   mov qword [rbx], rax                    ; .rest=readlist()
-  mov rax, [rbp - 24]                     ; fetch spilled t70
+  mov [rbp - 24], r12                     ; store spilled t71
   jmp join
 done5:              
   mov rsp, rbp
@@ -340,7 +345,8 @@ readint:
   mov [rbp - 24], rbx                     ; store spilled t53
   mov [rbp - 8], rdi                      ; static link
   mov rbx, rsi                            ; any
-  mov r10, 0                              ; var i := 0
+  mov r10, [rbp - 16]                     ; fetch spilled t19
+  xor r10, r10                            ; var i := 0
   mov [rbp - 16], r10                     ; store spilled t19
   mov rdi, rbp                            ; %arg(static_link):skipto
   call skipto                             
@@ -427,7 +433,8 @@ isdigit:
   jge if_t                                
 if_f:                                     
 false:                                    
-  mov r10, 0                              ; false
+  mov r10, [rbp - 16]                     ; fetch spilled t29
+  xor r10, r10                            ; false
   mov [rbp - 16], r10                     ; store spilled t29
 true:                                     
   mov rax, [rbp - 16]                     ; fetch spilled t29

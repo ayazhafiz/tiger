@@ -21,8 +21,8 @@ _start:
   cmp t24, 20                                       ; liveout: rbp rsp t17 t19 t20 t21 t22 t23
                                                     ; 10 > 20
   jg true                                           ; liveout: rbp rsp t17 t19 t20 t21 t22 t23
-false:                                              ; liveout: rbp rsp t19 t20 t21 t22 t23
-  mov t17, 0                                        ; liveout: rbp rsp t17 t19 t20 t21 t22 t23
+false:                                              ; liveout: rbp rsp t17 t19 t20 t21 t22 t23
+  xor t17, t17                                      ; liveout: rbp rsp t17 t19 t20 t21 t22 t23
                                                     ; false
 true:                                               ; liveout: rbp rsp t17 t19 t20 t21 t22 t23
   cmp t17, 0                                        ; liveout: rbp rsp t19 t20 t21 t22 t23
