@@ -130,7 +130,6 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
     let make_worklist () =
       TempSet.iter
         (fun (n : temp) ->
-          initial := TempSet.remove n !initial;
           if get_degree n >= k then (
             assert (not (TempSet.mem n !spill_worklist));
             spill_worklist := TempSet.add n !spill_worklist )
@@ -140,7 +139,8 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
           else (
             assert (not (TempSet.mem n !simplify_worklist));
             simplify_worklist := TempSet.add n !simplify_worklist ) )
-        !initial
+        !initial;
+      initial := TempSet.empty
     in
     let adjacent (n : temp) =
       TempSet.diff (get_adj n)
@@ -178,7 +178,7 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
       if not (List.mem n !select_stack) then (
         select_stack := n :: !select_stack;
         select_stack_set := TempSet.add n !select_stack_set );
-      TempSet.iter decrement_degree (adjacent n)
+      TempSet.iter decrement_degree (TempSet.diff (adjacent n) precolored)
     in
     let rec get_alias (n : temp) =
       if TempSet.mem n !coalesced_nodes then get_alias (TempMap.find n !alias)
@@ -277,7 +277,11 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
         in
         active_moves := MoveSet.remove m !active_moves;
         frozen_moves := MoveSet.add m !frozen_moves;
-        if MoveSet.is_empty (node_moves v) && get_degree v < k then (
+        if
+          (not (TempSet.mem v precolored))
+          && MoveSet.is_empty (node_moves v)
+          && get_degree v < k
+        then (
           freeze_worklist := TempSet.remove v !freeze_worklist;
           assert (not (TempSet.mem v !simplify_worklist));
           simplify_worklist := TempSet.add v !simplify_worklist )
@@ -297,7 +301,6 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
       freeze_moves n
     in
     let assign_colors () =
-      (* only color when the other node is not being spilled! *)
       let color_coalesced n =
         if not (List.mem (get_alias n) !spilled_nodes) then
           (* assert (not (TempMap.mem n !color)); *)
@@ -427,7 +430,9 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
     let coloring, spills = color instrs select_spill in
     match spills with
     | [] -> (instrs, coloring)
-    | _ -> reg_alloc1 fr (rewrite_spills spills instrs fr) (n + 1)
+    | _ ->
+        let rw = rewrite_spills spills instrs fr in
+        reg_alloc1 fr rw (n + 1)
 
   let reg_alloc fr instrs = reg_alloc1 fr instrs 1
 end

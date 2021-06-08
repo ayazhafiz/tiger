@@ -2,19 +2,18 @@
 BITS 64
 section .text
 
-extern initArray
-
 global _start
 
 _start:
   push rbp
   mov rbp, rsp
-  sub rsp, 16
+  sub rsp, 32
   mov [rbp - 8], rdi                      ; static link
-  mov rax, 2                              
-  imul rdi, rax, 8                        
-  xor rsi, rsi                            ; arg2:initArray
-  call initArray                          
+  mov rax, rbp                            
+  sub rax, 24                             
+  xor rcx, rcx                            ; 0
+  mov [rax + 0], rcx                      ; lis[0] = 0
+  mov [rax + 8], rcx                      ; lis[1] = 0
   mov rsi, 0                              
   mov rcx, 0                              
   imul rdx, rcx, 8                        

@@ -45,81 +45,82 @@ str__aname:
 _start:
   push rbp
   mov rbp, rsp
-  sub rsp, 976
-  mov [rbp - 936], rbx                    ; store spilled t41
-  mov [rbp - 944], r12                    ; store spilled t42
-  mov [rbp - 952], r13                    ; store spilled t43
-  mov [rbp - 960], r14                    ; store spilled t44
-  mov [rbp - 968], r15                    ; store spilled t45
+  sub rsp, 1040
+  mov rax, rbx                            
+  mov [rbp - 992], rax                    ; store spilled t45
+  mov [rbp - 1000], r12                   ; store spilled t46
+  mov [rbp - 1008], r13                   ; store spilled t47
+  mov [rbp - 1016], r14                   ; store spilled t48
+  mov [rbp - 1024], r15                   ; store spilled t49
   mov [rbp - 8], rdi                      ; static link
   mov r15, rbp                            
   sub r15, 88                             
-  xor rax, rax                            ; 0
-  mov [r15 + 0], rax                      ; arr1[0] = 0
-  mov [r15 + 8], rax                      ; arr1[1] = 0
-  mov [r15 + 16], rax                     ; arr1[2] = 0
-  mov [r15 + 24], rax                     ; arr1[3] = 0
-  mov [r15 + 32], rax                     ; arr1[4] = 0
-  mov [r15 + 40], rax                     ; arr1[5] = 0
-  mov [r15 + 48], rax                     ; arr1[6] = 0
-  mov [r15 + 56], rax                     ; arr1[7] = 0
-  mov [r15 + 64], rax                     ; arr1[8] = 0
-  mov [r15 + 72], rax                     ; arr1[9] = 0
-  mov rbx, rbp                            
-  sub rbx, 128                            
+  xor rcx, rcx                            ; 0
+  mov [r15 + 0], rcx                      ; arr1[0] = 0
+  mov [r15 + 8], rcx                      ; arr1[1] = 0
+  mov [r15 + 16], rcx                     ; arr1[2] = 0
+  mov [r15 + 24], rcx                     ; arr1[3] = 0
+  mov [r15 + 32], rcx                     ; arr1[4] = 0
+  mov [r15 + 40], rcx                     ; arr1[5] = 0
+  mov [r15 + 48], rcx                     ; arr1[6] = 0
+  mov [r15 + 56], rcx                     ; arr1[7] = 0
+  mov [r15 + 64], rcx                     ; arr1[8] = 0
+  mov [r15 + 72], rcx                     ; arr1[9] = 0
+  mov r12, rbp                            
+  sub r12, 128                            
   mov rax, 4                              
   imul rdi, rax, 8                        
   xor rsi, rsi                            ; arg2:initArray
   call initArray                          
-  lea rdi, [rel str__aname]               
+  lea rsi, [rel str__aname]               
   mov rcx, 0                              
   imul rdx, rcx, 8                        
   mov rcx, rax                            
   add rcx, rdx                            
-  mov qword [rcx], rdi                    ; .name="aname"
-  lea rdi, [rel str__somewhere]           
+  mov qword [rcx], rsi                    ; .name="aname"
+  lea rsi, [rel str__somewhere]           
   mov rcx, 1                              
   imul rdx, rcx, 8                        
   mov rcx, rax                            
   add rcx, rdx                            
-  mov qword [rcx], rdi                    ; .address="somewhere"
-  mov rdi, 0                              
+  mov qword [rcx], rsi                    ; .address="somewhere"
+  mov rsi, 0                              
   mov rcx, 2                              
   imul rdx, rcx, 8                        
   mov rcx, rax                            
   add rcx, rdx                            
-  mov qword [rcx], rdi                    ; .id=0
-  mov rdi, 0                              
+  mov qword [rcx], rsi                    ; .id=0
+  mov rsi, 0                              
   mov rcx, 3                              
   imul rdx, rcx, 8                        
   mov rcx, rax                            
   add rcx, rdx                            
-  mov qword [rcx], rdi                    ; .age=0
-  mov [rbx + 0], rax                      ; arr2[0] = rectype1 {
+  mov qword [rcx], rsi                    ; .age=0
+  mov [r12 + 0], rax                      ; arr2[0] = rectype1 {
                                           ;   name="aname",
                                           ;   address="somewhere",
                                           ;   id=0,
                                           ;   age=0
                                           ; }
-  mov [rbx + 8], rax                      ; arr2[1] = rectype1 {
+  mov [r12 + 8], rax                      ; arr2[1] = rectype1 {
                                           ;   name="aname",
                                           ;   address="somewhere",
                                           ;   id=0,
                                           ;   age=0
                                           ; }
-  mov [rbx + 16], rax                     ; arr2[2] = rectype1 {
+  mov [r12 + 16], rax                     ; arr2[2] = rectype1 {
                                           ;   name="aname",
                                           ;   address="somewhere",
                                           ;   id=0,
                                           ;   age=0
                                           ; }
-  mov [rbx + 24], rax                     ; arr2[3] = rectype1 {
+  mov [r12 + 24], rax                     ; arr2[3] = rectype1 {
                                           ;   name="aname",
                                           ;   address="somewhere",
                                           ;   id=0,
                                           ;   age=0
                                           ; }
-  mov [rbx + 32], rax                     ; arr2[4] = rectype1 {
+  mov [r12 + 32], rax                     ; arr2[4] = rectype1 {
                                           ;   name="aname",
                                           ;   address="somewhere",
                                           ;   id=0,
@@ -228,56 +229,62 @@ _start:
   mov [r14 + 776], rax                    ; arr3[97] = ""
   mov [r14 + 784], rax                    ; arr3[98] = ""
   mov [r14 + 792], rax                    ; arr3[99] = ""
-  mov rax, 4                              
-  imul rdi, rax, 8                        
-  xor rsi, rsi                            ; arg2:initArray
-  call initArray                          
-  mov r13, rax                            
-  lea rdx, [rel str__Kapoios]             
+  mov r13, rbp                            
+  sub r13, 960                            
+  xor rbx, rbx                            ; 0
+  mov [r13 + 0], rbx                      ; rec1[0] = 0
+  mov [r13 + 8], rbx                      ; rec1[1] = 0
+  mov [r13 + 16], rbx                     ; rec1[2] = 0
+  mov [r13 + 24], rbx                     ; rec1[3] = 0
+  lea rcx, [rel str__Kapoios]             
   mov rax, 0                              
-  imul rcx, rax, 8                        
+  imul rbx, rax, 8                        
   mov rax, r13                            
-  add rax, rcx                            
-  mov qword [rax], rdx                    ; .name="Kapoios"
-  lea rdx, [rel str__Kapou]               
+  add rax, rbx                            
+  mov qword [rax], rcx                    ; .name="Kapoios"
+  lea rcx, [rel str__Kapou]               
   mov rax, 1                              
-  imul rcx, rax, 8                        
+  imul rbx, rax, 8                        
   mov rax, r13                            
-  add rax, rcx                            
-  mov qword [rax], rdx                    ; .address="Kapou"
-  mov rdx, 2432                           
+  add rax, rbx                            
+  mov qword [rax], rcx                    ; .address="Kapou"
+  mov rcx, 2432                           
   mov rax, 2                              
-  imul rcx, rax, 8                        
+  imul rbx, rax, 8                        
   mov rax, r13                            
-  add rax, rcx                            
-  mov qword [rax], rdx                    ; .id=2432
-  mov rdx, 44                             
+  add rax, rbx                            
+  mov qword [rax], rcx                    ; .id=2432
+  mov rcx, 44                             
   mov rax, 3                              
-  imul rcx, rax, 8                        
+  imul rbx, rax, 8                        
   mov rax, r13                            
-  add rax, rcx                            
-  mov qword [rax], rdx                    ; .age=44
-  mov rax, 2                              
-  imul rdi, rax, 8                        
-  xor rsi, rsi                            ; arg2:initArray
-  call initArray                          
-  mov r12, rax                            
+  add rax, rbx                            
+  mov qword [rax], rcx                    ; .age=44
+  mov rbx, rbp                            
+  sub rbx, 976                            
+  mov rax, [rbp - 984]                    ; fetch spilled t33
+  xor rax, rax                            ; 0
+  mov [rbp - 984], rax                    ; store spilled t33
+  mov rax, [rbp - 984]                    ; fetch spilled t33
+  mov [rbx + 0], rax                      ; rec2[0] = 0
+  mov rax, [rbp - 984]                    ; fetch spilled t33
+  mov [rbx + 8], rax                      ; rec2[1] = 0
   lea rdx, [rel str__Allos]               
   mov rax, 0                              
   imul rcx, rax, 8                        
-  mov rax, r12                            
+  mov rax, rbx                            
   add rax, rcx                            
   mov qword [rax], rdx                    ; .name="Allos"
   mov rax, 1                              
   imul rcx, rax, 8                        
-  mov rax, r12                            
+  mov rax, rbx                            
   add rax, rcx                            
-  mov [rbp - 976], rax                    ; store spilled t47
+  mov [rbp - 1032], rax                   ; store spilled t51
   mov rax, 3                              
   imul rdi, rax, 8                        
   mov rsi, 1900                           ; arg2:initArray
   call initArray                          
-  mov rcx, [rbp - 976]                    ; fetch spilled t47
+  mov rcx, [rbp - 1032]                   ; fetch spilled t51
   mov qword [rcx], rax                    ; .dates=arrtype1[3] of 1900
   mov rdx, 1                              
   mov rax, 0                              
@@ -295,7 +302,7 @@ _start:
   imul rdx, rax, 8                        
   mov rax, 3                              
   imul rcx, rax, 8                        
-  mov rax, rbx                            
+  mov rax, r12                            
   add rax, rcx                            
   mov rax, [rax]                          ; arr2[3]
   add rax, rdx                            
@@ -305,7 +312,7 @@ _start:
   imul rdx, rax, 8                        
   mov rax, 1                              
   imul rcx, rax, 8                        
-  mov rax, rbx                            
+  mov rax, r12                            
   add rax, rcx                            
   mov rax, [rax]                          ; arr2[1]
   add rax, rdx                            
@@ -325,7 +332,7 @@ _start:
   imul rdx, rax, 8                        
   mov rax, 1                              
   imul rcx, rax, 8                        
-  mov rax, r12                            
+  mov rax, rbx                            
   add rax, rcx                            
   mov rax, [rax]                          ; rec2.dates
   add rax, rdx                            
@@ -335,44 +342,44 @@ _start:
   imul rcx, rax, 8                        
   mov rax, 1                              
   imul rax, rax, 8                        
-  add r12, rax                            
-  mov rax, [r12]                          ; rec2.dates
+  add rbx, rax                            
+  mov rax, [rbx]                          ; rec2.dates
   add rax, rcx                            
   mov qword [rax], rdx                    ; rec2.dates[2] := 2323
   mov rax, 0                              
-  imul rdx, rax, 8                        
-  mov rax, 3                              
   imul rcx, rax, 8                        
-  mov rax, rbx                            
-  add rax, rcx                            
+  mov rax, 3                              
+  imul rbx, rax, 8                        
+  mov rax, r12                            
+  add rax, rbx                            
   mov rax, [rax]                          ; arr2[3]
-  add rax, rdx                            
+  add rax, rcx                            
   mov rdi, [rax]                          ; %arg1:concat
   lea rsi, [rel str__is]                  
   call concat                             
-  mov r12, rax                            ; %arg1:concat
+  mov rbx, rax                            ; %arg1:concat
   mov rax, 3                              
   imul rcx, rax, 8                        
   mov rax, 3                              
   imul rax, rax, 8                        
-  add rbx, rax                            
-  mov rax, [rbx]                          ; arr2[3]
+  add r12, rax                            
+  mov rax, [r12]                          ; arr2[3]
   add rax, rcx                            
   mov rdi, [rax]                          ; %arg1:string_of_int
   call string_of_int                      
   mov rsi, rax                            ; %arg2:concat
-  mov rdi, r12                            ; arg1:concat
+  mov rdi, rbx                            ; arg1:concat
   call concat                             
   mov rdi, rax                            ; %arg1:print
   call print                              
   lea rdi, [rel str__yearsold]            
   call print                              
   xor rax, rax                            ; return 0
-  mov rbx, [rbp - 936]                    ; fetch spilled t41
-  mov r12, [rbp - 944]                    ; fetch spilled t42
-  mov r13, [rbp - 952]                    ; fetch spilled t43
-  mov r14, [rbp - 960]                    ; fetch spilled t44
-  mov r15, [rbp - 968]                    ; fetch spilled t45
+  mov rbx, [rbp - 992]                    ; fetch spilled t45
+  mov r12, [rbp - 1000]                   ; fetch spilled t46
+  mov r13, [rbp - 1008]                   ; fetch spilled t47
+  mov r14, [rbp - 1016]                   ; fetch spilled t48
+  mov r15, [rbp - 1024]                   ; fetch spilled t49
   mov rsp, rbp
   pop rbp
   ret

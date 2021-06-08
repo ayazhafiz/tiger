@@ -71,7 +71,7 @@ let rec ck_var venv tenv = function
         | VarEntry ty -> ty
         | FunEntry _ -> ice "functions may not be treated as lvalues"
       in
-      realty := Some ty;
+      realty := Some (simplifyty ty);
       ty
   | FieldVar (v, f, realty) -> (
     match simplifyty (ck_var venv tenv v) with
@@ -79,7 +79,7 @@ let rec ck_var venv tenv = function
       match List.assoc_opt f fields with
       | None -> ice ("no field " ^ name f)
       | Some ty ->
-          realty := Some ty;
+          realty := Some (simplifyty ty);
           ty )
     | _ ->
         ice

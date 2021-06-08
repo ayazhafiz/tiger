@@ -2,8 +2,6 @@
 BITS 64
 section .text
 
-extern initArray
-
 global _start
 
 str__Somebody:
@@ -15,12 +13,13 @@ str__Nobody:
 _start:
   push rbp
   mov rbp, rsp
-  sub rsp, 16
+  sub rsp, 32
   mov [rbp - 8], rdi                      ; static link
-  mov rax, 2                              
-  imul rdi, rax, 8                        
-  xor rsi, rsi                            ; arg2:initArray
-  call initArray                          
+  mov rax, rbp                            
+  sub rax, 24                             
+  xor rcx, rcx                            ; 0
+  mov [rax + 0], rcx                      ; rec1[0] = 0
+  mov [rax + 8], rcx                      ; rec1[1] = 0
   lea rsi, [rel str__Nobody]              
   mov rcx, 0                              
   imul rdx, rcx, 8                        

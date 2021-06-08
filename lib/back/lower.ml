@@ -346,14 +346,8 @@ module Translate (F : FRAME) = struct
     in
     Ex (Ir.ESeq (Ir.seq (mv_t_arr :: mv_t_init :: init), arr))
 
-  (** [ir_record fields creator] creates a record with [fields]. *)
-  let ir_record calling_lvl fields field_names field_exprs =
+  let ir_record1 rcd_alloc fields field_names field_exprs =
     let fields = List.map unEx fields in
-    let nfields = List.length fields in
-    (* Records decay to arrays; just dummy init with 0s first. *)
-    let rcd_alloc =
-      ir_array_heap calling_lvl (Ex (Ir.Const nfields)) (Ex (Ir.Const 0))
-    in
     let rcd = Ir.Temp (Temp.newtemp ()) in
     let rcd_init = Ir.Mov (rcd, unEx rcd_alloc, "" (* TODO: add info? *)) in
     let init_field idx field =
@@ -365,6 +359,24 @@ module Translate (F : FRAME) = struct
     in
     let init_fields = List.mapi init_field fields in
     Ex (Ir.ESeq (Ir.seq (rcd_init :: init_fields), rcd))
+
+  (** Creates (on the heap) a record with [fields]. *)
+  let ir_record_heap calling_lvl fields field_names field_exprs =
+    let nfields = List.length fields in
+    (* Records decay to arrays; just dummy init with 0s first. *)
+    let rcd_alloc =
+      ir_array_heap calling_lvl (Ex (Ir.Const nfields)) (Ex (Ir.Const 0))
+    in
+    ir_record1 rcd_alloc fields field_names field_exprs
+
+  (** Creates a record on the stack. *)
+  let ir_record_stack calling_lvl varname fields field_names field_exprs =
+    let nfields = List.length fields in
+    (* Records decay to arrays; just dummy init with 0s first. *)
+    let rcd_alloc =
+      ir_array_stack calling_lvl varname nfields (Ex (Ir.Const 0)) "0"
+    in
+    ir_record1 rcd_alloc fields field_names field_exprs
 
   (** [ir_while test body break] creates a while loop with [test], [body], and
       break label [break]. *)
@@ -551,7 +563,7 @@ module Translate (F : FRAME) = struct
         | _ -> ir_binop oper left' right' (Ast.string_of_expr op) )
     | RecordExpr {fields; _} ->
         let field_names, field_exprs = List.split fields in
-        ir_record usage_lvl
+        ir_record_heap usage_lvl
           (List.map (lower_expr ctx) field_exprs)
           field_names field_exprs
     | SeqExpr (exprs, _) as e ->
@@ -628,6 +640,13 @@ module Translate (F : FRAME) = struct
           | false, false, ArrayExpr {size = IntExpr size; init; _} ->
               ir_array_stack lvl (Symbol.name name) size (lower_expr ctx init)
                 (Ast.string_of_expr init)
+          (* Stack-inlinable record initialization: when
+               - variable does not escape and is not a naked rvalue *)
+          | false, false, RecordExpr {fields; _} ->
+              let field_names, field_exprs = List.split fields in
+              ir_record_stack lvl (Symbol.name name)
+                (List.map (lower_expr ctx) field_exprs)
+                field_names field_exprs
           (* Non-optimizable *)
           | _ -> lower_expr ctx init
         in

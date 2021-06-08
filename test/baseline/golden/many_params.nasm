@@ -64,48 +64,47 @@ sum15:
   mov rbp, rsp
   sub rsp, 80
   mov [rbp - 8], rdi                      ; static link
-  mov [rbp - 16], rsi                     ; store spilled t17
-  mov [rbp - 24], rdx                     ; store spilled t18
-  mov [rbp - 32], rcx                     ; store spilled t19
-  mov [rbp - 40], r8                      ; store spilled t20
-  mov [rbp - 48], r9                      ; store spilled t21
+  mov [rbp - 16], rdx                     ; store spilled t18
+  mov [rbp - 24], rcx                     ; store spilled t19
+  mov [rbp - 32], r8                      ; store spilled t20
+  mov [rbp - 40], r9                      ; store spilled t21
   mov rax, [rbp + 16]                     ; n6
-  mov [rbp - 56], rax                     ; store spilled t22
+  mov [rbp - 48], rax                     ; store spilled t22
   mov rax, [rbp + 24]                     ; n7
-  mov [rbp - 64], rax                     ; store spilled t23
+  mov [rbp - 56], rax                     ; store spilled t23
   mov rax, [rbp + 32]                     ; n8
-  mov [rbp - 72], rax                     ; store spilled t24
+  mov [rbp - 64], rax                     ; store spilled t24
   mov rax, [rbp + 40]                     ; n9
-  mov [rbp - 80], rax                     ; store spilled t25
-  mov r10, [rbp + 48]                     ; n10
-  mov r9, [rbp + 56]                      ; n11
-  mov r8, [rbp + 64]                      ; n12
-  mov rdi, [rbp + 72]                     ; n13
-  mov rsi, [rbp + 80]                     ; n14
+  mov [rbp - 72], rax                     ; store spilled t25
+  mov r11, [rbp + 48]                     ; n10
+  mov r10, [rbp + 56]                     ; n11
+  mov r9, [rbp + 64]                      ; n12
+  mov r8, [rbp + 72]                      ; n13
+  mov rdi, [rbp + 80]                     ; n14
   mov rdx, [rbp + 88]                     ; n15
   mov rcx, [rbp + 96]                     ; n16
-  mov rax, [rbp - 16]                     ; fetch spilled t17
-  mov r11, [rbp - 24]                     ; fetch spilled t18
-  add rax, r11                            
-  mov r11, [rbp - 32]                     ; fetch spilled t19
-  add rax, r11                            
-  mov r11, [rbp - 40]                     ; fetch spilled t20
-  add rax, r11                            
-  mov r11, [rbp - 48]                     ; fetch spilled t21
-  add rax, r11                            
-  mov r11, [rbp - 56]                     ; fetch spilled t22
-  add rax, r11                            
-  mov r11, [rbp - 64]                     ; fetch spilled t23
-  add rax, r11                            
-  mov r11, [rbp - 72]                     ; fetch spilled t24
-  add rax, r11                            
-  mov r11, [rbp - 80]                     ; fetch spilled t25
+  mov rax, rsi                            
+  mov rsi, [rbp - 16]                     ; fetch spilled t18
+  add rax, rsi                            
+  mov rsi, [rbp - 24]                     ; fetch spilled t19
+  add rax, rsi                            
+  mov rsi, [rbp - 32]                     ; fetch spilled t20
+  add rax, rsi                            
+  mov rsi, [rbp - 40]                     ; fetch spilled t21
+  add rax, rsi                            
+  mov rsi, [rbp - 48]                     ; fetch spilled t22
+  add rax, rsi                            
+  mov rsi, [rbp - 56]                     ; fetch spilled t23
+  add rax, rsi                            
+  mov rsi, [rbp - 64]                     ; fetch spilled t24
+  add rax, rsi                            
+  mov rsi, [rbp - 72]                     ; fetch spilled t25
+  add rax, rsi
   add rax, r11
   add rax, r10
   add rax, r9
   add rax, r8
   add rax, rdi
-  add rax, rsi
   add rax, rdx
   add rax, rcx
   mov rsp, rbp
