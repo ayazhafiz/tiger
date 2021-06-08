@@ -15,3 +15,7 @@ Extensions to add to the compiler and tool suite, besides the present "TODO"s:
 - [ ] Code formatter
 - [ ] Language Server
 - [ ] Constant propogation after IR lowering (see `baselines/many_params.nasm`)
+
+Smaller TODOs:
+
+- [ ] Add vimrc for switching between baselines

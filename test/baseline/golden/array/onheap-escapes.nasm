@@ -14,8 +14,8 @@ _start:
   mov [rbp - 8], rdi                      ; static link
   mov rbx, rbp                            
   sub rbx, 16                             
-  mov r10, 2                              
-  imul rdi, r10, 8                        
+  mov rax, 2                              
+  imul rdi, rax, 8                        
   mov rsi, 5                              ; arg2:initArray
   call initArray                          
   mov qword [rbx], rax                    ; var a := intarray[2] of 5
@@ -30,12 +30,12 @@ inner:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, 0                              
-  imul r11, r10, 8                        
-  mov r10, [rbp - 8]                      ; static link
-  mov r10, [r10 - 16]                     ; a
-  add r10, r11                            
-  mov rax, [r10]                          ; return (a[0])
+  mov rax, 0                              
+  imul rcx, rax, 8                        
+  mov rax, [rbp - 8]                      ; static link
+  mov rax, [rax - 16]                     ; a
+  add rax, rcx                            
+  mov rax, [rax]                          ; return (a[0])
   mov rsp, rbp
   pop rbp
   ret

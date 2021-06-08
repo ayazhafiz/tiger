@@ -9,15 +9,15 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  xor r11, r11                            ; var b : rectype := nil
-  mov r10, 1                              ; true
-  cmp r11, 0                              ; b = nil
+  xor rcx, rcx                            ; var b : rectype := nil
+  mov rax, 1                              ; true
+  cmp rcx, 0                              ; b = nil
   je true1                                
 false1:                                   
-  xor r10, r10                            ; false
+  xor rax, rax                            ; false
 true1:                                    
   mov rax, 1                              ; true
-  cmp r11, 0                              ; b <> nil
+  cmp rcx, 0                              ; b <> nil
   jne true                                
 false:                                    
   xor rax, rax                            ; false

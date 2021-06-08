@@ -10,20 +10,20 @@ _start:
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
   xor rax, rax                            ; var a := 0
-  xor r10, r10                            ; var i := 0
-  mov r8, 100                             ; var limit := 100
+  xor rcx, rcx                            ; var i := 0
+  mov rsi, 100                            ; var limit := 100
 test:                                     
-  mov r11, 1                              ; true
-  cmp r10, r8                             ; i <= limit
+  mov rdx, 1                              ; true
+  cmp rcx, rsi                            ; i <= limit
   jle true                                
 false:                                    
-  xor r11, r11                            ; false
+  xor rdx, rdx                            ; false
 true:                                     
-  cmp r11, 0                              ; i <= limit
+  cmp rdx, 0                              ; i <= limit
   je break
 body:              
   inc rax
-  inc r10
+  inc rcx
   jmp test
 break:              
   mov rsp, rbp

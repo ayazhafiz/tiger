@@ -29,11 +29,11 @@ do_nothing2:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, [rbp - 8]                      ; static link
-  mov r10, [r10 - 16]                     ; cnt
-  inc r10                                 
-  mov r11, [rbp - 8]                      ; static link
-  mov [r11 - 16], r10                     ; cnt := cnt + 1
+  mov rax, [rbp - 8]                      ; static link
+  mov rax, [rax - 16]                     ; cnt
+  inc rax                                 
+  mov rcx, [rbp - 8]                      ; static link
+  mov [rcx - 16], rax                     ; cnt := cnt + 1
   mov rdi, [rbp - 8]                      ; %arg(static_link):do_nothing1
   lea rdx, [rel str__str]
   call do_nothing1
@@ -45,9 +45,9 @@ do_nothing1:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, [rbp - 8]                      ; static link
-  mov r10, [r10 - 16]                     ; cnt
-  cmp r10, 100                            ; cnt < 100
+  mov rcx, [rbp - 8]                      ; static link
+  mov rcx, [rcx - 16]                     ; cnt
+  cmp rcx, 100                            ; cnt < 100
   jl true                                 
 false:                                    
   jmp done2                               

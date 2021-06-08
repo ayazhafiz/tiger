@@ -9,23 +9,23 @@ _start:
   mov rbp, rsp
   sub rsp, 96
   mov [rbp - 8], rdi                      ; static link
-  mov r10, rbp                            
-  sub r10, 88                             
-  xor r11, r11                            ; 0
-  mov [r10 + 0], r11                      ; arr1[0] = 0
-  mov [r10 + 8], r11                      ; arr1[1] = 0
-  mov [r10 + 16], r11                     ; arr1[2] = 0
-  mov [r10 + 24], r11                     ; arr1[3] = 0
-  mov [r10 + 32], r11                     ; arr1[4] = 0
-  mov [r10 + 40], r11                     ; arr1[5] = 0
-  mov [r10 + 48], r11                     ; arr1[6] = 0
-  mov [r10 + 56], r11                     ; arr1[7] = 0
-  mov [r10 + 64], r11                     ; arr1[8] = 0
-  mov [r10 + 72], r11                     ; arr1[9] = 0
-  mov r11, 2                              
-  imul r11, r11, 8                        
-  add r10, r11                            
-  mov rax, [r10]                          ; return ()
+  mov rax, rbp                            
+  sub rax, 88                             
+  xor rcx, rcx                            ; 0
+  mov [rax + 0], rcx                      ; arr1[0] = 0
+  mov [rax + 8], rcx                      ; arr1[1] = 0
+  mov [rax + 16], rcx                     ; arr1[2] = 0
+  mov [rax + 24], rcx                     ; arr1[3] = 0
+  mov [rax + 32], rcx                     ; arr1[4] = 0
+  mov [rax + 40], rcx                     ; arr1[5] = 0
+  mov [rax + 48], rcx                     ; arr1[6] = 0
+  mov [rax + 56], rcx                     ; arr1[7] = 0
+  mov [rax + 64], rcx                     ; arr1[8] = 0
+  mov [rax + 72], rcx                     ; arr1[9] = 0
+  mov rcx, 2                              
+  imul rcx, rcx, 8                        
+  add rax, rcx                            
+  mov rax, [rax]                          ; return ()
   mov rsp, rbp
   pop rbp
   ret

@@ -453,6 +453,7 @@ module Translate (F : FRAME) = struct
           if has_ret then
             let ret_expr = unEx body in
             let ret_cmt =
+              (* TODO: print return expr properly *)
               Printf.sprintf "return (%s)" (Ir.cmt_of_expr ret_expr)
             in
             Ir.Mov (Ir.Temp F.rv, ret_expr, ret_cmt)

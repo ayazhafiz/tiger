@@ -55,9 +55,42 @@ end = struct
 
   type frag = Proc of frame * Ir.stmt | String of Temp.label * string
   type proc = {prolog : string; body : Assem.instr list; epilog : string}
-  type register = string
 
-  let string_of_register r = r
+  type register =
+    | Rax  (** return value register *)
+    | Rbx
+    | Rcx
+    | Rdx
+    | Rbp  (** base pointer (fp) *)
+    | Rsp  (** stack pointer *)
+    | Rsi  (** register source index (source for data copies) *)
+    | Rdi  (** register destination index (destination for data copies) *)
+    | R8
+    | R9
+    | R10
+    | R11
+    | R12
+    | R13
+    | R14
+    | R15
+
+  let string_of_register = function
+    | Rax -> "rax"
+    | Rbx -> "rbx"
+    | Rcx -> "rcx"
+    | Rdx -> "rdx"
+    | Rbp -> "rbp"
+    | Rsp -> "rsp"
+    | Rsi -> "rsi"
+    | Rdi -> "rdi"
+    | R8 -> "r8"
+    | R9 -> "r9"
+    | R10 -> "r10"
+    | R11 -> "r11"
+    | R12 -> "r12"
+    | R13 -> "r13"
+    | R14 -> "r14"
+    | R15 -> "r15"
 
   module RegisterSet = Set.Make (struct
     type t = register
@@ -67,23 +100,16 @@ end = struct
 
   (** https://wiki.cdot.senecacollege.ca/wiki/X86_64_Register_and_Instruction_Quick_Start *)
   let registers =
-    [
-    "rax"; "rbx"; "rcx"; "rdx";
-    "rbp"; (* base pointer (fp) *)
-    "rsp"; (* stack pointer *)
-    "rsi"; (* register source index (source for data copies) *)
-    "rdi"; (* register destination index (destination for data copies) *)
-    "r8";  "r9";  "r10"; "r11";
-    "r12"; "r13"; "r14"; "r15";
-    ] [@ocamlformat "disable"]
+    [ Rax; Rbx; Rcx; Rdx; Rbp; Rsp; Rsi; Rdi; R8; R9; R10; R11; R12; R13; R14
+    ; R15 ]
 
   let reg_temps = List.map (fun reg -> (reg, Temp.newtemp ())) registers
   let temp_map = List.map (fun (r, t) -> (t, r)) reg_temps
   let temp_of_reg reg = List.assoc reg reg_temps
-  let rax = List.assoc "rax" reg_temps
-  let rdx = List.assoc "rdx" reg_temps
-  let rsp = List.assoc "rsp" reg_temps
-  let rbp = List.assoc "rbp" reg_temps
+  let rax = List.assoc Rax reg_temps
+  let rdx = List.assoc Rdx reg_temps
+  let rsp = List.assoc Rsp reg_temps
+  let rbp = List.assoc Rbp reg_temps
   let fp = rbp
   let rv = rax
   let sp = rsp
@@ -91,12 +117,10 @@ end = struct
   (* Registers live at procedure exit. Mentioned to avoid register allocation
      here. *)
 
-  let arg_regs =
-    ["rdi"; "rsi"; "rdx"; "rcx"; "r8"; "r9"] |> List.map temp_of_reg
-
-  let callee_saves = ["rbx"; "r12"; "r13"; "r14"; "r15"] |> List.map temp_of_reg
-  let caller_saves = arg_regs @ (["rax"; "r10"; "r11"] |> List.map temp_of_reg)
-  let calldefs = rsp :: rbp :: caller_saves
+  let arg_regs = [Rdi; Rsi; Rdx; Rcx; R8; R9] |> List.map temp_of_reg
+  let callee_saves = [Rbx; R12; R13; R14; R15] |> List.map temp_of_reg
+  let caller_saves = arg_regs @ ([Rax; R10; R11] |> List.map temp_of_reg)
+  let calldefs = caller_saves
   (* registers modified/defined by a [call] instr.
      [rsp] - RA is pushed on.
      [rbp] - Updated by function prolog.

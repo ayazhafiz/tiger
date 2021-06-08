@@ -9,7 +9,7 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, 4                              ; var b := 4
+  mov rcx, 4                              ; var b := 4
   xor rax, rax                            ; return ()
   mov rsp, rbp
   pop rbp

@@ -11,25 +11,25 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, 2                              
-  imul rdi, r10, 8                        
+  mov rax, 2                              
+  imul rdi, rax, 8                        
   xor rsi, rsi                            ; arg2:initArray
   call initArray                          
-  mov r8, 0                               
-  mov r10, 0                              
-  imul r11, r10, 8                        
-  mov r10, rax                            
-  add r10, r11                            
-  mov qword [r10], r8                     ; .hd=0
-  mov r8, 0                               
-  mov r10, 1                              
-  imul r11, r10, 8                        
-  mov r10, rax                            
-  add r10, r11                            
-  mov qword [r10], r8                     ; .tl=nil
-  mov r10, 0                              
-  imul r10, r10, 8                        
-  add rax, r10                            
+  mov rsi, 0                              
+  mov rcx, 0                              
+  imul rdx, rcx, 8                        
+  mov rcx, rax                            
+  add rcx, rdx                            
+  mov qword [rcx], rsi                    ; .hd=0
+  mov rsi, 0                              
+  mov rcx, 1                              
+  imul rdx, rcx, 8                        
+  mov rcx, rax                            
+  add rcx, rdx                            
+  mov qword [rcx], rsi                    ; .tl=nil
+  mov rcx, 0                              
+  imul rcx, rcx, 8                        
+  add rax, rcx                            
   mov rax, [rax]                          ; return ()
   mov rsp, rbp
   pop rbp

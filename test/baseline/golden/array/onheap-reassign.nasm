@@ -11,13 +11,13 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, 2                              
-  imul rdi, r10, 8                        
+  mov rax, 2                              
+  imul rdi, rax, 8                        
   mov rsi, 5                              ; arg2:initArray
   call initArray                          
-  mov r10, 0                              
-  imul r10, r10, 8                        
-  add rax, r10                            
+  mov rcx, 0                              
+  imul rcx, rcx, 8                        
+  add rax, rcx                            
   mov rax, [rax]                          ; return ()
   mov rsp, rbp
   pop rbp

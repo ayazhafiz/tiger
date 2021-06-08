@@ -17,31 +17,31 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r10, 2                              
-  imul rdi, r10, 8                        
+  mov rax, 2                              
+  imul rdi, rax, 8                        
   xor rsi, rsi                            ; arg2:initArray
   call initArray                          
-  lea r8, [rel str__Nobody]               
-  mov r10, 0                              
-  imul r11, r10, 8                        
-  mov r10, rax                            
-  add r10, r11                            
-  mov qword [r10], r8                     ; .name="Nobody"
-  mov r8, 10                              
-  mov r10, 1                              
-  imul r11, r10, 8                        
-  mov r10, rax                            
-  add r10, r11                            
-  mov qword [r10], r8                     ; .age=10
-  lea r8, [rel str__Somebody]             
-  mov r10, 0                              
-  imul r11, r10, 8                        
-  mov r10, rax                            
-  add r10, r11                            
-  mov qword [r10], r8                     ; rec1.name := "Somebody"
-  mov r10, 1                              
-  imul r10, r10, 8                        
-  add rax, r10                            
+  lea rsi, [rel str__Nobody]              
+  mov rcx, 0                              
+  imul rdx, rcx, 8                        
+  mov rcx, rax                            
+  add rcx, rdx                            
+  mov qword [rcx], rsi                    ; .name="Nobody"
+  mov rsi, 10                             
+  mov rcx, 1                              
+  imul rdx, rcx, 8                        
+  mov rcx, rax                            
+  add rcx, rdx                            
+  mov qword [rcx], rsi                    ; .age=10
+  lea rsi, [rel str__Somebody]            
+  mov rcx, 0                              
+  imul rdx, rcx, 8                        
+  mov rcx, rax                            
+  add rcx, rdx                            
+  mov qword [rcx], rsi                    ; rec1.name := "Somebody"
+  mov rcx, 1                              
+  imul rcx, rcx, 8                        
+  add rax, rcx                            
   mov rax, [rax]                          ; return ()
   mov rsp, rbp
   pop rbp

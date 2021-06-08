@@ -17,44 +17,44 @@ _start:
   push rbp
   mov rbp, rsp
   sub rsp, 16
-  mov t35, rbx                            ; liveout: rbp rdi r12 r13 r14 r15 t35
-  mov t36, r12                            ; liveout: rbp rdi r13 r14 r15 t35 t36
-  mov t37, r13                            ; liveout: rbp rdi r14 r15 t35 t36 t37
-  mov t38, r14                            ; liveout: rbp rdi r15 t35 t36 t37 t38
-  mov t39, r15                            ; liveout: rbp rdi t35 t36 t37 t38 t39
-  mov [rbp - 8], rdi                      ; liveout: t35 t36 t37 t38 t39
+  mov t35, rbx                            ; liveout: rbp rsp rdi r12 r13 r14 r15 t35
+  mov t36, r12                            ; liveout: rbp rsp rdi r13 r14 r15 t35 t36
+  mov t37, r13                            ; liveout: rbp rsp rdi r14 r15 t35 t36 t37
+  mov t38, r14                            ; liveout: rbp rsp rdi r15 t35 t36 t37 t38
+  mov t39, r15                            ; liveout: rbp rsp rdi t35 t36 t37 t38 t39
+  mov [rbp - 8], rdi                      ; liveout: rbp rsp t35 t36 t37 t38 t39
                                           ; static link
-  lea t41, [rel str__10]                  ; liveout: t35 t36 t37 t38 t39 t41
-  mov t27, t41                            ; liveout: t27 t35 t36 t37 t38 t39
+  lea t41, [rel str__10]                  ; liveout: rbp rsp t35 t36 t37 t38 t39 t41
+  mov t27, t41                            ; liveout: rbp rsp t27 t35 t36 t37 t38 t39
                                           ; %arg1:print
-  mov rdi, t27                            ; liveout: rdi t35 t36 t37 t38 t39
+  mov rdi, t27                            ; liveout: rbp rsp rdi t35 t36 t37 t38 t39
                                           ; arg1:print
-  call print                              ; liveout: rbp t35 t36 t37 t38 t39
-  mov t28, rbp                            ; liveout: t28 t35 t36 t37 t38 t39
+  call print                              ; liveout: rbp rsp t35 t36 t37 t38 t39
+  mov t28, rbp                            ; liveout: rbp rsp t28 t35 t36 t37 t38 t39
                                           ; %arg(static_link):nfactor
-  mov t29, 10                             ; liveout: t28 t29 t35 t36 t37 t38 t39
+  mov t29, 10                             ; liveout: rbp rsp t28 t29 t35 t36 t37 t38 t39
                                           ; %arg1:nfactor
-  mov rdi, t28                            ; liveout: rdi t29 t35 t36 t37 t38 t39
+  mov rdi, t28                            ; liveout: rbp rsp rdi t29 t35 t36 t37 t38 t39
                                           ; arg1:nfactor
-  mov rsi, t29                            ; liveout: rsi rdi t35 t36 t37 t38 t39
+  mov rsi, t29                            ; liveout: rbp rsp rsi rdi t35 t36 t37 t38 t39
                                           ; arg2:nfactor
-  call nfactor                            ; liveout: rax t35 t36 t37 t38 t39
-  mov t30, rax                            ; liveout: t30 t35 t36 t37 t38 t39
-  mov t31, t30                            ; liveout: t31 t35 t36 t37 t38 t39
+  call nfactor                            ; liveout: rax rbp rsp t35 t36 t37 t38 t39
+  mov t30, rax                            ; liveout: rbp rsp t30 t35 t36 t37 t38 t39
+  mov t31, t30                            ; liveout: rbp rsp t31 t35 t36 t37 t38 t39
                                           ; %arg1:string_of_int
-  mov rdi, t31                            ; liveout: rdi t35 t36 t37 t38 t39
+  mov rdi, t31                            ; liveout: rbp rsp rdi t35 t36 t37 t38 t39
                                           ; arg1:string_of_int
-  call string_of_int                      ; liveout: rax t35 t36 t37 t38 t39
-  mov t32, rax                            ; liveout: t32 t35 t36 t37 t38 t39
-  mov t33, t32                            ; liveout: t33 t35 t36 t37 t38 t39
+  call string_of_int                      ; liveout: rax rbp rsp t35 t36 t37 t38 t39
+  mov t32, rax                            ; liveout: rbp rsp t32 t35 t36 t37 t38 t39
+  mov t33, t32                            ; liveout: rbp rsp t33 t35 t36 t37 t38 t39
                                           ; %arg1:print
-  mov rdi, t33                            ; liveout: rdi t35 t36 t37 t38 t39
+  mov rdi, t33                            ; liveout: rbp rsp rdi t35 t36 t37 t38 t39
                                           ; arg1:print
-  call print                              ; liveout: t35 t36 t37 t38 t39
-  lea t42, [rel str__]                    ; liveout: t35 t36 t37 t38 t39 t42
-  mov t34, t42                            ; liveout: t34 t35 t36 t37 t38 t39
+  call print                              ; liveout: rbp rsp t35 t36 t37 t38 t39
+  lea t42, [rel str__]                    ; liveout: rbp rsp t35 t36 t37 t38 t39 t42
+  mov t34, t42                            ; liveout: rbp rsp t34 t35 t36 t37 t38 t39
                                           ; %arg1:print
-  mov rdi, t34                            ; liveout: rdi t35 t36 t37 t38 t39
+  mov rdi, t34                            ; liveout: rbp rsp rdi t35 t36 t37 t38 t39
                                           ; arg1:print
   call print                              ; liveout: rax rbp rsp t35 t36 t37 t38 t39
   xor rax, rax                            ; liveout: rax rbp rsp t35 t36 t37 t38 t39
@@ -83,18 +83,18 @@ nfactor:
   cmp t17, 0                              ; liveout: rbp rsp t17 t22 t23 t24 t25 t26
                                           ; n = 0
   je true                                 ; liveout: rbp rsp t17 t22 t23 t24 t25 t26
-false:                                    ; liveout: rbp t17 t22 t23 t24 t25 t26
-  mov t40, t17                            ; liveout: rbp t17 t22 t23 t24 t25 t26 t40
+false:                                    ; liveout: rbp rsp t17 t22 t23 t24 t25 t26
+  mov t40, t17                            ; liveout: rbp rsp t17 t22 t23 t24 t25 t26 t40
                                           ; push stmt up
-  mov t18, [rbp - 8]                      ; liveout: t17 t18 t22 t23 t24 t25 t26 t40
+  mov t18, [rbp - 8]                      ; liveout: rbp rsp t17 t18 t22 t23 t24 t25 t26 t40
                                           ; %arg(static_link):nfactor
-  mov t43, t17                            ; liveout: t18 t22 t23 t24 t25 t26 t40 t43
-  dec t43                                 ; liveout: t18 t22 t23 t24 t25 t26 t40 t43
-  mov t19, t43                            ; liveout: t18 t19 t22 t23 t24 t25 t26 t40
+  mov t43, t17                            ; liveout: rbp rsp t18 t22 t23 t24 t25 t26 t40 t43
+  dec t43                                 ; liveout: rbp rsp t18 t22 t23 t24 t25 t26 t40 t43
+  mov t19, t43                            ; liveout: rbp rsp t18 t19 t22 t23 t24 t25 t26 t40
                                           ; %arg1:nfactor
-  mov rdi, t18                            ; liveout: rdi t19 t22 t23 t24 t25 t26 t40
+  mov rdi, t18                            ; liveout: rbp rsp rdi t19 t22 t23 t24 t25 t26 t40
                                           ; arg1:nfactor
-  mov rsi, t19                            ; liveout: rsi rdi t22 t23 t24 t25 t26 t40
+  mov rsi, t19                            ; liveout: rbp rsp rsi rdi t22 t23 t24 t25 t26 t40
                                           ; arg2:nfactor
   call nfactor                            ; liveout: rax rbp rsp t22 t23 t24 t25 t26 t40
   mov t20, rax                            ; liveout: rbp rsp t20 t22 t23 t24 t25 t26 t40
@@ -126,8 +126,8 @@ rax: rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t22 t23 t24 t25 t
 rbx: rax rbp rsp r12 r13 r14 r15 t23 t24 t25 t26 t36 t37 t38 t39
 rcx: rax rbp rsp t22 t23 t24 t25 t26 t35 t36 t37 t38 t39 t40
 rdx: rax rbp rsp t22 t23 t24 t25 t26 t35 t36 t37 t38 t39 t40
-rbp: rax rbx rcx rdx rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t20 t21 t22 t23 t24 t25 t26 t35 t36 t37 t38 t39 t40 t44
-rsp: rax rbx rcx rdx rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t20 t21 t22 t23 t24 t25 t26 t35 t36 t37 t38 t39 t40 t44
+rbp: rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t25 t26 t27 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t39 t40 t41 t42 t43 t44
+rsp: rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t25 t26 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t39 t40 t41 t42 t43 t44
 rsi: rax rbp rsp rdi t22 t23 t24 t25 t26 t35 t36 t37 t38 t39 t40
 rdi: rax rbp rsp rsi t19 t22 t23 t24 t25 t26 t29 t35 t36 t37 t38 t39 t40
 r8: rax rbp rsp t22 t23 t24 t25 t26 t35 t36 t37 t38 t39 t40
@@ -139,8 +139,8 @@ r13: rax rbx rbp rsp r12 r14 r15 t22 t23 t25 t26 t35 t36 t38 t39
 r14: rax rbx rbp rsp r12 r13 r15 t22 t23 t24 t26 t35 t36 t37 t39
 r15: rax rbx rbp rsp r12 r13 r14 t22 t23 t24 t25 t35 t36 t37 t38
 t17: rbp rsp t18 t22 t23 t24 t25 t26
-t18: t17 t19 t22 t23 t24 t25 t26 t40 t43
-t19: rdi t18 t22 t23 t24 t25 t26 t40
+t18: rbp rsp t17 t19 t22 t23 t24 t25 t26 t40 t43
+t19: rbp rsp rdi t18 t22 t23 t24 t25 t26 t40
 t20: rbp rsp t22 t23 t24 t25 t26 t40 t44
 t21: rbp rsp t22 t23 t24 t25 t26
 t22: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t23 t24 t25 t26 t40 t43 t44
@@ -148,34 +148,34 @@ t23: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t17 t18 t19 t20 t
 t24: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t17 t18 t19 t20 t21 t22 t23 t25 t26 t40 t43 t44
 t25: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t17 t18 t19 t20 t21 t22 t23 t24 t26 t40 t43 t44
 t26: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t17 t18 t19 t20 t21 t22 t23 t24 t25 t40 t43 t44
-t27: t35 t36 t37 t38 t39
-t28: t29 t35 t36 t37 t38 t39
-t29: rdi t28 t35 t36 t37 t38 t39
-t30: t35 t36 t37 t38 t39
-t31: t35 t36 t37 t38 t39
-t32: t35 t36 t37 t38 t39
-t33: t35 t36 t37 t38 t39
-t34: t35 t36 t37 t38 t39
+t27: rbp rsp t35 t36 t37 t38 t39
+t28: rsp t29 t35 t36 t37 t38 t39
+t29: rbp rsp rdi t28 t35 t36 t37 t38 t39
+t30: rbp rsp t35 t36 t37 t38 t39
+t31: rbp rsp t35 t36 t37 t38 t39
+t32: rbp rsp t35 t36 t37 t38 t39
+t33: rbp rsp t35 t36 t37 t38 t39
+t34: rbp rsp t35 t36 t37 t38 t39
 t35: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t27 t28 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t41 t42
 t36: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t27 t28 t29 t30 t31 t32 t33 t34 t35 t37 t38 t39 t41 t42
 t37: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36 t38 t39 t41 t42
 t38: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t39 t41 t42
 t39: rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t41 t42
 t40: rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t18 t19 t20 t22 t23 t24 t25 t26 t43
-t41: t35 t36 t37 t38 t39
-t42: t35 t36 t37 t38 t39
-t43: t18 t22 t23 t24 t25 t26 t40
+t41: rbp rsp t35 t36 t37 t38 t39
+t42: rbp rsp t35 t36 t37 t38 t39
+t43: rbp rsp t18 t22 t23 t24 t25 t26 t40
 t44: rbp rsp t20 t22 t23 t24 t25 t26
 nbhd t23 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t17 t18 t19 t20 t21 t22 t24 t25 t26 t40 t43 t44
-nbhd t19 = rdi t18 t22 t23 t24 t25 t26 t40
+nbhd t19 = rbp rsp rdi t18 t22 t23 t24 t25 t26 t40
 nbhd t20 = rbp rsp t22 t23 t24 t25 t26 t40 t44
-nbhd t18 = t17 t19 t22 t23 t24 t25 t26 t40 t43
+nbhd t18 = rbp rsp t17 t19 t22 t23 t24 t25 t26 t40 t43
 nbhd rbx = rax rbp rsp r12 r13 r14 r15 t23 t24 t25 t26
 nbhd t44 = rbp rsp t20 t22 t23 t24 t25 t26
 nbhd t24 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r14 r15 t17 t18 t19 t20 t21 t22 t23 t25 t26 t40 t43 t44
 nbhd t26 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t17 t18 t19 t20 t21 t22 t23 t24 t25 t40 t43 t44
-nbhd rbp = rax rbx rcx rdx rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t20 t21 t22 t23 t24 t25 t26 t40 t44
-nbhd rsp = rax rbx rcx rdx rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t20 t21 t22 t23 t24 t25 t26 t40 t44
+nbhd rbp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t25 t26 t40 t43 t44
+nbhd rsp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t22 t23 t24 t25 t26 t40 t43 t44
 nbhd rdx = rax rbp rsp t22 t23 t24 t25 t26 t40
 nbhd t17 = rbp rsp t18 t22 t23 t24 t25 t26
 nbhd t25 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t17 t18 t19 t20 t21 t22 t23 t24 t26 t40 t43 t44
@@ -183,7 +183,7 @@ nbhd r14 = rax rbx rbp rsp r12 r13 r15 t22 t23 t24 t26
 nbhd t22 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t17 t18 t19 t20 t21 t23 t24 t25 t26 t40 t43 t44
 nbhd rsi = rax rbp rsp rdi t22 t23 t24 t25 t26 t40
 nbhd r15 = rax rbx rbp rsp r12 r13 r14 t22 t23 t24 t25
-nbhd t43 = t18 t22 t23 t24 t25 t26 t40
+nbhd t43 = rbp rsp t18 t22 t23 t24 t25 t26 t40
 nbhd r10 = rax rbp rsp t22 t23 t24 t25 t26 t40
 nbhd t40 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 t18 t19 t20 t22 t23 t24 t25 t26 t43
 nbhd rax = rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t22 t23 t24 t25 t26 t40
@@ -195,22 +195,22 @@ nbhd rdi = rax rbp rsp rsi t19 t22 t23 t24 t25 t26 t40
 nbhd r8 = rax rbp rsp t22 t23 t24 t25 t26 t40
 nbhd rcx = rax rbp rsp t22 t23 t24 t25 t26 t40
 nbhd t21 = rbp rsp t22 t23 t24 t25 t26
-nbhd t33 = t35 t36 t37 t38 t39
-nbhd t29 = rdi t28 t35 t36 t37 t38 t39
-nbhd t30 = t35 t36 t37 t38 t39
-nbhd t28 = t29 t35 t36 t37 t38 t39
+nbhd t33 = rbp rsp t35 t36 t37 t38 t39
+nbhd t29 = rbp rsp rdi t28 t35 t36 t37 t38 t39
+nbhd t30 = rbp rsp t35 t36 t37 t38 t39
+nbhd t28 = rsp t29 t35 t36 t37 t38 t39
 nbhd rbx = rax rbp rsp r12 r13 r14 r15 t36 t37 t38 t39
 nbhd t39 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t41 t42
-nbhd t34 = t35 t36 t37 t38 t39
+nbhd t34 = rbp rsp t35 t36 t37 t38 t39
 nbhd t36 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r13 r14 r15 t27 t28 t29 t30 t31 t32 t33 t34 t35 t37 t38 t39 t41 t42
-nbhd rbp = rax rbx rcx rdx rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t35 t36 t37 t38 t39
-nbhd rsp = rax rbx rcx rdx rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t35 t36 t37 t38 t39
+nbhd rbp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t27 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t39 t41 t42
+nbhd rsp = rax rbx rcx rdx rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t38 t39 t41 t42
 nbhd rdx = rax rbp rsp t35 t36 t37 t38 t39
-nbhd t42 = t35 t36 t37 t38 t39
-nbhd t27 = t35 t36 t37 t38 t39
+nbhd t42 = rbp rsp t35 t36 t37 t38 t39
+nbhd t27 = rbp rsp t35 t36 t37 t38 t39
 nbhd t35 = rax rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 t27 t28 t29 t30 t31 t32 t33 t34 t36 t37 t38 t39 t41 t42
 nbhd r14 = rax rbx rbp rsp r12 r13 r15 t35 t36 t37 t39
-nbhd t32 = t35 t36 t37 t38 t39
+nbhd t32 = rbp rsp t35 t36 t37 t38 t39
 nbhd rsi = rax rbp rsp rdi t35 t36 t37 t38 t39
 nbhd r15 = rax rbx rbp rsp r12 r13 r14 t35 t36 t37 t38
 nbhd t38 = rax rbx rcx rdx rbp rsp rsi rdi r8 r9 r10 r11 r12 r13 r15 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36 t37 t39 t41 t42
@@ -223,6 +223,6 @@ nbhd r12 = rax rbx rbp rsp r13 r14 r15 t35 t37 t38 t39
 nbhd r13 = rax rbx rbp rsp r12 r14 r15 t35 t36 t38 t39
 nbhd rdi = rax rbp rsp rsi t29 t35 t36 t37 t38 t39
 nbhd r8 = rax rbp rsp t35 t36 t37 t38 t39
-nbhd t41 = t35 t36 t37 t38 t39
+nbhd t41 = rbp rsp t35 t36 t37 t38 t39
 nbhd rcx = rax rbp rsp t35 t36 t37 t38 t39
-nbhd t31 = t35 t36 t37 t38 t39
+nbhd t31 = rbp rsp t35 t36 t37 t38 t39

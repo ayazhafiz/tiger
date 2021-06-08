@@ -9,14 +9,14 @@ _start:
   mov rbp, rsp
   sub rsp, 16
   mov [rbp - 8], rdi                      ; static link
-  mov r11, 1                              ; true
-  mov r10, 10                             
-  cmp r10, 20                             ; 10 > 20
+  mov rcx, 1                              ; true
+  mov rax, 10                             
+  cmp rax, 20                             ; 10 > 20
   jg true                                 
 false:                                    
-  xor r11, r11                            ; false
+  xor rcx, rcx                            ; false
 true:                                     
-  cmp r11, 0                              
+  cmp rcx, 0                              
   jne true1                               
 false1:                                   
   mov rax, 40                             ; else
