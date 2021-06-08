@@ -116,6 +116,16 @@ let ty_of_expr expr =
   | LetExpr {ty; _} -> unravel ty es
   | ArrayExpr {ty; _} -> unravel ty es
 
+let rec return_of_expr expr =
+  let open Ast in
+  match expr with
+  | NilExpr | VarExpr _ | IntExpr _ | StringExpr _ | CallExpr _ | OpExpr _
+   |RecordExpr _ | ArrayExpr _ | IfExpr _ ->
+      Some expr
+  | SeqExpr ([], _) | AssignExpr _ | WhileExpr _ | ForExpr _ | BreakExpr -> None
+  | SeqExpr (seq, _) -> return_of_expr (List.hd (List.rev seq))
+  | LetExpr {body; _} -> return_of_expr body
+
 let is_val expr = ty_of_expr expr <> Ty.Unit
 
 module Translate (F : FRAME) = struct
@@ -445,7 +455,7 @@ module Translate (F : FRAME) = struct
     Nx (Ir.Mov (unEx var_access, unEx expr, assign_fmt))
 
   (** [proc_entry_exit lvl body has_ret] stores a procedure fragment. *)
-  let proc_entry_exit level body has_ret =
+  let proc_entry_exit level body body_expr has_ret =
     match level with
     | Toplevel -> ice "cannot save toplevel fn"
     | Nest {frame; _} ->
@@ -453,8 +463,8 @@ module Translate (F : FRAME) = struct
           if has_ret then
             let ret_expr = unEx body in
             let ret_cmt =
-              (* TODO: print return expr properly *)
-              Printf.sprintf "return (%s)" (Ir.cmt_of_expr ret_expr)
+              Printf.sprintf "return %s"
+                (return_of_expr body_expr |> Option.get |> Ast.string_of_expr)
             in
             Ir.Mov (Ir.Temp F.rv, ret_expr, ret_cmt)
           else unNx body
@@ -601,8 +611,8 @@ module Translate (F : FRAME) = struct
                   (fun {fld_name = p; _} (lvl, a) ->
                     Tbl.add venv p (VarEntry (lvl, a)) )
                   params (formals level);
-                let body = lower_expr (venv, level, break) body in
-                proc_entry_exit level body has_ret ) )
+                let lowered_body = lower_expr (venv, level, break) body in
+                proc_entry_exit level lowered_body body has_ret ) )
           decls;
         []
     | VarDecl {name; escape; naked_rvalue; init; _} as vd ->

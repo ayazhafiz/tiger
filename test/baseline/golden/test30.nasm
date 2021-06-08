@@ -25,7 +25,7 @@ _start:
   mov rcx, 2                              
   imul rcx, rcx, 8                        
   add rax, rcx                            
-  mov rax, [rax]                          ; return ()
+  mov rax, [rax]                          ; return arr1[2]
   mov rsp, rbp
   pop rbp
   ret

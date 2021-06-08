@@ -17,7 +17,7 @@ _start:
   mov rcx, 0                              
   imul rcx, rcx, 8                        
   add rax, rcx                            
-  mov rax, [rax]                          ; return ()
+  mov rax, [rax]                          ; return a[0]
   mov rsp, rbp
   pop rbp
   ret

@@ -42,7 +42,7 @@ _start:
   mov rcx, 1                              
   imul rcx, rcx, 8                        
   add rax, rcx                            
-  mov rax, [rax]                          ; return ()
+  mov rax, [rax]                          ; return rec1.age
   mov rsp, rbp
   pop rbp
   ret

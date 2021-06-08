@@ -11,7 +11,7 @@ _start:
   mov [rbp - 8], rdi                      ; static link
   xor rcx, rcx                            ; var b : rectype := nil
   xor rcx, rcx                            ; b := nil
-  xor rax, rax                            ; return ()
+  xor rax, rax                            ; return 0
   mov rsp, rbp
   pop rbp
   ret

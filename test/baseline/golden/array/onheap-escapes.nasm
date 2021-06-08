@@ -35,7 +35,7 @@ inner:
   mov rax, [rbp - 8]                      ; static link
   mov rax, [rax - 16]                     ; a
   add rax, rcx                            
-  mov rax, [rax]                          ; return (a[0])
+  mov rax, [rax]                          ; return a[0]
   mov rsp, rbp
   pop rbp
   ret

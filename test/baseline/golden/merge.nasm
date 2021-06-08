@@ -53,7 +53,7 @@ _start:
   mov rsi, rax                            ; %arg1:printlist
   mov rdi, rbx                            ; arg1:printlist
   call printlist                          
-  xor rax, rax                            ; return ()
+  xor rax, rax                            ; return 0
   mov rbx, [rbp - 32]                     ; fetch spilled t143
   mov rsp, rbp
   pop rbp

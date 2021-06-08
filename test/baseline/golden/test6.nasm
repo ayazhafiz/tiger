@@ -20,7 +20,7 @@ _start:
   xor rsi, rsi                            ; %arg1:do_nothing1
   lea rdx, [rel str__str2]                
   call do_nothing1                        
-  mov rax, [rbp - 16]                     ; return ()
+  mov rax, [rbp - 16]                     ; return cnt
   mov rsp, rbp
   pop rbp
   ret

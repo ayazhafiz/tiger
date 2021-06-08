@@ -39,7 +39,7 @@ _start:
   add rax, rcx                            
   mov rax, [rax]                          ; b.arr1
   add rax, rdx                            
-  mov rax, [rax]                          ; return ()
+  mov rax, [rax]                          ; return b.arr1[0]
   mov rsp, rbp
   pop rbp
   ret

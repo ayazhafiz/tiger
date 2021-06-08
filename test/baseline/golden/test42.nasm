@@ -367,7 +367,7 @@ _start:
   call print                              
   lea rdi, [rel str__yearsold]            
   call print                              
-  xor rax, rax                            ; return ()
+  xor rax, rax                            ; return 0
   mov rbx, [rbp - 936]                    ; fetch spilled t41
   mov r12, [rbp - 944]                    ; fetch spilled t42
   mov r13, [rbp - 952]                    ; fetch spilled t43

@@ -14,7 +14,7 @@ _start:
   mov [rbp - 8], rdi                      ; static link
   xor rcx, rcx                            ; var a := 0
   lea rcx, [rel str__]                    
-  xor rax, rax                            ; return ()
+  xor rax, rax                            ; return 0
   mov rsp, rbp
   pop rbp
   ret

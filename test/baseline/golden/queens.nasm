@@ -63,7 +63,7 @@ _start:
   mov [rbp - 56], rax                     ; store spilled t45
   mov rsi, [rbp - 56]                     ; fetch spilled t45
   call try                                
-  xor rax, rax                            ; return ()
+  xor rax, rax                            ; return 0
   mov rbx, [rbp - 64]                     ; fetch spilled t46
   mov rsp, rbp
   pop rbp
