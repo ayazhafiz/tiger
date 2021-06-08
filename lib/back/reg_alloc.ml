@@ -14,6 +14,9 @@ module MoveSet = Set.Make (struct
   let compare = compare
 end)
 
+let string_of_mov (a, b) =
+  Printf.sprintf "%s<-%s" (string_of_temp a) (string_of_temp b)
+
 module TempPairSet = MoveSet
 
 module TempMap = Map.Make (struct
@@ -104,7 +107,8 @@ module RegisterAllocation (F : ALLOCATION_FRAME) = struct
                 TempMap.find_opt t !move_list
                 |> Option.value ~default:MoveSet.empty
               in
-              assert (not (MoveSet.mem mv moves));
+              if MoveSet.mem mv moves then
+                ice (Printf.sprintf "duplicate move %s" (string_of_mov mv));
               let moves = MoveSet.add mv moves in
               move_list := TempMap.add t moves !move_list )
             (def_n @ use_n);

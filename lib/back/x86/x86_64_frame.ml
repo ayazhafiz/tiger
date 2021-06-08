@@ -1,3 +1,5 @@
+let ice why = failwith ("ICE (x86-64): " ^ why)
+
 module LabelSet = Temp.LabelSet
 module Print = Util.Print
 
@@ -42,7 +44,9 @@ end = struct
   type frame =
     { name : Temp.label
     ; formals : (access * string) list
-    ; nlocals : int ref
+    ; next_local_name : int ref
+          (** Name to give next local allocated on the frame. For name
+              generation purposes only. *)
     ; sp_offset : int ref
           (** current offset from frame pointer, where all memory addresses
             between (fp-sp_offset) and (fp) are being used for variables
@@ -108,35 +112,49 @@ end = struct
         (* fetch the variable its true address *)
         Ir.Mem (Ir.BinOp (Ir.Minus, addr_orig_fp, Ir.Const offset), name)
 
-  let alloc_local1 nlocals sp_offset name = function
+  let address_of_access a =
+    match expr_of_access a with
+    | Ir.Mem (addr, _) -> addr
+    | Ir.Temp _ -> ice "access is not the stack"
+    | _ -> ice "unreachable"
+
+  let name_or_newlocal name next_local_name =
+    match name with
+    | Some n -> n
+    | None ->
+        let n = "local" ^ string_of_int !next_local_name in
+        incr next_local_name;
+        n
+
+  let alloc_local1 next_local_name sp_offset name = function
     | false -> InReg (Temp.newtemp ()) (* doesn't escape *)
     | true ->
         (* Escapes; allocate on the stack.
            SP          old SP               FP
            | new local | ...existing locals | ...incoming args
             -----------
-            [wordsize]
+            [wordsize] ^ access
         *)
         sp_offset := !sp_offset + wordsize;
-        let name =
-          match name with
-          | Some n -> n
-          | None -> "local" ^ string_of_int !nlocals
-        in
-        incr nlocals;
+        let name = name_or_newlocal name next_local_name in
         InFrame (!sp_offset, name)
 
-  let alloc_local fr name = alloc_local1 fr.nlocals fr.sp_offset name
+  let alloc_local fr name = alloc_local1 fr.next_local_name fr.sp_offset name
+
+  let alloc_stack {sp_offset; next_local_name; _} name size =
+    let name = name_or_newlocal name next_local_name in
+    sp_offset := !sp_offset + size;
+    InFrame (!sp_offset, name)
 
   let new_frame name formal_names formals =
     let sp_offset = ref 0 in
-    let nlocals = ref 0 in
+    let next_local_name = ref 1 in
     { name
     ; formals =
         List.map2
-          (fun n esc -> (alloc_local1 nlocals sp_offset (Some n) esc, n))
+          (fun n esc -> (alloc_local1 next_local_name sp_offset (Some n) esc, n))
           formal_names formals
-    ; nlocals
+    ; next_local_name
     ; sp_offset
     ; called_externs = LabelSet.empty }
 
@@ -636,7 +654,10 @@ end = struct
 
   let emit strings frames main =
     emit_common strings
-      (List.map (fun (f, i, a) -> (f, i, Hashtbl.find a)) frames)
+      (List.map
+         (fun (f, i, a) ->
+           (f, i, fun t -> string_of_register (Hashtbl.find a t)) )
+         frames )
       main
 
   let reserved_temps = List.map snd reg_temps

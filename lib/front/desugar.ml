@@ -18,9 +18,16 @@ let while_of_for i escape lo hi body =
      TODO: handle case where limit=MAXINT
   *)
   let limit = symbol "limit" in
-  let dvar_i = VarDecl {name = i; escape; typ = None; init = lo} in
+  let dvar_i =
+    VarDecl {name = i; escape; naked_rvalue = ref true; typ = None; init = lo}
+  in
   let dvar_limit =
-    VarDecl {name = limit; escape = ref false; typ = None; init = hi}
+    VarDecl
+      { name = limit
+      ; escape = ref false
+      ; naked_rvalue = ref true
+      ; typ = None
+      ; init = hi }
   in
   let rt_int = ref (Some Type.Int) in
   let rt_unit = ref (Some Type.Unit) in
@@ -80,8 +87,8 @@ and desugar_decl = function
       FunctionDecl
         (List.map
            (fun {fn_name; params; result; body} ->
-             {fn_name; params; result; body = desugar_expr body})
-           decls)
-  | VarDecl {name; escape; typ; init} ->
-      VarDecl {name; escape; typ; init = desugar_expr init}
+             {fn_name; params; result; body = desugar_expr body} )
+           decls )
+  | VarDecl {name; escape; naked_rvalue; typ; init} ->
+      VarDecl {name; escape; naked_rvalue; typ; init = desugar_expr init}
   | TypeDecl decls -> TypeDecl decls

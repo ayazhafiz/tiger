@@ -79,14 +79,23 @@ module type FRAME = sig
   (** Native word size of the architecture this frame represents. *)
 
   val expr_of_access : access * Ir.expr -> Ir.expr
-  (** [expr (a, addr_orig_fp)] returns an [Ir.expr] for a variable access [a],
+  (** [expr_of_access (a, addr_orig_fp)] returns an [Ir.expr] for a variable access [a],
       given the address [addr_orig_fp] of the frame the access was originally
       created in. *)
+
+  val address_of_access : access * Ir.expr -> Ir.expr
+  (** Like [expr_of_access], but retrieves a memory address pointing to an
+      [access] rather than the value at that access.
+      @raises ice if the access is not on the stack *)
 
   val new_frame : Temp.label -> string list -> bool list -> frame
   (** [new_frame name formal_names formals] creates a new frame for a function
       [name] with [formals], each of whose entry indicates whether the formal
       escapes the frame. *)
+
+  val alloc_stack : frame -> string option -> int -> access
+  (** [alloc_stack frame name size] allocates a local variable of given [size]
+      on the stack in a [frame]. *)
 
   val name : frame -> Temp.label
   (** [name frame] retrieves the named label of a frame. *)

@@ -3,17 +3,39 @@ module Tbl = Symbol.Table
 
 let ice why = failwith ("ICE (escape): " ^ why)
 
-let mark_above env d' sym =
+type markers = int (*depth*) * bool ref (*escapes*) * bool ref (*naked_rvalue*)
+
+type env = markers Tbl.t
+
+let mark_escape_above env d' sym =
   match Tbl.find_opt env sym with
   | None (* variable not declared, we should have caught this during sema *) ->
       ice "variable not declared"
-  | Some (d, _) when d = d' -> ()
-  | Some (d, _) when d > d' -> ice "declared depth greater than current"
-  | Some (_, escape) -> escape := true
+  | Some (d, _, _) when d = d' -> ()
+  | Some (d, _, _) when d > d' -> ice "declared depth greater than current"
+  | Some (_, escape, _) -> escape := true
 
-let rec walk_var env d = function
-  | SimpleVar (sym, _) -> mark_above env d sym
-  | FieldVar (v, _, _) | SubscriptVar (v, _, _) -> walk_var env d v
+(** Marks a variable as being used "nakedly" in an rvalue.
+    Examples:
+      let ... in a end
+      b := a
+    Non-examples
+      a[0]
+      a.b *)
+let mark_rvalue_use env sym =
+  match Tbl.find_opt env sym with
+  | None -> ice "variable not declared"
+  | Some (_, _, rvalue_use) -> rvalue_use := true
+
+let rec walk_var (env : env) d v =
+  let naked_simple_var = match v with SimpleVar _ -> true | _ -> false in
+  let rec walk_var1 = function
+    | SimpleVar (sym, _) ->
+        mark_escape_above env d sym;
+        if naked_simple_var then mark_rvalue_use env sym
+    | FieldVar (v, _, _) | SubscriptVar (v, _, _) -> walk_var1 v
+  in
+  walk_var1 v
 
 and walk_expr env d = function
   | VarExpr (v, _) -> walk_var env d v
@@ -35,7 +57,7 @@ and walk_expr env d = function
   | ForExpr {var; escape; lo; hi; body} ->
       escape := false;
       Tbl.scoped env (fun env ->
-          Tbl.add env var (d, escape);
+          Tbl.add env var (d, escape, ref false);
           List.iter (walk_expr env d) [lo; hi; body] )
   | LetExpr {decls; body; _} ->
       Tbl.scoped env (fun env ->
@@ -45,7 +67,7 @@ and walk_expr env d = function
 
 and add_field env d {fld_name; escape; _} =
   escape := false;
-  Tbl.add env fld_name (d, escape)
+  Tbl.add env fld_name (d, escape, ref false)
 
 and walk_fn env d {params; body; _} =
   let d' = succ d in
@@ -55,10 +77,11 @@ and walk_fn env d {params; body; _} =
 
 and walk_decl env d = function
   | FunctionDecl fns -> List.iter (walk_fn env d) fns
-  | VarDecl {name; escape; init; _} ->
+  | VarDecl {name; escape; naked_rvalue; init; _} ->
       walk_expr env d init;
       escape := false;
-      Tbl.add env name (d, escape)
+      naked_rvalue := false;
+      Tbl.add env name (d, escape, naked_rvalue)
   | TypeDecl _ -> ()
 
-let mark_escapes expr = walk_expr (Tbl.singleton ()) 0 expr
+let mark expr = walk_expr (Tbl.singleton ()) 0 expr

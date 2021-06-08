@@ -29,7 +29,11 @@ and expr =
 and decl =
   | FunctionDecl of fundecl list
   | VarDecl of
-      {name : symbol; escape : bool ref; typ : symbol option; init : expr}
+      { name : symbol
+      ; escape : bool ref
+      ; naked_rvalue : bool ref
+      ; typ : symbol option
+      ; init : expr }
   | TypeDecl of ty_alias list
 
 and ty = NameTy of symbol | RecordTy of field_ty list | ArrayTy of symbol

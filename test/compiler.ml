@@ -7,20 +7,6 @@ open Tiger.Front.Language
 open Tiger.Front.Semantic
 module Driver = Tiger.Driver
 
-let baseline_local = "test/baseline/local"
-let baseline_golden = "test/baseline/golden"
-let do_bless = ref false
-
-type fi =
-  { name : string
-  ; path : string
-  ; content : string
-  ; syntax_error : bool
-  ; semantic_error : string option
-  ; mutable lexed : Lexing.lexbuf option
-  ; mutable parse : expr option
-  ; mutable desugar : desugared_expr option }
-
 let readfi path =
   let ch = open_in path in
   let content = really_input_string ch (in_channel_length ch) in
@@ -32,29 +18,40 @@ let writefi path content =
   output_string ch content;
   close_out ch
 
+(** [dir_contents] returns the paths of all regular files that are contained
+    in [dir]. Each file is a path starting with [dir].
+    Source: https://gist.github.com/lindig/be55f453026c65e761f4e7012f8ab9b5 *)
+let dir_contents dir =
+  let rec loop result = function
+    | f :: fs when Sys.is_directory f ->
+        Sys.readdir f |> Array.to_list
+        |> List.map (Filename.concat f)
+        |> List.append fs |> loop result
+    | f :: fs -> loop (f :: result) fs
+    | [] -> result
+  in
+  loop [] [dir]
+
+let cases_dir = "test/cases/"
+let baseline_local = "test/baseline/local"
+let baseline_golden = "test/baseline/golden"
+let do_bless = ref false
 let fi_local = Filename.concat baseline_local
 let fi_golden = Filename.concat baseline_golden
 let write_local name content = writefi (fi_local name) content
 let write_golden name content = writefi (fi_golden name) content
 
-let cmp_golden name =
-  if !do_bless then ()
-  else
-    let local = readfi (fi_local name) in
-    let golden =
-      try readfi (fi_golden name)
-      with _ ->
-        Alcotest.fail
-          (Printf.sprintf
-             {|Golden "%s" not present; run "--bless" to accept baselines first.|}
-             name )
-    in
-    if local <> golden then
-      Alcotest.fail
-        (Printf.sprintf "Local baseline %s differs from golden." name)
+type fi =
+  { name : string
+  ; path : string
+  ; content : string
+  ; syntax_error : bool
+  ; semantic_error : string option
+  ; mutable lexed : Lexing.lexbuf option
+  ; mutable parse : expr option
+  ; mutable desugar : desugared_expr option }
 
-let mkfi dir name =
-  let path = Filename.concat dir name in
+let mkfi path =
   let content = readfi path in
   let re_syntax_err = Str.regexp {|/\* error: syntax error|} in
   let re_semantic_err = Str.regexp {|/\* error: \(.*\) \*/|} in
@@ -65,7 +62,9 @@ let mkfi dir name =
       Some (Str.matched_group 1 content |> String.trim)
     else None
   in
-  { name = Filename.remove_extension name
+  { name =
+      List.hd (Str.split (Str.regexp_string cases_dir) path)
+      |> Filename.chop_extension
   ; path
   ; content
   ; syntax_error
@@ -73,6 +72,41 @@ let mkfi dir name =
   ; lexed = Option.none
   ; parse = Option.none
   ; desugar = Option.none }
+
+let ensure_unique cases =
+  let tbl = Hashtbl.create (List.length cases) in
+  List.iter
+    (fun {name; path; _} ->
+      match Hashtbl.find_opt tbl name with
+      | Some path1 ->
+          Alcotest.fail
+            (Printf.sprintf "Duplicate tests %s (%s and %s)" name path1 path)
+      | None -> Hashtbl.add tbl name path )
+    cases
+
+let ensure_dirs cases =
+  let dirs = Hashtbl.create 16 in
+  Hashtbl.add dirs baseline_local ();
+  Hashtbl.add dirs baseline_golden ();
+  List.iter
+    (fun {name; _} ->
+      let local = Filename.dirname (fi_local name) in
+      let golden = Filename.dirname (fi_golden name) in
+      if not (Hashtbl.mem dirs local) then (
+        Hashtbl.add dirs local ();
+        Hashtbl.add dirs golden () ) )
+    cases;
+  Hashtbl.iter (fun dir () -> try Sys.mkdir dir 0o777 with _ -> ()) dirs
+
+let all_cases =
+  let cases =
+    dir_contents cases_dir
+    |> List.filter (fun file -> Filename.extension file = ".tig")
+    |> List.map mkfi
+  in
+  ensure_unique cases;
+  ensure_dirs cases;
+  cases
 
 let get opt err = match opt with Some v -> v | None -> failwith err
 let lex = Lexing.from_string ~with_positions:true
@@ -93,11 +127,21 @@ let ensure_desugar fi =
   if Option.is_none fi.desugar then
     fi.desugar <- Option.some (desugar_expr parsed)
 
-let all_cases =
-  let dir_cases = "test/cases" in
-  Sys.readdir dir_cases |> Array.to_list
-  |> List.filter (fun file -> Filename.extension file = ".tig")
-  |> List.map (mkfi dir_cases)
+let cmp_golden name =
+  if !do_bless then ()
+  else
+    let local = readfi (fi_local name) in
+    let golden =
+      try readfi (fi_golden name)
+      with _ ->
+        Alcotest.fail
+          (Printf.sprintf
+             {|Golden "%s" not present; run "--bless" to accept baselines first.|}
+             name )
+    in
+    if local <> golden then
+      Alcotest.fail
+        (Printf.sprintf "Local baseline %s differs from golden." name)
 
 (* Option: Accept goldens *)
 let bless =
@@ -236,7 +280,7 @@ let exectest fi =
   ((fi.name, `Slow, wrap test), true)
 
 let blessing =
-  let cmd = Printf.sprintf "cp %s/* %s" baseline_local baseline_golden in
+  let cmd = Printf.sprintf "cp -R %s/* %s" baseline_local baseline_golden in
   ("blessing", `Quick, fun _ -> ignore (Driver.sh cmd))
 
 let mktests factory cases =

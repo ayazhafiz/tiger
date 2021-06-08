@@ -1,7 +1,8 @@
 open Front.Symbol
 open Frame
 open Temp
-module Tbl = Front.Symbol.Table
+module Symbol = Front.Symbol
+module Tbl = Symbol.Table
 module Env = Front.Env
 module Ty = Front.Type
 module Ast = Front.Language
@@ -307,11 +308,33 @@ module Translate (F : FRAME) = struct
   let ir_stringneq calling_lvl s1 s2 =
     Ex (Ir.BinOp (Ir.Xor, unEx (ir_stringeq calling_lvl s1 s2), Ir.Const 1))
 
-  (** [ir_array size init] creates an array with [size] elements each
-      initialized to [init], and returns an address to the array. *)
-  let ir_array calling_lvl size init =
+  (** [ir_array_heap calling_lvl size init] creates an array (on the heap) with
+      [size] elements each initialized to [init], and returns an address to the
+      array. *)
+  let ir_array_heap calling_lvl size init =
     let size = Ir.BinOp (Ir.Mul, unEx size, Ir.Const F.wordsize) in
     Ex (F.external_call (frame_of calling_lvl) initArray [size; unEx init])
+
+  (** [ir_array_stack size init] creates an array on the stack, returning an
+      address to the array. *)
+  let ir_array_stack initializing_lvl varname nelems init_expr fmt_init =
+    let fr = frame_of initializing_lvl in
+    let arr_acc = F.alloc_stack fr (Some varname) (nelems * F.wordsize) in
+    let arr = Ir.Temp (newtemp ()) in
+    let mv_t_arr =
+      Ir.Mov (arr, F.address_of_access (arr_acc, Ir.Temp F.fp), "&" ^ varname)
+    in
+    let init = Ir.Temp (newtemp ()) in
+    let mv_t_init = Ir.Mov (init, unEx init_expr, fmt_init) in
+    let init =
+      List.init nelems (fun idx ->
+          let offset = Ir.Const (idx * F.wordsize) in
+          let fmt_entry = Printf.sprintf "%s[%d]" varname idx in
+          let entry = Ir.Mem (Ir.BinOp (Ir.Plus, arr, offset), fmt_entry) in
+          let fmt_init = Printf.sprintf "%s = %s" fmt_entry fmt_init in
+          Ir.Mov (entry, init, fmt_init) )
+    in
+    Ex (Ir.ESeq (Ir.seq (mv_t_arr :: mv_t_init :: init), arr))
 
   (** [ir_record fields creator] creates a record with [fields]. *)
   let ir_record calling_lvl fields field_names field_exprs =
@@ -319,7 +342,7 @@ module Translate (F : FRAME) = struct
     let nfields = List.length fields in
     (* Records decay to arrays; just dummy init with 0s first. *)
     let rcd_alloc =
-      ir_array calling_lvl (Ex (Ir.Const nfields)) (Ex (Ir.Const 0))
+      ir_array_heap calling_lvl (Ex (Ir.Const nfields)) (Ex (Ir.Const 0))
     in
     let rcd = Ir.Temp (Temp.newtemp ()) in
     let rcd_init = Ir.Mov (rcd, unEx rcd_alloc, "" (* TODO: add info? *)) in
@@ -550,7 +573,7 @@ module Translate (F : FRAME) = struct
             (* This is effectively a sequence in the IR, so translate it as such. *)
             ir_seq (List.concat [decls; [body]]) (is_val e) )
     | ArrayExpr {size; init; _} ->
-        ir_array usage_lvl (lower_expr ctx size) (lower_expr ctx init)
+        ir_array_heap usage_lvl (lower_expr ctx size) (lower_expr ctx init)
 
   and lower_decl ctx =
     let venv, usage_lvl, break = ctx in
@@ -581,12 +604,22 @@ module Translate (F : FRAME) = struct
                 proc_entry_exit level body has_ret ) )
           decls;
         []
-    | VarDecl {name; escape; init; _} as vd ->
+    | VarDecl {name; escape; naked_rvalue; init; _} as vd ->
         let lvl, access =
-          alloc_local usage_lvl (Some (Front.Symbol.name name)) !escape
+          alloc_local usage_lvl (Some (Symbol.name name)) !escape
         in
         let var = ir_basic_var lvl access lvl in
-        let init = lower_expr ctx init in
+        let init =
+          match (!escape, !naked_rvalue, init) with
+          (* Stack-inlinable array initialization: when
+               - variable does not escape and is not a naked rvalue
+               - size is statically known *)
+          | false, false, ArrayExpr {size = IntExpr size; init; _} ->
+              ir_array_stack lvl (Symbol.name name) size (lower_expr ctx init)
+                (Ast.string_of_expr init)
+          (* Non-optimizable *)
+          | _ -> lower_expr ctx init
+        in
         Tbl.add venv name (VarEntry (lvl, access));
         [ir_assign var init (Ast.string_of_decl vd)]
     | TypeDecl _ -> []

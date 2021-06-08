@@ -148,9 +148,9 @@ type_field:
 
 var_decl:
   | VAR symbol ASSIGN expr
-      { VarDecl { name=$2; escape=ref true; typ=Option.none; init=$4 } }
+      { VarDecl { name=$2; escape=ref true; naked_rvalue=ref true; typ=Option.none; init=$4 } }
   | VAR symbol COLON symbol ASSIGN expr
-      { VarDecl { name=$2; escape=ref true; typ=Option.some $4; init=$6 } }
+      { VarDecl { name=$2; escape=ref true; naked_rvalue=ref true; typ=Option.some $4; init=$6 } }
 
 fun_decl:
   | fun_decl_atom { [$1] }

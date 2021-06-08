@@ -1,35 +1,67 @@
 
 
 _start:
-  Mov(t18,                                
-      rbx)                                
-  Mov(t19,                                
-      r12)                                
   Mov(t20,                                
-      r13)                                
+      rbx)                                
   Mov(t21,                                
-      r14)                                
+      r12)                                
   Mov(t22,                                
+      r13)                                
+  Mov(t23,                                
+      r14)                                
+  Mov(t24,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
+  Mov(t18,                                &arr1
+      -(rbp,                              
+        88))                              
+  Mov(t19,                                0
+      0)                                  
+  Mov(Mem(+(t18,                          arr1[0]  arr1[0] = 0
+            0)),                          
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[1]  arr1[1] = 0
+            8)),                          
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[2]  arr1[2] = 0
+            16)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[3]  arr1[3] = 0
+            24)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[4]  arr1[4] = 0
+            32)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[5]  arr1[5] = 0
+            40)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[6]  arr1[6] = 0
+            48)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[7]  arr1[7] = 0
+            56)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[8]  arr1[8] = 0
+            64)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[9]  arr1[9] = 0
+            72)),                         
+      t19)                                
   Mov(t17,                                var arr1 : a := b[10] of 0
-      Call(initArray,                     
-           *(10,                          
-             8),                          
-           0))                            
+      t18)                                
   Mov(rax,                                return ()
       Mem(+(t17,                          arr1[2]
             *(2,
               8))))
   Mov(rbx,
-      t18)
-  Mov(r12,
-      t19)
-  Mov(r13,
       t20)
-  Mov(r14,
+  Mov(r12,
       t21)
-  Mov(r15,
+  Mov(r13,
       t22)
+  Mov(r14,
+      t23)
+  Mov(r15,
+      t24)

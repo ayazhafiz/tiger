@@ -1,0 +1,43 @@
+
+
+_start:
+  Mov(t20,                                
+      rbx)                                
+  Mov(t21,                                
+      r12)                                
+  Mov(t22,                                
+      r13)                                
+  Mov(t23,                                
+      r14)                                
+  Mov(t24,                                
+      r15)                                
+  Mov(Mem(-(rbp,                          static link  static link
+            8)),                          
+      rdi)                                
+  Mov(t18,                                &a
+      -(rbp,                              
+        24))                              
+  Mov(t19,                                5
+      5)                                  
+  Mov(Mem(+(t18,                          a[0]  a[0] = 5
+            0)),                          
+      t19)                                
+  Mov(Mem(+(t18,                          a[1]  a[1] = 5
+            8)),                          
+      t19)                                
+  Mov(t17,                                var a := intarray[2] of 5
+      t18)                                
+  Mov(rax,                                return ()
+      Mem(+(t17,                          a[0]
+            *(0,
+              8))))
+  Mov(rbx,
+      t20)
+  Mov(r12,
+      t21)
+  Mov(r13,
+      t22)
+  Mov(r14,
+      t23)
+  Mov(r15,
+      t24)

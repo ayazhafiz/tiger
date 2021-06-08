@@ -1,3 +1,5 @@
+let ice why = failwith ("ICE (mips): " ^ why)
+
 module MipsFrame : Frame.FRAME = struct
   type access =
     | InReg of Temp.temp
@@ -111,6 +113,12 @@ module MipsFrame : Frame.FRAME = struct
         (* fetch the variable its true address *)
         Ir.Mem (Ir.BinOp (Ir.Plus, addr_orig_fp, Ir.Const offset), "")
 
+  let address_of_access a =
+    match expr_of_access a with
+    | Ir.Mem (addr, _) -> addr
+    | Ir.Temp _ -> ice "access is not the stack"
+    | _ -> ice "unreachable"
+
   let max_formals_registers = 4
 
   let new_frame name _ formals =
@@ -144,6 +152,7 @@ module MipsFrame : Frame.FRAME = struct
         f.sp_offset <- f.sp_offset - wordsize;
         InFrame f.sp_offset
 
+  let alloc_stack _f = failwith "todo"
   let external_call _ fn args = Ir.Call (Ir.Name fn, args)
 
   let codegen _f stmt =

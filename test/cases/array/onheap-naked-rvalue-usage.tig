@@ -1,0 +1,9 @@
+let
+	type intarray = array of int
+	var a := intarray [2] of 5
+
+	type rec = {arr1: intarray, arr2: intarray}
+  var b := rec {arr1=a, arr2=a}
+in
+	b.arr1[0]
+end

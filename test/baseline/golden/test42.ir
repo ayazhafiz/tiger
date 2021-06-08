@@ -32,108 +32,478 @@ str__aname:
   "aname"
 
 _start:
-  Mov(t35,                                
+  Mov(t41,                                
       rbx)                                
-  Mov(t36,                                
+  Mov(t42,                                
       r12)                                
-  Mov(t37,                                
+  Mov(t43,                                
       r13)                                
-  Mov(t38,                                
+  Mov(t44,                                
       r14)                                
-  Mov(t39,                                
+  Mov(t45,                                
       r15)                                
   Mov(Mem(-(rbp,                          static link  static link
             8)),                          
       rdi)                                
+  Mov(t18,                                &arr1
+      -(rbp,                              
+        88))                              
+  Mov(t19,                                0
+      0)                                  
+  Mov(Mem(+(t18,                          arr1[0]  arr1[0] = 0
+            0)),                          
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[1]  arr1[1] = 0
+            8)),                          
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[2]  arr1[2] = 0
+            16)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[3]  arr1[3] = 0
+            24)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[4]  arr1[4] = 0
+            32)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[5]  arr1[5] = 0
+            40)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[6]  arr1[6] = 0
+            48)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[7]  arr1[7] = 0
+            56)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[8]  arr1[8] = 0
+            64)),                         
+      t19)                                
+  Mov(Mem(+(t18,                          arr1[9]  arr1[9] = 0
+            72)),                         
+      t19)                                
   Mov(t17,                                var arr1 := arrtype1[10] of 0
-      Call(initArray,                     
-           *(10,                          
-             8),                          
-           0))                            
-  Mov(t42,                                push stmt up
-      *(5,                                
-        8))                               
-  Mov(t19,                                
+      t18)                                
+  Mov(t22,                                &arr2
+      -(rbp,                              
+        128))                             
+  Mov(t21,                                
       Call(initArray,                     
            *(4,                           
              8),                          
            0))                            
-  Mov(Mem(+(t19,                          .name  .name="aname"
+  Mov(Mem(+(t21,                          .name  .name="aname"
             *(0,                          
               8))),                       
       str__aname)                         
-  Mov(Mem(+(t19,                          .address  .address="somewhere"
+  Mov(Mem(+(t21,                          .address  .address="somewhere"
             *(1,                          
               8))),                       
       str__somewhere)                     
-  Mov(Mem(+(t19,                          .id  .id=0
+  Mov(Mem(+(t21,                          .id  .id=0
             *(2,                          
               8))),                       
       0)                                  
-  Mov(Mem(+(t19,                          .age  .age=0
+  Mov(Mem(+(t21,                          .age  .age=0
             *(3,                          
               8))),                       
       0)                                  
-  Mov(t18,                                var arr2 := arrtype2[5] of rectype1 {
-      Call(initArray,                       name="aname",
-           t42,                             address="somewhere",
-           t19))                            id=0,
+  Mov(t23,                                rectype1 {
+      t21)                                  name="aname",
+                                            address="somewhere",
+                                            id=0,
                                             age=0
                                           }
-  Mov(t20,                                var arr3 : arrtype3 := arrtype3[100] of ""
-      Call(initArray,                     
-           *(100,                         
-             8),                          
-           str__))                        
-  Mov(t22,                                
+  Mov(Mem(+(t22,                          arr2[0]  arr2[0] = rectype1 {
+            0)),                            name="aname",
+      t23)                                  address="somewhere",
+                                            id=0,
+                                            age=0
+                                          }
+  Mov(Mem(+(t22,                          arr2[1]  arr2[1] = rectype1 {
+            8)),                            name="aname",
+      t23)                                  address="somewhere",
+                                            id=0,
+                                            age=0
+                                          }
+  Mov(Mem(+(t22,                          arr2[2]  arr2[2] = rectype1 {
+            16)),                           name="aname",
+      t23)                                  address="somewhere",
+                                            id=0,
+                                            age=0
+                                          }
+  Mov(Mem(+(t22,                          arr2[3]  arr2[3] = rectype1 {
+            24)),                           name="aname",
+      t23)                                  address="somewhere",
+                                            id=0,
+                                            age=0
+                                          }
+  Mov(Mem(+(t22,                          arr2[4]  arr2[4] = rectype1 {
+            32)),                           name="aname",
+      t23)                                  address="somewhere",
+                                            id=0,
+                                            age=0
+                                          }
+  Mov(t20,                                var arr2 := arrtype2[5] of rectype1 {
+      t22)                                  name="aname",
+                                            address="somewhere",
+                                            id=0,
+                                            age=0
+                                          }
+  Mov(t25,                                &arr3
+      -(rbp,                              
+        928))                             
+  Mov(t26,                                ""
+      str__)                              
+  Mov(Mem(+(t25,                          arr3[0]  arr3[0] = ""
+            0)),                          
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[1]  arr3[1] = ""
+            8)),                          
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[2]  arr3[2] = ""
+            16)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[3]  arr3[3] = ""
+            24)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[4]  arr3[4] = ""
+            32)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[5]  arr3[5] = ""
+            40)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[6]  arr3[6] = ""
+            48)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[7]  arr3[7] = ""
+            56)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[8]  arr3[8] = ""
+            64)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[9]  arr3[9] = ""
+            72)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[10]  arr3[10] = ""
+            80)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[11]  arr3[11] = ""
+            88)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[12]  arr3[12] = ""
+            96)),                         
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[13]  arr3[13] = ""
+            104)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[14]  arr3[14] = ""
+            112)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[15]  arr3[15] = ""
+            120)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[16]  arr3[16] = ""
+            128)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[17]  arr3[17] = ""
+            136)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[18]  arr3[18] = ""
+            144)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[19]  arr3[19] = ""
+            152)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[20]  arr3[20] = ""
+            160)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[21]  arr3[21] = ""
+            168)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[22]  arr3[22] = ""
+            176)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[23]  arr3[23] = ""
+            184)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[24]  arr3[24] = ""
+            192)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[25]  arr3[25] = ""
+            200)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[26]  arr3[26] = ""
+            208)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[27]  arr3[27] = ""
+            216)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[28]  arr3[28] = ""
+            224)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[29]  arr3[29] = ""
+            232)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[30]  arr3[30] = ""
+            240)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[31]  arr3[31] = ""
+            248)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[32]  arr3[32] = ""
+            256)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[33]  arr3[33] = ""
+            264)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[34]  arr3[34] = ""
+            272)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[35]  arr3[35] = ""
+            280)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[36]  arr3[36] = ""
+            288)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[37]  arr3[37] = ""
+            296)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[38]  arr3[38] = ""
+            304)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[39]  arr3[39] = ""
+            312)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[40]  arr3[40] = ""
+            320)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[41]  arr3[41] = ""
+            328)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[42]  arr3[42] = ""
+            336)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[43]  arr3[43] = ""
+            344)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[44]  arr3[44] = ""
+            352)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[45]  arr3[45] = ""
+            360)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[46]  arr3[46] = ""
+            368)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[47]  arr3[47] = ""
+            376)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[48]  arr3[48] = ""
+            384)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[49]  arr3[49] = ""
+            392)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[50]  arr3[50] = ""
+            400)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[51]  arr3[51] = ""
+            408)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[52]  arr3[52] = ""
+            416)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[53]  arr3[53] = ""
+            424)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[54]  arr3[54] = ""
+            432)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[55]  arr3[55] = ""
+            440)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[56]  arr3[56] = ""
+            448)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[57]  arr3[57] = ""
+            456)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[58]  arr3[58] = ""
+            464)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[59]  arr3[59] = ""
+            472)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[60]  arr3[60] = ""
+            480)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[61]  arr3[61] = ""
+            488)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[62]  arr3[62] = ""
+            496)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[63]  arr3[63] = ""
+            504)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[64]  arr3[64] = ""
+            512)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[65]  arr3[65] = ""
+            520)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[66]  arr3[66] = ""
+            528)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[67]  arr3[67] = ""
+            536)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[68]  arr3[68] = ""
+            544)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[69]  arr3[69] = ""
+            552)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[70]  arr3[70] = ""
+            560)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[71]  arr3[71] = ""
+            568)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[72]  arr3[72] = ""
+            576)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[73]  arr3[73] = ""
+            584)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[74]  arr3[74] = ""
+            592)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[75]  arr3[75] = ""
+            600)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[76]  arr3[76] = ""
+            608)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[77]  arr3[77] = ""
+            616)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[78]  arr3[78] = ""
+            624)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[79]  arr3[79] = ""
+            632)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[80]  arr3[80] = ""
+            640)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[81]  arr3[81] = ""
+            648)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[82]  arr3[82] = ""
+            656)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[83]  arr3[83] = ""
+            664)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[84]  arr3[84] = ""
+            672)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[85]  arr3[85] = ""
+            680)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[86]  arr3[86] = ""
+            688)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[87]  arr3[87] = ""
+            696)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[88]  arr3[88] = ""
+            704)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[89]  arr3[89] = ""
+            712)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[90]  arr3[90] = ""
+            720)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[91]  arr3[91] = ""
+            728)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[92]  arr3[92] = ""
+            736)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[93]  arr3[93] = ""
+            744)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[94]  arr3[94] = ""
+            752)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[95]  arr3[95] = ""
+            760)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[96]  arr3[96] = ""
+            768)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[97]  arr3[97] = ""
+            776)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[98]  arr3[98] = ""
+            784)),                        
+      t26)                                
+  Mov(Mem(+(t25,                          arr3[99]  arr3[99] = ""
+            792)),                        
+      t26)                                
+  Mov(t24,                                var arr3 : arrtype3 := arrtype3[100] of ""
+      t25)                                
+  Mov(t28,                                
       Call(initArray,                     
            *(4,                           
              8),                          
            0))                            
-  Mov(Mem(+(t22,                          .name  .name="Kapoios"
+  Mov(Mem(+(t28,                          .name  .name="Kapoios"
             *(0,                          
               8))),                       
       str__Kapoios)                       
-  Mov(Mem(+(t22,                          .address  .address="Kapou"
+  Mov(Mem(+(t28,                          .address  .address="Kapou"
             *(1,                          
               8))),                       
       str__Kapou)                         
-  Mov(Mem(+(t22,                          .id  .id=2432
+  Mov(Mem(+(t28,                          .id  .id=2432
             *(2,                          
               8))),                       
       2432)                               
-  Mov(Mem(+(t22,                          .age  .age=44
+  Mov(Mem(+(t28,                          .age  .age=44
             *(3,                          
               8))),                       
       44)                                 
-  Mov(t21,                                var rec1 := rectype1 {
-      t22)                                  name="Kapoios",
+  Mov(t27,                                var rec1 := rectype1 {
+      t28)                                  name="Kapoios",
                                             address="Kapou",
                                             id=2432,
                                             age=44
                                           }
-  Mov(t24,                                
+  Mov(t30,                                
       Call(initArray,                     
            *(2,                           
              8),                          
            0))                            
-  Mov(Mem(+(t24,                          .name  .name="Allos"
+  Mov(Mem(+(t30,                          .name  .name="Allos"
             *(0,                          
               8))),                       
       str__Allos)                         
-  Mov(t41,                                push stmt up
-      +(t24,                              
+  Mov(t47,                                push stmt up
+      +(t30,                              
         *(1,                              
           8)))                            
-  Mov(t40,                                push call up
+  Mov(t46,                                push call up
       Call(initArray,                     
            *(3,                           
              8),                          
            1900))                         
-  Mov(Mem(t41)                            .dates  .dates=arrtype1[3] of 1900
-      t40)                                
-  Mov(t23,                                var rec2 := rectype2 {
-      t24)                                  name="Allos",
+  Mov(Mem(t47)                            .dates  .dates=arrtype1[3] of 1900
+      t46)                                
+  Mov(t29,                                var rec2 := rectype2 {
+      t30)                                  name="Allos",
                                             dates=arrtype1[3] of 1900
                                           }
   Mov(Mem(+(t17,                          arr1[0]  arr1[0] := 1
@@ -144,87 +514,87 @@ _start:
             *(9,                          
               8))),                       
       3)                                  
-  Mov(Mem(+(Mem(+(t18,                    arr2[3]  arr2[3].name  arr2[3].name := "kati"
+  Mov(Mem(+(Mem(+(t20,                    arr2[3]  arr2[3].name  arr2[3].name := "kati"
                   *(3,                    
                     8))),                 
             *(0,                          
               8))),                       
       str__kati)                          
-  Mov(Mem(+(Mem(+(t18,                    arr2[1]  arr2[1].age  arr2[1].age := 23
+  Mov(Mem(+(Mem(+(t20,                    arr2[1]  arr2[1].age  arr2[1].age := 23
                   *(1,                    
                     8))),                 
             *(3,                          
               8))),                       
       23)                                 
-  Mov(Mem(+(t20,                          arr3[34]  arr3[34] := "sfd"
+  Mov(Mem(+(t24,                          arr3[34]  arr3[34] := "sfd"
             *(34,                         
               8))),                       
       str__sfd)                           
-  Mov(Mem(+(t21,                          rec1.name  rec1.name := "sdf"
+  Mov(Mem(+(t27,                          rec1.name  rec1.name := "sdf"
             *(0,                          
               8))),                       
       str__sdf)                           
-  Mov(Mem(+(Mem(+(t23,                    rec2.dates  rec2.dates[0]  rec2.dates[0] := 2323
+  Mov(Mem(+(Mem(+(t29,                    rec2.dates  rec2.dates[0]  rec2.dates[0] := 2323
                   *(1,                    
                     8))),                 
             *(0,                          
               8))),                       
       2323)                               
-  Mov(Mem(+(Mem(+(t23,                    rec2.dates  rec2.dates[2]  rec2.dates[2] := 2323
+  Mov(Mem(+(Mem(+(t29,                    rec2.dates  rec2.dates[2]  rec2.dates[2] := 2323
                   *(1,                    
                     8))),                 
             *(2,                          
               8))),                       
       2323)                               
-  Mov(t25,                                %arg1:concat
-      Mem(+(Mem(+(t18,                    arr2[3]  arr2[3].name
+  Mov(t31,                                %arg1:concat
+      Mem(+(Mem(+(t20,                    arr2[3]  arr2[3].name
                   *(3,                    
                     8))),                 
             *(0,                          
               8))))                       
-  Mov(t26,                                %arg2:concat
+  Mov(t32,                                %arg2:concat
       str__is)                            
   Call(concat,                            
-       t25,                               
-       t26)                               
-  Mov(t27,                                
+       t31,                               
+       t32)                               
+  Mov(t33,                                
       rax)                                
-  Mov(t30,                                %arg1:concat
-      t27)                                
-  Mov(t28,                                %arg1:string_of_int
-      Mem(+(Mem(+(t18,                    arr2[3]  arr2[3].age
+  Mov(t36,                                %arg1:concat
+      t33)                                
+  Mov(t34,                                %arg1:string_of_int
+      Mem(+(Mem(+(t20,                    arr2[3]  arr2[3].age
                   *(3,                    
                     8))),                 
             *(3,                          
               8))))                       
   Call(string_of_int,                     
-       t28)                               
-  Mov(t29,                                
+       t34)                               
+  Mov(t35,                                
       rax)                                
-  Mov(t31,                                %arg2:concat
-      t29)                                
+  Mov(t37,                                %arg2:concat
+      t35)                                
   Call(concat,                            
-       t30,                               
-       t31)                               
-  Mov(t32,                                
+       t36,                               
+       t37)                               
+  Mov(t38,                                
       rax)                                
-  Mov(t33,                                %arg1:print
-      t32)                                
+  Mov(t39,                                %arg1:print
+      t38)                                
   Call(print,                             
-       t33)                               
-  Mov(t34,                                %arg1:print
+       t39)                               
+  Mov(t40,                                %arg1:print
       str__yearsold)                      
   Call(print,                             
-       t34)                               
+       t40)                               
   Mov(rax,                                return ()
       0)
   Mov(rbx,
-      t35)
+      t41)
   Mov(r12,
-      t36)
+      t42)
   Mov(r13,
-      t37)
+      t43)
   Mov(r14,
-      t38)
+      t44)
   Mov(r15,
-      t39)
+      t45)

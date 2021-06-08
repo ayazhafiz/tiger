@@ -1,10 +1,10 @@
 open Front.Desugar
-open Front.Escape
 open Back
 open Back.Reg_alloc
 open Back.Canon
 open Back.Frame
 open Back.Lower
+module Escape = Front.Escape
 module Print = Util.Print
 module G = Data.Graph.Graph
 module UDG = Data.Graph.UndirectedGraph
@@ -123,7 +123,7 @@ module Backend (F : FRAME) = struct
       frags ([], [])
 
   let lower_canon expr =
-    mark_escapes expr;
+    Escape.mark expr;
     let main, frags = expr |> desugar_expr |> TR.lower in
     let frames, strings = unzip_frags frags in
     let frames =
