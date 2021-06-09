@@ -32,9 +32,16 @@ let dir_contents dir =
   in
   loop [] [dir]
 
-let cases_dir = "test/cases/"
-let baseline_local = "test/baseline/local"
-let baseline_golden = "test/baseline/golden"
+let rec mkdir_p = function
+  | "." -> ()
+  | p -> (
+      mkdir_p (Filename.dirname p);
+      try Sys.mkdir p 0o777 with _ -> () )
+
+let dirify = Str.global_replace (Str.regexp_string "/") Filename.dir_sep
+let cases_dir = dirify "test/cases/"
+let baseline_local = dirify "test/baseline/local"
+let baseline_golden = dirify "test/baseline/golden"
 let do_bless = ref false
 let fi_local = Filename.concat baseline_local
 let fi_golden = Filename.concat baseline_golden
@@ -96,7 +103,7 @@ let ensure_dirs cases =
         Hashtbl.add dirs local ();
         Hashtbl.add dirs golden () ) )
     cases;
-  Hashtbl.iter (fun dir () -> try Sys.mkdir dir 0o777 with _ -> ()) dirs
+  Hashtbl.iter (fun dir () -> mkdir_p dir) dirs
 
 let all_cases =
   let cases =
