@@ -1,6 +1,6 @@
 (* TODO: better encapsulation of "bless"ing with dune *)
 
-open Tiger.Backend_registry
+open Tiger.Registry
 open Tiger.Front
 open Tiger.Front.Desugar
 open Tiger.Front.Language
@@ -250,6 +250,10 @@ let asmtest fi =
   in
   ((fi.name, `Quick, wrap test), true)
 
+let lltest fi =
+  let test _ = backend_golden fi ".ll" Llvm.lower in
+  ((fi.name, `Quick, wrap test), true)
+
 let exectest fi =
   let exec handler expr =
     let expect = fi_golden (fi.name ^ ".exec") in
@@ -315,13 +319,15 @@ let () =
   let ir_tests, cases = mktests irtest cases in
   let pseudo_asm_tests, cases = mktests pseudo_asmtest cases in
   let asm_tests, cases = mktests asmtest cases in
+  let ll_tests, cases = mktests lltest cases in
   let exec_tests, _cases = mktests exectest cases in
   let fakeargv = Array.make 1 "compiler_tests" in
   let compiler_tests =
     [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
     ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
     ; ("lowering tests", ir_tests); ("pseudo-emit tests", pseudo_asm_tests)
-    ; ("emit tests", asm_tests); ("execution tests", exec_tests) ]
+    ; ("asm emit tests", asm_tests); ("llvm emit tests", ll_tests)
+    ; ("execution tests", exec_tests) ]
     @ if !do_bless then [("blessing", [blessing])] else []
   in
   Alcotest.run "compiler_tests" ~argv:fakeargv compiler_tests

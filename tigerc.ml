@@ -2,7 +2,7 @@ open Tiger
 
 let usage = "tigerc [-k asm|exe] [-t `machine] [-o file] <file>"
 
-type kind = Asm | Exe
+type kind = Asm | Exe | LlvmIr
 
 let infile = ref None
 let kind = ref Asm
@@ -38,9 +38,10 @@ let speclist =
 let emit kind target expr =
   match (kind, target) with
   | Asm, (Driver.X86_64_apple_darwin20_1_0 | Driver.X86_64_linux_gnu) ->
-      Backend_registry.X86_64_Backend.emit_assem expr
+      Registry.X86_64_Backend.emit_assem expr
   | Exe, (Driver.X86_64_apple_darwin20_1_0 | Driver.X86_64_linux_gnu) ->
-      Backend_registry.X86_64_Backend.emit_exe target expr
+      Registry.X86_64_Backend.emit_exe target expr
+  | LlvmIr, _ -> Registry.Llvm.lower expr
 
 let () =
   Arg.parse speclist setinfile usage;
