@@ -5,7 +5,7 @@ Tiger, from Appel's Modern Compiler Implementation in ML.
 Extensions to add to the compiler and tool suite, besides the present "TODO"s:
 
 - [ ] LLVM emit
-- [ ] Inline small array/records on the stack
+- [x] Inline small array/records on the stack
 - [ ] Wisely select registers for spilling based on use frequency
 - [ ] Garbage collection
 - [ ] First-class functions
