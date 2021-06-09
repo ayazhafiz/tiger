@@ -1,3 +1,5 @@
+module LS = Temp.LabelSet
+
 let ice why = failwith ("ICE (canon): " ^ why)
 
 (*****************)
@@ -193,7 +195,11 @@ let trace_schedule (basic_blocks, finish) =
   in
   schedule basic_blocks @ [Ir.Label finish]
 
-(* Removes jumps whose target is the immediate next instruction. *)
+(************)
+(* Simplify *)
+(************)
+
+(** Removes jumps whose target is the immediate next instruction. *)
 let rec eliminate_trivial_jumps = function
   | [] -> []
   | [one] -> [one]
@@ -201,6 +207,7 @@ let rec eliminate_trivial_jumps = function
       eliminate_trivial_jumps rest
   | i :: rest -> i :: eliminate_trivial_jumps rest
 
+(** Removes labels that are... unused. *)
 let eliminate_unused_labels instrs =
   let module LT = Temp.LabelHashtbl in
   let unused_labels = LT.create 8 in
@@ -237,8 +244,63 @@ let eliminate_unused_labels instrs =
   in
   finish instrs
 
+(** Removes consecutive labels of the form
+    label1:
+    label2:
+      ...code *)
+let eliminate_consecutive_labels instrs =
+  let rec partition cur_bucket buckets instrs = function
+    | [] -> (buckets, instrs)
+    | (Ir.Label lab as i) :: rest when cur_bucket = [] ->
+        partition (lab :: cur_bucket) buckets (i :: instrs) rest
+    | Ir.Label lab :: rest -> partition (lab :: cur_bucket) buckets instrs rest
+    | i :: rest ->
+        let buckets =
+          if cur_bucket = [] then buckets else List.rev cur_bucket :: buckets
+        in
+        partition [] buckets (i :: instrs) rest
+  in
+  let buckets, instrs = partition [] [] [] instrs in
+  let instrs = List.rev instrs in
+  let renaming = Hashtbl.create (List.length buckets) in
+  List.iter
+    (fun bucket ->
+      let name = List.hd bucket in
+      List.iter (fun oldlab -> Hashtbl.add renaming oldlab name) bucket )
+    buckets;
+  let rn lab =
+    match Hashtbl.find_opt renaming lab with
+    | Some l -> l
+    | None -> (* extern *) lab
+  in
+  (* Rewrite labels *)
+  let rec expr e =
+    match e with
+    | Ir.Const _ | Ir.Temp _ -> e
+    | Ir.Name lab -> Ir.Name (rn lab)
+    | Ir.BinOp (op, e1, e2) -> Ir.BinOp (op, expr e1, expr e2)
+    | Ir.Mem (e, cmt) -> Ir.Mem (expr e, cmt)
+    | Ir.Call (f, args) -> Ir.Call (expr f, List.map expr args)
+    | Ir.ESeq _ -> ice "should be eliminated by linearize"
+  and stmt = function
+    | Ir.Label l ->
+        assert (rn l = l);
+        Ir.Label l
+    | Ir.Expr e -> Ir.Expr (expr e)
+    | Ir.Mov (e1, e2, cmt) -> Ir.Mov (expr e1, expr e2, cmt)
+    | Ir.Jmp (e1, labs) ->
+        let targets =
+          List.map rn labs |> LS.of_list |> LS.to_seq |> List.of_seq
+        in
+        Ir.Jmp (expr e1, targets)
+    | Ir.CJmp (op, e1, e2, t, f, cmt) ->
+        Ir.CJmp (op, expr e1, expr e2, rn t, rn f, cmt)
+    | Ir.Seq _ -> ice "should be eliminated by linearize"
+  in
+  List.map stmt instrs
+
 let simplify instrs =
   instrs
   (* Eliminating trivial jumps first may open up more unused labels. *)
   |> eliminate_trivial_jumps
-  |> eliminate_unused_labels
+  |> eliminate_unused_labels |> eliminate_consecutive_labels

@@ -111,7 +111,6 @@ false6:
   lea rdi, [rel str__0]                   
   call print                              
 join4:                                    
-join5:                                    
   jmp done2                               
 true7:                                    
   lea rdi, [rel str__1]                   
@@ -121,7 +120,7 @@ true7:
   mov rax, [rbp - 16]                     ; fetch spilled t60
   sub rsi, rax                            
   call f                                  
-  jmp join5                               
+  jmp join4                               
 true6:                                    
   mov rdi, rbp                            ; %arg(static_link):f
   mov rsi, [rbp - 16]                     ; fetch spilled t60
@@ -432,7 +431,6 @@ isdigit:
   cmp rbx, rax                            ; ord(buffer) >= ord("0")
   jge if_t                                
 if_f:                                     
-false:                                    
   mov rax, [rbp - 16]                     ; fetch spilled t29
   xor rax, rax                            ; false
   mov [rbp - 16], rax                     ; store spilled t29
@@ -451,7 +449,7 @@ if_t:
   cmp rbx, rax
   jle true
 false_bridge:              
-  jmp false
+  jmp if_f
 done8:              
   mov rsp, rbp
   pop rbp

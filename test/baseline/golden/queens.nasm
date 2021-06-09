@@ -108,8 +108,6 @@ body2:
   cmp rcx, 0                              ; row[r] = 0
   je if_t1                                
 if_f1:                                    
-if_f:                                     
-false3:                                   
   mov rcx, [rbp - 24]                     ; fetch spilled t33
   inc rcx                                 
   mov [rbp - 24], rcx                     ; store spilled t33
@@ -129,7 +127,7 @@ if_t1:
   add rcx, rdx                            
   mov rcx, [rcx]                          ; diag1[r + c]
   cmp rcx, 0                              ; !(diag1[r + c] = 0)
-  jne if_f                                
+  jne if_f1                               
 if_t:                                     
   mov rcx, [rbp - 24]                     ; fetch spilled t33
   add rcx, 7                              
@@ -141,7 +139,7 @@ if_t:
   add rcx, rdx                            
   mov rcx, [rcx]                          ; diag2[r + 7 - c]
   cmp rcx, 0                              ; !(diag2[r + 7 - c] = 0)
-  jne false3                              
+  jne if_f1                               
 true3:                                    
   mov rdx, 1                              
   mov rax, [rbp - 24]                     ; fetch spilled t33
@@ -206,7 +204,7 @@ true3:
   mov rcx, [rcx - 48]                     ; diag2
   add rcx, rdx                            
   mov qword [rcx], rsi                    ; diag2[r + 7 - c] := 0
-  jmp false3
+  jmp if_f1
 break2:              
   jmp join1
 done1:              
