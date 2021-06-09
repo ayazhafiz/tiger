@@ -1,6 +1,7 @@
 open Front.Symbol
 open Frame
 open Temp
+open Util.Sanitize
 module Symbol = Front.Symbol
 module Tbl = Symbol.Table
 module Env = Front.Env
@@ -71,17 +72,6 @@ let unCx = function
       fun t f -> Ir.CJmp (Ir.Neq, cond, Ir.Const 0, t, f, Ir.cmt_of_expr cond)
   | Nx _ -> ice "valueless expression treated as conditional"
   | Cx f -> f
-
-let sanitize_label str =
-  let rec walk i n rest =
-    if n >= 10 || i >= String.length str then ""
-    else
-      match str.[i] with
-      | ('a' .. 'z' | 'A' .. 'Z' | '0' .. '9') as c ->
-          String.make 1 c ^ walk (i + 1) (n + 1) rest
-      | _ -> walk (i + 1) n rest
-  in
-  walk 0 0 str
 
 let unravel ty what =
   match !ty with
@@ -305,7 +295,7 @@ module Translate (F : FRAME) = struct
     | Some (F.String (lab, _)) -> Ex (Ir.Name lab)
     | Some _ -> ice "unreachanble"
     | None ->
-        let lab = newlabel ("str__" ^ sanitize_label str) in
+        let lab = newlabel ("str__" ^ sanitize_string_for_label str) in
         let frag = F.String (lab, str) in
         fragments := frag :: !fragments;
         Ex (Ir.Name lab)

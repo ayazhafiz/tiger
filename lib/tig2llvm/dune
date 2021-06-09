@@ -1,4 +1,4 @@
 (library
  (name Tig2Llvm)
  (modules Lower)
- (libraries llvm Front Data))
+ (libraries llvm Front Data Util))
