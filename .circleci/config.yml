@@ -3,12 +3,11 @@ version: 2.1
 jobs:
   test:
     docker:
-       - image: ocaml/opam2
+      - image: ayazhafiz/tigercompiler
     steps:
       - checkout
-      - run: opam install -y dune menhir
-      - run: ./tool unittest
-      - run: ./tool uitest
+      - run: eval $(opam env) && ./tool unittest
+      - run: eval $(opam env) && ./tool uitest
 
 workflows:
   test:
