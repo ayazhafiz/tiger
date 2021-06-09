@@ -16,6 +16,7 @@ char *substring(char *, long, long) asm("substring");
 char *concat(char *, char *) asm("concat");
 char *string_of_int(long) asm("string_of_int");
 long not(long) asm("not");
+void TTexit(long) asm("TTexit");
 
 // A Tiger string is of form
 //   |  size   | chars...  |
@@ -152,3 +153,5 @@ char *string_of_int(long d) {
 }
 
 long not(long b) { return !b; }
+
+void TTexit(long rc) { exit(rc); }

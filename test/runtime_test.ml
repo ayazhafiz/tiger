@@ -10,4 +10,6 @@ let test_lkg kind =
   in
   (lkg, `Quick, test)
 
-let () = Alcotest.run "runtime tests" [("lkg", List.map test_lkg [MacOS_11])]
+let () =
+  Alcotest.run "runtime tests"
+    [("lkg", List.map test_lkg [X86_64_apple_darwin20_1_0])]

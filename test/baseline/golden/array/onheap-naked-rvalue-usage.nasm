@@ -2,14 +2,15 @@
 BITS 64
 section .text
 
+extern TTexit
 extern initArray
 
 global _start
 
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 32
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 32                             
   mov [rbp - 8], rdi                      ; static link
   mov rax, 2                              
   imul rdi, rax, 8                        
@@ -42,6 +43,5 @@ _start:
   mov rax, [rcx]                          ; b.arr1
   add rax, rdx                            
   mov rax, [rax]                          ; return b.arr1[0]
-  mov rsp, rbp
-  pop rbp
-  ret
+  mov rdi, rax
+  call TTexit

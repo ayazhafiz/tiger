@@ -2,6 +2,8 @@
 BITS 64
 section .text
 
+extern TTexit
+
 global _start
 
 str__Somebody:
@@ -10,10 +12,10 @@ str__Somebody:
 str__Nobody:
   dq 6
   db `Nobody`
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 32
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 32                             
   mov [rbp - 8], rdi                      ; static link
   mov rax, rbp                            
   sub rax, 24                             
@@ -42,6 +44,5 @@ _start:
   imul rcx, rcx, 8                        
   add rax, rcx                            
   mov rax, [rax]                          ; return rec1.age
-  mov rsp, rbp
-  pop rbp
-  ret
+  mov rdi, rax
+  call TTexit

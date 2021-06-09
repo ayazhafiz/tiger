@@ -2,6 +2,7 @@
 BITS 64
 section .text
 
+extern TTexit
 extern initArray
 extern print
 
@@ -16,10 +17,10 @@ str__O:
 str__:
   dq 2
   db ` .`
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 64
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 64                             
   mov [rbp - 64], rbx                     ; store spilled t46
   mov [rbp - 8], rdi                      ; static link
   mov qword [rbp - 16], 8                 ; var N := 8
@@ -65,13 +66,12 @@ _start:
   call try                                
   xor rax, rax                            ; return 0
   mov rbx, [rbp - 64]                     ; fetch spilled t46
-  mov rsp, rbp
-  pop rbp
-  ret
-try:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 32
+  mov rdi, rax
+  call TTexit
+try:                                      
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 32                             
   mov [rbp - 8], rdi                      ; static link
   mov [rbp - 16], rsi                     ; store spilled t17
   mov rcx, [rbp - 8]                      ; static link
@@ -211,10 +211,10 @@ done1:
   mov rsp, rbp
   pop rbp
   ret
-printboard:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 48
+printboard:                               
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 48                             
   mov [rbp - 8], rdi                      ; static link
   mov rax, [rbp - 16]                     ; fetch spilled t18
   xor rax, rax                            ; var i := 0

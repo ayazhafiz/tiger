@@ -2,6 +2,7 @@
 BITS 64
 section .text
 
+extern TTexit
 extern print
 extern string_of_int
 
@@ -13,10 +14,10 @@ str__:
 str__10:
   dq 6
   db `10! = `
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 16
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 16                             
   mov [rbp - 8], rdi                      ; static link
   lea rdi, [rel str__10]                  
   call print                              
@@ -30,13 +31,12 @@ _start:
   lea rdi, [rel str__]                    
   call print                              
   xor rax, rax                            ; return 0
-  mov rsp, rbp
-  pop rbp
-  ret
-nfactor:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 16
+  mov rdi, rax
+  call TTexit
+nfactor:                                  
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 16                             
   mov [rbp - 16], rbx                     ; store spilled t22
   mov [rbp - 8], rdi                      ; static link
   cmp rsi, 0                              ; n = 0

@@ -12,6 +12,7 @@ type label
 val string_of_label : label -> string
 val stringEqual : label
 val initArray : label
+val ttexit : label
 val newlabel : string -> label
 
 val strlabel : string -> label

@@ -2,12 +2,14 @@
 BITS 64
 section .text
 
+extern TTexit
+
 global _start
 
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 80
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 80                             
   mov [rbp - 8], rdi                      ; static link
   mov rdi, rbp                            ; %arg(static_link):sum15
   mov rsi, 1                              ; %arg1:sum15
@@ -56,13 +58,12 @@ _start:
   push rax                                ; arg7:sum15
   call sum15                              
   add rsp, 96                             ; Deallocate sum15 args
-  mov rsp, rbp
-  pop rbp
-  ret
-sum15:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 80
+  mov rdi, rax
+  call TTexit
+sum15:                                    
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 80                             
   mov [rbp - 8], rdi                      ; static link
   mov [rbp - 16], rdx                     ; store spilled t18
   mov [rbp - 24], rcx                     ; store spilled t19

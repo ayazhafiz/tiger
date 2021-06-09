@@ -53,8 +53,14 @@ end = struct
             in the frame. Like [InFrame], this grows in the negative direction. *)
     ; mutable called_externs : LabelSet.t }
 
+  let is_main name = Temp.string_of_label name = "_start"
+
   type frag = Proc of frame * Ir.stmt | String of Temp.label * string
-  type proc = {prolog : string; body : Assem.instr list; epilog : string}
+
+  type proc =
+    { prolog : Assem.instr list
+    ; body : Assem.instr list
+    ; epilog : Assem.instr list }
 
   type register =
     | Rax  (** return value register *)
@@ -180,7 +186,8 @@ end = struct
           formal_names formals
     ; next_local_name
     ; sp_offset
-    ; called_externs = LabelSet.empty }
+    ; called_externs = (* We always call exit! *)
+                       LabelSet.singleton Temp.ttexit }
 
   let name {name; _} = name
   let formals {formals; _} = formals |> List.map fst
@@ -573,7 +580,7 @@ end = struct
     let restores = List.map (fun (og, t) -> Ir.Mov (og, t, "")) callee_saves in
     Ir.seq (saves @ load_args @ [body] @ restores)
 
-  let proc_entry_exit2 _ body =
+  let proc_entry_exit2 f body =
     body
     @ [ Assem.Oper
           { assem = ""
@@ -585,6 +592,13 @@ end = struct
           ; dst = []
           ; jmp = None
           ; comments = [] } ]
+    @
+    if is_main f.name then
+      let t = Ir.Temp (Temp.newtemp ()) in
+      List.concat_map (codegen ())
+        [ Ir.Mov (t, Ir.Temp rax, "")
+        ; Ir.Expr (Ir.Call (Ir.Name Temp.ttexit, [t])) ]
+    else []
 
   let proc_entry_exit3 {name; sp_offset; _} body =
     let fr_size = !sp_offset in
@@ -619,17 +633,65 @@ end = struct
        - The calling function will be responsible for cleaning up the arguments
            pushed onto the stack.
     *)
-    { prolog =
-        Printf.sprintf {|%s:
-  push rbp
-  mov rbp, rsp
-  sub rsp, %d|}
-          (Temp.string_of_label name)
-          fr_size
-    ; body
-    ; epilog = {|  mov rsp, rbp
-  pop rbp
-  ret|} }
+    let module A = Assem in
+    let is_main = Temp.string_of_label name = "_start" in
+    (* Prolog if is main:
+         lab:
+           and rsp, 0xFFFFFFFFFFFFFFF0
+           mov rbp, rsp
+           sub rsp, #frame_size
+       if not main:
+         lab:
+           push rbp
+           mov rbp, rsp
+           sub rsp, #frame_size
+    *)
+    let prolog =
+      codegen () (Ir.Label name)
+      @ [ ( if is_main then
+            A.Oper
+              { assem = "and rsp, 0xFFFFFFFFFFFFFFF0"
+              ; dst = [rsp]
+              ; src = [rsp]
+              ; jmp = None
+              ; comments = ["16-byte alignment"] }
+          else
+            A.Oper
+              { assem = "push rbp"
+              ; dst = [rsp]
+              ; src = [rbp; rsp]
+              ; jmp = None
+              ; comments = [] } )
+        ; A.Mov {assem = "mov rbp, rsp"; dst = rbp; src = rsp; comments = []}
+        ; A.Oper
+            { assem = "sub rsp, " ^ string_of_int fr_size
+            ; dst = [rsp]
+            ; src = [rsp]
+            ; jmp = None
+            ; comments = [] } ]
+    in
+    (* Epilog if is main:
+           <nothing>
+       if not main:
+           mov rsp, rbp
+           pop rbp
+           ret
+    *)
+    let epilog =
+      if is_main then []
+      else
+        [ A.Mov {assem = "mov rsp, rbp"; dst = rsp; src = rbp; comments = []}
+        ; A.Oper
+            { assem = "pop rbp"
+            ; dst = [rsp]
+            ; src = [rbp; rsp]
+            ; jmp = None
+            ; comments = [] }
+        ; A.Oper
+            {assem = "ret"; dst = [rsp]; src = [rsp]; jmp = None; comments = []}
+        ]
+    in
+    {prolog; body; epilog}
 
   type allocation = (Temp.temp, register) Hashtbl.t
 
@@ -643,20 +705,17 @@ end = struct
     let open Assem in
     let {prolog; body; epilog} = proc_entry_exit3 frame instrs in
     let ws_of_label_marker = String.make (String.length label_marker) ' ' in
-    let body =
-      body
-      |> fmt_instrs string_of_temp ";" (* eliminate_moves *) true
-      |> Print.reflow 2 |> Print.lines
-      (* pullback labels *)
-      |> List.map (fun s ->
-             Str.replace_first
-               (Str.regexp
-                  (Printf.sprintf {|\( +\)%s\([^ ]*\)\( *\)|} label_marker) )
-               (Printf.sprintf {|\2\1%s\3|} ws_of_label_marker)
-               s )
-      |> String.concat "\n"
-    in
-    String.concat "\n" [prolog; body; epilog]
+    prolog @ body @ epilog
+    |> fmt_instrs string_of_temp ";" (* eliminate_moves *) true
+    |> Print.reflow 2 |> Print.lines
+    (* pullback labels *)
+    |> List.map (fun s ->
+           Str.replace_first
+             (Str.regexp
+                (Printf.sprintf {|\( +\)%s\([^ ]*\)\( *\)|} label_marker) )
+             (Printf.sprintf {|\2\1%s\3|} ws_of_label_marker)
+             s )
+    |> String.concat "\n"
 
   let emit_common strings frames main =
     let open Temp in

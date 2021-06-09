@@ -50,7 +50,7 @@ module type FRAME = sig
     | Proc of frame * Ir.stmt  (** A procedure *)
     | String of Temp.label * string  (** A string literal *)
 
-  type proc = {prolog : string; body : Assem.instr list; epilog : string}
+  type proc
 
   val fp : Temp.temp
   (** The frame pointer of the present frame.
