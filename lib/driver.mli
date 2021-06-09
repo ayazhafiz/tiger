@@ -2,7 +2,7 @@ open Front
 open Back.Frame
 
 type exit_status = Exit of int | Killed of int
-type machine = MacOS_11
+type machine = X86_64_apple_darwin20_1_0 | X86_64_linux_gnu
 
 val sh : ?stdin:string option -> string -> string * string * Unix.process_status
 val lkg_runtime : machine -> string
