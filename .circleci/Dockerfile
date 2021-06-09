@@ -5,3 +5,4 @@ RUN opam update
 RUN opam switch 4.12
 RUN opam install -y menhir
 RUN opam install -y dune
+RUN opam install -y alcotest
