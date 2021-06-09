@@ -144,7 +144,7 @@ let cmp_golden name =
         Alcotest.fail
           (Printf.sprintf
              {|Golden "%s" not present; run "--bless" to accept baselines first.|}
-             name )
+             (fi_golden name) )
     in
     if local <> golden then
       Alcotest.fail
@@ -237,7 +237,7 @@ let backend_golden ?(compare_golden = true) fi ext driver =
 let irtest fi =
   let test _ =
     (* x86 *)
-    backend_golden ~compare_golden:true fi ".ir" X86_64_Backend.emit_ir
+    backend_golden ~compare_golden:false fi ".ir" X86_64_Backend.emit_ir
   in
   ((fi.name, `Quick, wrap test), true)
 
