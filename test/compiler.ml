@@ -7,16 +7,8 @@ open Tiger.Front.Language
 open Tiger.Front.Semantic
 module Driver = Tiger.Driver
 
-let readfi path =
-  let ch = open_in path in
-  let content = really_input_string ch (in_channel_length ch) in
-  close_in ch;
-  content
-
-let writefi path content =
-  let ch = open_out path in
-  output_string ch content;
-  close_out ch
+let readfi = Driver.readfi
+let writefi = Driver.writefi
 
 (** [dir_contents] returns the paths of all regular files that are contained
     in [dir]. Each file is a path starting with [dir].
@@ -286,8 +278,9 @@ let exectest fi =
     String.concat "\n" parts
   in
   let test _ =
+    let machine = Driver.current_machine () in
     (* x86 *)
-    backend_golden fi ".exec" (exec X86_64_Backend.exec)
+    backend_golden fi ".exec" (exec (X86_64_Backend.exec machine))
   in
   ((fi.name, `Slow, wrap test), true)
 

@@ -10,11 +10,33 @@ module G = Data.Graph.Graph
 module UDG = Data.Graph.UndirectedGraph
 module TempSet = Back.Temp.TempSet
 
+let readfi path =
+  let ch = open_in path in
+  let content = really_input_string ch (in_channel_length ch) in
+  close_in ch;
+  content
+
+let writefi path content =
+  let ch = open_out path in
+  output_string ch content;
+  close_out ch
+
 type machine = X86_64_apple_darwin20_1_0 | X86_64_linux_gnu
 
-let lkg_runtime = function
-  | X86_64_apple_darwin20_1_0 -> "runtime/lkg/x86_64-apple-darwin20.1.0.o"
-  | X86_64_linux_gnu -> "runtime/lkg/x86_64-linux-gnu.o"
+let all_machines = [X86_64_apple_darwin20_1_0; X86_64_linux_gnu]
+
+let triple_machine_tbl =
+  [ ("x86_64-apple-darwin20.1.0", X86_64_apple_darwin20_1_0)
+  ; ("x86_64-linux-gnu", X86_64_linux_gnu) ]
+
+let machine_triple_tbl = List.map (fun (a, b) -> (b, a)) triple_machine_tbl
+
+let machine_of_triple t =
+  let fail () = failwith ("Unknown execution target " ^ t) in
+  match List.assoc_opt t triple_machine_tbl with Some m -> m | None -> fail ()
+
+let triple_of_machine m = List.assoc m machine_triple_tbl
+let lkg_runtime m = Printf.sprintf "runtime/lkg/%s.o" (triple_of_machine m)
 
 type execspec =
   { assemble : string -> string -> string  (** [assemble asmfile outfile] *)
@@ -72,20 +94,11 @@ let sh ?stdin:(stdin_str = None) cmd =
 
 let assert_exit0 (_, _, exit) = assert (exit = Unix.WEXITED 0)
 
-let execution_target () =
+let current_machine () =
   let triple, _, _ = sh "gcc -dumpmachine" in
-  let fail () = failwith ("Unknown execution target " ^ triple) in
-  match triple with
-  | "x86_64-apple-darwin20.1.0" -> X86_64_apple_darwin20_1_0
-  | "x86_64-linux-gnu" -> X86_64_linux_gnu
-  | _ -> fail ()
+  machine_of_triple triple
 
 type exit_status = Exit of int | Killed of int
-
-let writefi path content =
-  let ch = open_out path in
-  output_string ch content;
-  close_out ch
 
 module Backend (F : FRAME) = struct
   module RA = RegisterAllocation (F)
@@ -164,7 +177,7 @@ module Backend (F : FRAME) = struct
     in
     Printf.sprintf "%s\n\n%s" strings frames
 
-  let exec expr stdin =
+  let emit_exe1 machine expr =
     fresh_compilation ();
     let main, frames, strings = compile expr in
     let prog = F.emit strings frames main in
@@ -172,12 +185,17 @@ module Backend (F : FRAME) = struct
     let temp_asm = Filename.temp_file "main" ".asm" in
     let temp_o = Filename.temp_file "main" ".o" in
     let temp_exe = Filename.temp_file "main" ".exe" in
-    let machine = execution_target () in
     let runtime_o = lkg_runtime machine in
     let {assemble; link} = List.assoc machine execspec in
     writefi temp_asm prog;
     sh (assemble temp_asm temp_o) |> assert_exit0;
     sh (link entry temp_o runtime_o temp_exe) |> assert_exit0;
+    temp_exe
+
+  let emit_exe machine expr = readfi (emit_exe1 machine expr)
+
+  let exec machine expr stdin =
+    let temp_exe = emit_exe1 machine expr in
     let stdout, stderr, exit = sh ~stdin temp_exe in
     let exit =
       match exit with
