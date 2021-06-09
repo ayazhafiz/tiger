@@ -19,7 +19,8 @@ let string_of_label = name
 let stringEqual = label "stringEqual"
 
 let initArray = label "initArray"
-let externals = [stringEqual; initArray]
+let ttexit = label "TTexit"
+let externals = [stringEqual; initArray; ttexit]
 
 let init_label_store () =
   List.map (fun n -> (name n, ())) externals

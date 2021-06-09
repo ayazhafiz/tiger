@@ -2,6 +2,7 @@
 BITS 64
 section .text
 
+extern TTexit
 extern initArray
 extern print
 
@@ -10,10 +11,10 @@ global _start
 str__success:
   dq 7
   db `success`
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 16
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 16                             
   mov [rbp - 16], rbx                     ; store spilled t21
   mov [rbp - 8], rdi                      ; static link
   mov rax, 2                              
@@ -44,6 +45,5 @@ _start:
   add rbx, rax                            
   mov rax, [rbx]                          ; return b.a
   mov rbx, [rbp - 16]                     ; fetch spilled t21
-  mov rsp, rbp
-  pop rbp
-  ret
+  mov rdi, rax
+  call TTexit

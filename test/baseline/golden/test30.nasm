@@ -2,12 +2,14 @@
 BITS 64
 section .text
 
+extern TTexit
+
 global _start
 
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 96
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 96                             
   mov [rbp - 8], rdi                      ; static link
   mov rax, rbp                            
   sub rax, 88                             
@@ -26,6 +28,5 @@ _start:
   imul rcx, rcx, 8                        
   add rax, rcx                            
   mov rax, [rax]                          ; return arr1[2]
-  mov rsp, rbp
-  pop rbp
-  ret
+  mov rdi, rax
+  call TTexit

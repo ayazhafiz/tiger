@@ -2,6 +2,7 @@
 BITS 64
 section .text
 
+extern TTexit
 extern concat
 extern initArray
 extern print
@@ -42,10 +43,10 @@ str__somewhere:
 str__aname:
   dq 5
   db `aname`
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 1040
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 1040                           
   mov rax, rbx                            
   mov [rbp - 992], rax                    ; store spilled t45
   mov [rbp - 1000], r12                   ; store spilled t46
@@ -380,6 +381,5 @@ _start:
   mov r13, [rbp - 1008]                   ; fetch spilled t47
   mov r14, [rbp - 1016]                   ; fetch spilled t48
   mov r15, [rbp - 1024]                   ; fetch spilled t49
-  mov rsp, rbp
-  pop rbp
-  ret
+  mov rdi, rax
+  call TTexit

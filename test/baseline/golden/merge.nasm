@@ -2,6 +2,7 @@
 BITS 64
 section .text
 
+extern TTexit
 extern chr
 extern get_char
 extern initArray
@@ -26,10 +27,10 @@ str__0:
 str__9:
   dq 1
   db `9`
-_start:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 32
+_start:                                   
+  and rsp, 0xFFFFFFFFFFFFFFF0             ; 16-byte alignment
+  mov rbp, rsp                            
+  sub rsp, 32                             
   mov [rbp - 32], rbx                     ; store spilled t143
   mov [rbp - 8], rdi                      ; static link
   mov rbx, rbp                            
@@ -55,13 +56,12 @@ _start:
   call printlist                          
   xor rax, rax                            ; return 0
   mov rbx, [rbp - 32]                     ; fetch spilled t143
-  mov rsp, rbp
-  pop rbp
-  ret
-printlist:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 16
+  mov rdi, rax
+  call TTexit
+printlist:                                
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 16                             
   mov [rbp - 16], rbx                     ; store spilled t125
   mov [rbp - 8], rdi                      ; static link
   mov rbx, rsi                            ; l
@@ -94,10 +94,10 @@ done1:
   mov rsp, rbp
   pop rbp
   ret
-printint:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 16
+printint:                                 
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 16                             
   mov [rbp - 8], rdi                      ; static link
   mov [rbp - 16], rsi                     ; store spilled t60
   mov rax, [rbp - 16]                     ; fetch spilled t60
@@ -131,10 +131,10 @@ done2:
   mov rsp, rbp
   pop rbp
   ret
-f:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 16
+f:                                        
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 16                             
   mov [rbp - 16], rbx                     ; store spilled t103
   mov [rbp - 8], rdi                      ; static link
   mov rbx, rsi                            ; i
@@ -169,10 +169,10 @@ done3:
   mov rsp, rbp
   pop rbp
   ret
-merge:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 48
+merge:                                    
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 48                             
   mov [rbp - 24], rbx                     ; store spilled t90
   mov [rbp - 32], r12                     ; store spilled t91
   mov [rbp - 40], r13                     ; store spilled t92
@@ -276,10 +276,10 @@ done4:
   mov rsp, rbp
   pop rbp
   ret
-readlist:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 48
+readlist:                                 
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 48                             
   mov [rbp - 32], rbx                     ; store spilled t72
   mov [rbp - 40], r12                     ; store spilled t73
   mov [rbp - 8], rdi                      ; static link
@@ -338,10 +338,10 @@ done5:
   mov rsp, rbp
   pop rbp
   ret
-readint:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 32
+readint:                                  
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 32                             
   mov [rbp - 24], rbx                     ; store spilled t53
   mov [rbp - 8], rdi                      ; static link
   mov rbx, rsi                            ; any
@@ -387,10 +387,10 @@ break1:
   mov rsp, rbp
   pop rbp
   ret
-skipto:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 16
+skipto:                                   
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 16                             
   mov [rbp - 16], rbx                     ; store spilled t36
   mov [rbp - 8], rdi                      ; static link
 test:                                     
@@ -414,10 +414,10 @@ break:
   mov rsp, rbp
   pop rbp
   ret
-isdigit:
-  push rbp
-  mov rbp, rsp
-  sub rsp, 32
+isdigit:                                  
+  push rbp                                
+  mov rbp, rsp                            
+  sub rsp, 32                             
   mov [rbp - 24], rbx                     ; store spilled t30
   mov [rbp - 8], rdi                      ; static link
   mov rax, 1                              ; true
