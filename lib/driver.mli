@@ -28,6 +28,15 @@ val writefi : string -> string -> unit
 val read_in : in_channel -> string
 val sh : ?stdin:string option -> string -> string * string * Unix.process_status
 
+val lex : string -> Lexing.lexbuf
+(** Lexes a tiger program. *)
+
+val parse : Lexing.lexbuf -> Language.expr
+(** Parses a tiger program. *)
+
+val pretty_print : Language.expr -> string
+(** Pretty-prints a tiger program. *)
+
 module Backend (F : FRAME) : sig
   val emit_ir : Language.expr -> string
   (** [emit_ir expr] emits a canonicalized IR of all function frames in the

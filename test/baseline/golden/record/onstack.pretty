@@ -1,0 +1,8 @@
+let
+  type rcd = { a: int, b: string }
+  
+  var a := rcd { a=5, b="success" }
+in
+  print(a.b);
+  a.a
+end

@@ -35,10 +35,7 @@ _start:
   mov rcx, rax                            
   add rcx, rdx                            
   mov qword [rcx], rsi                    ; .b="success"
-  mov qword [rbx], rax                    ; var a := rcd {
-                                          ;   a=5,
-                                          ;   b="success"
-                                          ; }
+  mov qword [rbx], rax                    ; var a := rcd { a=5, b="success" }
   mov rdi, rbp                            ; %arg(static_link):inner
   call inner                              
   mov rbx, [rbp - 24]                     ; fetch spilled t26

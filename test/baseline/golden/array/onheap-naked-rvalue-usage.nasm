@@ -40,7 +40,8 @@ _start:
   mov rax, 0                              
   imul rax, rax, 8                        
   add rcx, rax                            
-  mov rax, [rcx]                          ; b.arr1
+  mov rax, [rcx]                          ; b
+                                          ; .arr1
   add rax, rdx                            
   mov rax, [rax]                          ; return b.arr1[0]
   mov rdi, rax

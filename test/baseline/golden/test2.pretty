@@ -1,0 +1,9 @@
+let
+  type myint = int
+  type arrtype = array of myint
+  
+  var arr1 : arrtype := arrtype[10] of 0
+in
+  arr1[5] := 6;
+  arr1[5]
+end

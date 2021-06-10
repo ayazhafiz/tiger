@@ -108,6 +108,10 @@ let current_machine () =
 
 type exit_status = Exit of int | Killed of int
 
+let lex = Lexing.from_string ~with_positions:true
+let parse = Front.Parser.toplevel Front.Lexer.read
+let pretty_print = Front.Language.string_of_expr
+
 module Backend (F : FRAME) = struct
   module RA = RegisterAllocation (F)
   module TR = Translate (F)

@@ -1,8 +1,0 @@
-let
-  type intarray = array of int
-  var a := intarray[2] of 5
-  function inner(): int =
-    a[0]
-in
-  inner()
-end

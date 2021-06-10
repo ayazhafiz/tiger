@@ -189,12 +189,14 @@ false3:
   imul rbx, rax, 8                        
   mov rax, r13                            
   add rax, rbx                            
-  mov rcx, [rax]                          ; b.first
+  mov rcx, [rax]                          ; b
+                                          ; .first
   mov rax, 0                              
   imul rbx, rax, 8                        
   mov rax, r12                            
   add rax, rbx                            
-  mov rax, [rax]                          ; a.first
+  mov rax, [rax]                          ; a
+                                          ; .first
   cmp rax, rcx                            ; a.first < b.first
   jl true2                                
 false2:                                   
@@ -207,7 +209,8 @@ false2:
   imul rcx, rax, 8                        
   mov rax, r13                            
   add rax, rcx                            
-  mov rdx, [rax]                          ; b.first
+  mov rdx, [rax]                          ; b
+                                          ; .first
   mov rax, 0                              
   imul rcx, rax, 8                        
   mov rax, rbx                            
@@ -251,7 +254,8 @@ true2:
   imul rcx, rax, 8                        
   mov rax, r12                            
   add rax, rcx                            
-  mov rdx, [rax]                          ; a.first
+  mov rdx, [rax]                          ; a
+                                          ; .first
   mov rax, 0                              
   imul rcx, rax, 8                        
   mov rax, rbx                            
@@ -300,8 +304,10 @@ readlist:
   mov rax, 0                              
   imul rax, rax, 8                        
   add rbx, rax                            
-  mov rax, [rbx]                          ; any.any
-  cmp rax, 0                              ; any.any
+  mov rax, [rbx]                          ; any
+                                          ; .any
+  cmp rax, 0                              ; any
+                                          ; .any
   jne true1                               
 false1:                                   
   mov rax, [rbp - 24]                     ; fetch spilled t71

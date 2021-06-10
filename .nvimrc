@@ -47,3 +47,5 @@ command! -nargs=* TD call s:TigerDiff()
 nnoremap <leader>tl :TL 
 nnoremap <leader>tg :TG 
 nnoremap <leader>td :TD<CR>
+
+au BufNewFile,BufRead *.pretty set filetype=tiger
