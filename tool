@@ -11,6 +11,9 @@ case $1 in
   "diff")
     git diff --diff-filter=AM --no-index test/baseline/golden test/baseline/local
     ;;
+  "lkg")
+    gcc -c -o "runtime/lkg/$(gcc -dumpmachine).o" runtime/runtime.c
+    ;;
   "lkg-docker")
     cid="$(docker run -d -ti ayazhafiz/tigercompiler /bin/bash)"
     h="/home/opam"
