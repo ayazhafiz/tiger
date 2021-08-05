@@ -21,12 +21,17 @@ let writefi path content =
   output_string ch content;
   close_out ch
 
-type machine = X86_64_apple_darwin20_1_0 | X86_64_linux_gnu
+type machine =
+  | X86_64_apple_darwin20_1_0
+  | X86_64_apple_darwin20_6_0
+  | X86_64_linux_gnu
 
-let all_machines = [X86_64_apple_darwin20_1_0; X86_64_linux_gnu]
+let all_machines =
+  [X86_64_apple_darwin20_1_0; X86_64_apple_darwin20_6_0; X86_64_linux_gnu]
 
 let triple_machine_tbl =
   [ ("x86_64-apple-darwin20.1.0", X86_64_apple_darwin20_1_0)
+  ; ("x86_64-apple-darwin20.6.0", X86_64_apple_darwin20_6_0)
   ; ("x86_64-linux-gnu", X86_64_linux_gnu) ]
 
 let machine_triple_tbl = List.map (fun (a, b) -> (b, a)) triple_machine_tbl
@@ -44,20 +49,23 @@ type execspec =
         (** [link entry objfile objruntime outfile] *) }
 
 let execspec : (machine * execspec) list =
-  [ ( X86_64_apple_darwin20_1_0
-    , { assemble =
-          (fun asmfile outfile ->
-            Printf.sprintf "nasm -f macho64 %s -o %s" asmfile outfile )
-      ; link =
-          (fun entry objfile objruntime outfile ->
-            let ld_lib_paths =
-              ["-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"]
-            in
-            let ld_libs = ["-lSystem"] in
-            let ld_args = ld_lib_paths @ ld_libs |> String.concat " " in
-            Printf.sprintf
-              "ld %s %s -o %s -e %s -arch x86_64 -macosx_version_min 11.0 %s"
-              objfile objruntime outfile entry ld_args ) } )
+  let apple_darwin_20 =
+    { assemble =
+        (fun asmfile outfile ->
+          Printf.sprintf "nasm -f macho64 %s -o %s" asmfile outfile )
+    ; link =
+        (fun entry objfile objruntime outfile ->
+          let ld_lib_paths =
+            ["-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"]
+          in
+          let ld_libs = ["-lSystem"] in
+          let ld_args = ld_lib_paths @ ld_libs |> String.concat " " in
+          Printf.sprintf
+            "ld %s %s -o %s -e %s -arch x86_64 -macosx_version_min 11.0 %s"
+            objfile objruntime outfile entry ld_args ) }
+  in
+  [ (X86_64_apple_darwin20_1_0, apple_darwin_20)
+  ; (X86_64_apple_darwin20_6_0, apple_darwin_20)
   ; ( X86_64_linux_gnu
     , { assemble =
           (fun asmfile outfile ->
