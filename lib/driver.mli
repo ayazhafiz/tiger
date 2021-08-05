@@ -2,7 +2,11 @@ open Front
 open Back.Frame
 
 type exit_status = Exit of int | Killed of int
-type machine = X86_64_apple_darwin20_1_0 | X86_64_linux_gnu
+
+type machine =
+  | X86_64_apple_darwin20_1_0  (** macOS 11.5.0 *)
+  | X86_64_apple_darwin20_6_0  (** macOS 11.5.1 *)
+  | X86_64_linux_gnu
 
 val lkg_runtime : machine -> string
 (** Maps a machine to a last-known-good object file containing the runtime. *)
