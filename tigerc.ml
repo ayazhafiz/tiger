@@ -51,8 +51,7 @@ let () =
     | Some fi -> Driver.readfi fi
     | None -> Driver.read_in stdin
   in
-  let lex = Lexing.from_string ~with_positions:true input in
-  let expr = Front.Parser.toplevel Front.Lexer.read lex in
+  let expr = input |> Driver.lex |> Driver.parse in
   ( match Front.Semantic.check_prog expr with
   | Ok () -> ()
   | Error e -> failwith e );

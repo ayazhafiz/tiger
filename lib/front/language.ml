@@ -1,5 +1,4 @@
 open Symbol
-open Util.Print
 
 type realty = Type.ty option ref
 
@@ -57,110 +56,288 @@ and field_ty = {fld_name : symbol; escape : bool ref; typ : symbol}
 and fundecl =
   {fn_name : symbol; params : field_ty list; result : symbol option; body : expr}
 
-let string_of_symbol = name
+let listeq pred l1 l2 =
+  List.length l1 = List.length l2 && List.for_all2 pred l1 l2
 
-let rec string_of_var (ind : int) = function
-  | SimpleVar (s, _) -> string_of_symbol s
-  | FieldVar (v, s, _) ->
-      Printf.sprintf "%s.%s" (string_of_var ind v) (string_of_symbol s)
-  | SubscriptVar (v, s, _) ->
-      Printf.sprintf "%s[%s]" (string_of_var ind v) (string_of_ex ind s)
+let rec var_eq v1 v2 =
+  match (v1, v2) with
+  | SimpleVar (s1, _), SimpleVar (s2, _) -> symeq s1 s2
+  | FieldVar (v1, s1, _), FieldVar (v2, s2, _) -> var_eq v1 v2 && symeq s1 s2
+  | SubscriptVar (v1, e1, _), SubscriptVar (v2, e2, _) ->
+      var_eq v1 v2 && expr_eq e1 e2
+  | _ -> false
 
-and string_of_ex (ind : int) = function
-  | NilExpr -> "nil"
-  | VarExpr (v, _) -> string_of_var ind v
-  | IntExpr n -> string_of_int n
-  | StringExpr s -> Printf.sprintf "\"%s\"" (String.escaped s)
-  | CallExpr {func; args; _} ->
-      Printf.sprintf "%s(%s)" (string_of_symbol func)
-        (List.map (string_of_ex ind) args |> String.concat ", ")
-  | OpExpr {left; oper; right; _} ->
-      Printf.sprintf "%s %s %s" (string_of_ex ind left) (string_of_oper oper)
-        (string_of_ex ind right)
-  | RecordExpr {typ; fields; _} ->
-      Printf.sprintf "%s {\n%s\n}" (string_of_symbol typ)
-        ( List.map (string_of_field ind) fields
-        |> String.concat ",\n" |> reflow ind )
-  | SeqExpr (exprs, _) ->
-      List.map (string_of_ex ind) exprs |> String.concat ";\n"
-  | AssignExpr {var; expr} ->
-      Printf.sprintf "%s := %s" (string_of_var ind var) (string_of_ex ind expr)
-  | IfExpr {test; then'; else' = None; _} ->
-      Printf.sprintf "if %s then\n%s" (string_of_ex ind test)
-        (string_of_ex ind then' |> reflow ind)
-  | IfExpr {test; then'; else' = Some else'; _} ->
-      Printf.sprintf "if %s then\n%s\nelse\n%s" (string_of_ex ind test)
-        (string_of_ex ind then' |> reflow ind)
-        (string_of_ex ind else' |> reflow ind)
-  | WhileExpr {test; body} ->
-      Printf.sprintf "while %s do\n%s" (string_of_ex ind test)
-        (string_of_ex ind body |> reflow ind)
-  | ForExpr {var; lo; hi; body; _} ->
-      Printf.sprintf "for %s := %s to %s do\n%s" (string_of_symbol var)
-        (string_of_ex ind lo) (string_of_ex ind hi)
-        (string_of_ex ind body |> reflow ind)
-  | BreakExpr -> "break"
-  | LetExpr {decls; body; _} ->
-      Printf.sprintf "let\n%s\nin\n%s\nend"
-        (List.map (string_of_decl ind) decls |> String.concat "\n" |> reflow ind)
-        (string_of_ex ind body |> reflow ind)
-  | ArrayExpr {typ; size; init; _} ->
-      Printf.sprintf "%s[%s] of %s" (string_of_symbol typ)
-        (string_of_ex ind size) (string_of_ex ind init)
+and expr_eq e1 e2 =
+  match (e1, e2) with
+  | NilExpr, NilExpr -> true
+  | VarExpr (v1, _), VarExpr (v2, _) -> var_eq v1 v2
+  | IntExpr n1, IntExpr n2 -> n1 = n2
+  | StringExpr s1, StringExpr s2 -> s1 = s2
+  | ( CallExpr {func = f1; args = a1; ty = _}
+    , CallExpr {func = f2; args = a2; ty = _} ) ->
+      symeq f1 f2 && listeq expr_eq a1 a2
+  | ( OpExpr {left = l1; oper = o1; right = r1; ty = _}
+    , OpExpr {left = l2; oper = o2; right = r2; ty = _} ) ->
+      expr_eq l1 l2 && o1 = o2 && expr_eq r1 r2
+  | ( RecordExpr {typ = t1; fields = f1; ty = _}
+    , RecordExpr {typ = t2; fields = f2; ty = _} ) ->
+      symeq t1 t2
+      && listeq (fun (s1, e1) (s2, e2) -> symeq s1 s2 && expr_eq e1 e2) f1 f2
+  | SeqExpr (e1, _), SeqExpr (e2, _) -> listeq expr_eq e1 e2
+  | AssignExpr {var = v1; expr = e1}, AssignExpr {var = v2; expr = e2} ->
+      var_eq v1 v2 && expr_eq e1 e2
+  | ( IfExpr {test = t1; then' = th1; else' = e1; ty = _}
+    , IfExpr {test = t2; then' = th2; else' = e2; ty = _} ) ->
+      expr_eq t1 t2 && expr_eq th1 th2 && Option.equal expr_eq e1 e2
+  | WhileExpr {test = t1; body = b1}, WhileExpr {test = t2; body = b2} ->
+      expr_eq t1 t2 && expr_eq b1 b2
+  | ( ForExpr {var = v1; lo = l1; hi = h1; body = b1; escape = _}
+    , ForExpr {var = v2; lo = l2; hi = h2; body = b2; escape = _} ) ->
+      symeq v1 v2 && expr_eq l1 l2 && expr_eq h1 h2 && expr_eq b1 b2
+  | BreakExpr, BreakExpr -> true
+  | ( LetExpr {decls = d1; body = b1; ty = _}
+    , LetExpr {decls = d2; body = b2; ty = _} ) ->
+      listeq decl_eq d1 d2 && expr_eq b1 b2
+  | ( ArrayExpr {typ = t1; size = s1; init = i1; ty = _}
+    , ArrayExpr {typ = t2; size = s2; init = i2; ty = _} ) ->
+      symeq t1 t2 && expr_eq s1 s2 && expr_eq i1 i2
+  | _ -> false
 
-and string_of_decl ind = function
+and decl_eq d1 d2 =
+  match (d1, d2) with
+  | FunctionDecl f1, FunctionDecl f2 -> listeq fn_eq f1 f2
+  | ( VarDecl {name = n1; typ = t1; init = i1; escape = _; naked_rvalue = _}
+    , VarDecl {name = n2; typ = t2; init = i2; escape = _; naked_rvalue = _} )
+    ->
+      symeq n1 n2 && Option.equal symeq t1 t2 && expr_eq i1 i2
+  | TypeDecl t1, TypeDecl t2 -> listeq tyalias_eq t1 t2
+  | _ -> false
+
+and ty_eq t1 t2 =
+  match (t1, t2) with
+  | NameTy t1, NameTy t2 -> symeq t1 t2
+  | RecordTy f1, RecordTy f2 -> listeq field_eq f1 f2
+  | ArrayTy a1, ArrayTy a2 -> symeq a1 a2
+  | _ -> false
+
+and field_eq {fld_name = f1; typ = t1; escape = _}
+    {fld_name = f2; typ = t2; escape = _} =
+  symeq f1 f2 && symeq t1 t2
+
+and tyalias_eq {name = n1; ty = t1} {name = n2; ty = t2} =
+  symeq n1 n2 && ty_eq t1 t2
+
+and fn_eq {fn_name = f1; params = p1; result = r1; body = b1}
+    {fn_name = f2; params = p2; result = r2; body = b2} =
+  symeq f1 f2 && listeq field_eq p1 p2 && Option.equal symeq r1 r2
+  && expr_eq b1 b2
+
+module F = Strictly_annotated
+
+let isseq = function SeqExpr _ -> true | _ -> false
+let cons = F.(List.fold_left ( ^^ ) empty)
+
+let rec pr_var =
+  let open F in
+  function
+  | SimpleVar (s, _) -> text (name s)
+  | FieldVar (v, s, _) -> pr_var v ^^ text "." ^^ text (name s)
+  | SubscriptVar (v, s, _) -> pr_var v ^^ text "[" ^^ pr_expr s ^^ text "]"
+
+and pr_expr ?(wrap_seq = true) e =
+  let open F in
+  let edoc =
+    match e with
+    | NilExpr -> text "nil"
+    | VarExpr (v, _) -> group (nest 2 (pr_var v))
+    | IntExpr n -> text (string_of_int n)
+    | StringExpr s -> text (Printf.sprintf "\"%s\"" (String.escaped s))
+    | CallExpr {func; args; _} ->
+        let lastargi = List.length args - 1 in
+        let args =
+          List.mapi
+            (fun i arg ->
+              pr_expr arg
+              ^^ if i <> lastargi then text "," ^^ space else breakhint )
+            args
+          |> cons
+        in
+        group (nest 2 (text (name func) ^^ text "(" ^. args ^^ text ")"))
+    | OpExpr {left; oper; right; _} ->
+        (* TODO: check if operator chain passes printing width; if so, print as
+           a vertical group. See the many_params test case for an example of
+           when this is useful. *)
+        group
+          (nest 2 (pr_expr left ^^ text " " ^^ pr_oper oper ^| pr_expr right))
+    | RecordExpr {typ; fields; _} ->
+        let lastfieldi = List.length fields - 1 in
+        let fields =
+          List.mapi
+            (fun i (fld, v) ->
+              let suffix =
+                if i <> lastfieldi then text "," ^^ space else empty
+              in
+              group
+                (nest 2 (text (name fld) ^^ text "=" ^. pr_expr v ^^ suffix)) )
+            fields
+          |> cons
+        in
+        let typ = text (name typ) in
+        let rcd = typ ^| text "{" ^| group (nest 2 fields) ^| text "}" in
+        group (nest 2 rcd)
+    | SeqExpr (exprs, _) ->
+        let lastexpri = List.length exprs - 1 in
+        let exprs =
+          List.mapi
+            (fun i e ->
+              pr_expr e
+              ^^ if i <> lastexpri then text ";" ^^ breakhint else empty )
+            exprs
+          |> cons
+        in
+        vgroup exprs
+    | AssignExpr {var; expr} ->
+        group (nest 2 (pr_var var ^^ text " :=" ^| pr_expr expr))
+    | IfExpr {test; then'; else' = None; _} ->
+        group
+          ( group (nest 2 (text "if" ^| pr_expr test))
+          ^| group (nest 2 (text "then" ^| pr_expr then')) )
+    | IfExpr {test; then'; else' = Some else'; _} ->
+        group
+          ( group (nest 2 (text "if" ^| pr_expr test))
+          ^| group (nest 2 (text "then" ^| pr_expr then'))
+          ^| group (nest 2 (text "else" ^| pr_expr else')) )
+    | WhileExpr {test; body} ->
+        group
+          ( group (nest 2 (text "while" ^| pr_expr test))
+          ^| group (nest 2 (text "do" ^| pr_expr body)) )
+    | ForExpr {var; lo; hi; body; _} ->
+        group
+          ( group
+              (nest 2
+                 (text "for" ^| text (name var) ^^ text " := " ^^ pr_expr lo) )
+          ^| group (nest 2 (text "to" ^| pr_expr hi))
+          ^| group (nest 2 (text "do" ^| pr_expr body)) )
+    | BreakExpr -> text "break"
+    | LetExpr {decls; body; _} ->
+        let lastdecli = List.length decls - 1 in
+        let decls =
+          List.mapi
+            (fun i d ->
+              pr_decl d ^^ if i <> lastdecli then space ^^ space else empty )
+            decls
+          |> cons
+        in
+        let body = pr_expr ~wrap_seq:false body in
+        vgroup
+          ( vgroup (nest 2 (text "let" ^| decls))
+          ^| group (nest 2 (text "in" ^| body))
+          ^| group (text "end") )
+    | ArrayExpr {typ; size; init; _} ->
+        group
+          ( group (nest 2 (text (name typ) ^^ text "[" ^. pr_expr size))
+          ^. group (text "] of " ^^ pr_expr init) )
+  in
+  if wrap_seq && isseq e then text "(" ^^ edoc ^^ text ")" else edoc
+
+and pr_decl =
+  let open F in
+  function
   | FunctionDecl decls ->
-      List.map (string_of_fun ind) decls |> String.concat "\n"
+      let lastdecli = List.length decls - 1 in
+      List.mapi
+        (fun i fn -> pr_fn fn ^^ if i <> lastdecli then text "\n" else empty)
+        decls
+      |> cons
   | VarDecl {name; typ = None; init; _} ->
-      Printf.sprintf "var %s := %s" (string_of_symbol name)
-        (string_of_ex ind init)
+      group
+        (nest 2
+           (text "var " ^^ text (Symbol.name name) ^^ text " :=" ^| pr_expr init) )
   | VarDecl {name; typ = Some typ; init; _} ->
-      Printf.sprintf "var %s : %s := %s" (string_of_symbol name)
-        (string_of_symbol typ) (string_of_ex ind init)
-  | TypeDecl sigs -> List.map (string_of_sig ind) sigs |> String.concat "\n"
+      group
+        (nest 2
+           ( text "var "
+           ^^ text (Symbol.name name)
+           ^| group (text ": " ^^ text (Symbol.name typ))
+           ^| group (text ":= " ^^ pr_expr init) ) )
+  | TypeDecl sigs ->
+      let lastsigi = List.length sigs - 1 in
+      List.mapi
+        (fun i s -> pr_tysig s ^^ if i <> lastsigi then text "\n" else empty)
+        sigs
+      |> cons
 
-and string_of_ty ind = function
-  | NameTy sym -> string_of_symbol sym
+and pr_ty =
+  let open F in
+  function
+  | NameTy sym -> text (name sym)
   | RecordTy fields ->
-      Printf.sprintf "{\n%s\n}"
-        ( List.map (string_of_field_ty ind) fields
-        |> String.concat ",\n" |> reflow ind )
-  | ArrayTy sym -> Printf.sprintf "array of %s" (string_of_symbol sym)
+      let lastfieldi = List.length fields - 1 in
+      let fields =
+        List.mapi
+          (fun i {fld_name; typ; _} ->
+            let suffix = if i <> lastfieldi then text "," ^^ space else empty in
+            group
+              (nest 2
+                 (text (name fld_name) ^^ text ":" ^| text (name typ) ^^ suffix) )
+            )
+          fields
+        |> cons
+      in
+      group (group (nest 2 (text "{" ^| fields)) ^| group (text "}"))
+  | ArrayTy sym -> text "array of " ^^ text (name sym)
 
-and string_of_oper = function
-  | PlusOp -> "+"
-  | MinusOp -> "-"
-  | TimesOp -> "*"
-  | DivideOp -> "/"
-  | EqOp -> "="
-  | NeqOp -> "<>"
-  | LtOp -> "<"
-  | LeOp -> "<="
-  | GtOp -> ">"
-  | GeOp -> ">="
+and pr_oper op =
+  F.text
+    ( match op with
+    | PlusOp -> "+"
+    | MinusOp -> "-"
+    | TimesOp -> "*"
+    | DivideOp -> "/"
+    | EqOp -> "="
+    | NeqOp -> "<>"
+    | LtOp -> "<"
+    | LeOp -> "<="
+    | GtOp -> ">"
+    | GeOp -> ">=" )
 
-and string_of_sig (ind : int) {name; ty} =
-  Printf.sprintf "type %s = %s" (string_of_symbol name) (string_of_ty ind ty)
+and pr_tysig {name; ty} =
+  let open F in
+  group
+    (nest 2 (text "type " ^^ text (Symbol.name name) ^^ text " =" ^| pr_ty ty))
 
-and string_of_field (ind : int) (fld, expr) =
-  Printf.sprintf "%s=%s" (string_of_symbol fld) (string_of_ex ind expr)
+and pr_fn =
+  let open F in
+  function
+  | {fn_name; params; result; body} ->
+      let lastparami = List.length params - 1 in
+      let params =
+        List.mapi
+          (fun i {fld_name; typ; _} ->
+            let suffix = if i <> lastparami then text "," ^^ space else empty in
+            group (nest 2 (text (name fld_name) ^^ text ":" ^| text (name typ)))
+            ^^ suffix )
+          params
+        |> cons
+      in
+      let ret =
+        match result with
+        | None -> empty
+        | Some ty -> text " : " ^^ text (name ty)
+      in
+      group
+        ( group
+            ( group
+                (nest 2
+                   ( text "function "
+                   ^^ text (name fn_name)
+                   ^^ text "(" ^. params ) )
+            ^. group (text ")" ^^ ret ^^ text " =") )
+        ^| group (pr_expr body) )
 
-and string_of_field_ty _ind {fld_name; typ; _} =
-  Printf.sprintf "%s: %s" (string_of_symbol fld_name) (string_of_symbol typ)
-
-and string_of_fun (ind : int) = function
-  | {fn_name; params; result = None; body} ->
-      Printf.sprintf "function %s(%s) =\n%s" (string_of_symbol fn_name)
-        (List.map (string_of_field_ty ind) params |> String.concat ", ")
-        (string_of_ex ind body |> reflow ind)
-  | {fn_name; params; result = Some result; body} ->
-      Printf.sprintf "function %s(%s): %s =\n%s" (string_of_symbol fn_name)
-        (List.map (string_of_field_ty ind) params |> String.concat ", ")
-        (string_of_symbol result)
-        (string_of_ex ind body |> reflow ind)
-
-let string_of_var = string_of_var 2
-let string_of_expr = string_of_ex 2
-let string_of_decl = string_of_decl 2
-let string_of_ty = string_of_ty 2
+let pretty = F.pretty 80 "/* "
+let string_of_var v = pr_var v |> pretty
+let string_of_expr e = pr_expr e |> pretty
+let string_of_decl d = pr_decl d |> pretty
+let string_of_ty t = pr_ty t |> pretty
 let fmt_expr fmt e = Format.pp_print_string fmt (string_of_expr e)

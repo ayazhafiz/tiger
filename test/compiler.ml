@@ -110,7 +110,7 @@ let all_cases =
 let get opt err = match opt with Some v -> v | None -> failwith err
 let lex = Lexing.from_string ~with_positions:true
 let parse = Parser.toplevel Lexer.read
-let testable_expr = Alcotest.testable Language.fmt_expr ( = )
+let testable_expr = Alcotest.testable Language.fmt_expr Language.expr_eq
 
 let ensure_lexed fi =
   if Option.is_none fi.lexed then fi.lexed <- Option.some (lex fi.content)
@@ -183,21 +183,36 @@ let parsetest fi =
   in
   ((fi.name, `Quick, wrap test), not fi.syntax_error)
 
-let printtest fi =
-  let test _ =
+let pptest fi =
+  let true_expr = ref None in
+  let pp_of_true_expr = ref "" in
+  let pp_expr = ref None in
+  let golden_test _ =
     ensure_parsed fi;
-    let expr_real =
-      get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name)
-    in
-    let parsefi = fi.name ^ ".parse" in
-    let pr_real = string_of_expr expr_real in
-    write_local parsefi pr_real;
+    true_expr :=
+      Some (get fi.parse (Printf.sprintf "Parsing %s incomplete" fi.name));
+    let parsefi = fi.name ^ ".pretty" in
+    pp_of_true_expr := Driver.pretty_print (Option.get !true_expr);
+    write_local parsefi !pp_of_true_expr;
     cmp_golden parsefi
-    (* TODO *)
     (* let expr_expect = parse @@ lex !pr_expect in
        Alcotest.(check testable_expr) fi.name expr_expect expr_real *)
   in
-  ((fi.name, `Quick, wrap test), true)
+  let compliance_test _ =
+    pp_expr := Some Driver.(!pp_of_true_expr |> lex |> parse);
+    let testname = fi.name ^ ": pretty-print compliance" in
+    Alcotest.check testable_expr testname (Option.get !true_expr)
+      (Option.get !pp_expr)
+  in
+  let idempotency_test _ =
+    let pp_of_pp_expr = Driver.pretty_print (Option.get !pp_expr) in
+    let testname = fi.name ^ ": pretty-print idempotency" in
+    Alcotest.(check string) testname pp_of_pp_expr !pp_of_true_expr
+  in
+  ( ( ( (fi.name, `Quick, wrap golden_test)
+      , (fi.name, `Quick, wrap compliance_test) )
+    , (fi.name, `Quick, wrap idempotency_test) )
+  , true )
 
 let sematest fi =
   let test _ =
@@ -310,7 +325,10 @@ let () =
   in
   let lexer_tests, cases = mktests lextest cases in
   let parser_tests, cases = mktests parsetest cases in
-  let printer_tests, cases = mktests printtest cases in
+  let pp_tests, cases = mktests pptest cases in
+  let (pp_golden_tests, pp_compliance_tests), pp_idempotency_tests =
+    List.split pp_tests |> fun (gc, i) -> (List.split gc, i)
+  in
   let semantic_tests, cases = mktests sematest cases in
   let ir_tests, cases = mktests irtest cases in
   let pseudo_asm_tests, cases = mktests pseudo_asmtest cases in
@@ -319,9 +337,12 @@ let () =
   let fakeargv = Array.make 1 "compiler_tests" in
   let compiler_tests =
     [ ("lexer tests", lexer_tests); ("parser tests", parser_tests)
-    ; ("printer tests", printer_tests); ("semantic tests", semantic_tests)
-    ; ("lowering tests", ir_tests); ("pseudo-emit tests", pseudo_asm_tests)
-    ; ("emit tests", asm_tests); ("execution tests", exec_tests) ]
+    ; ("pretty-printer golden tests", pp_golden_tests)
+    ; ("pretty-printer compliance tests", pp_compliance_tests)
+    ; ("pretty-printer idempotency tests", pp_idempotency_tests)
+    ; ("semantic tests", semantic_tests); ("lowering tests", ir_tests)
+    ; ("pseudo-emit tests", pseudo_asm_tests); ("emit tests", asm_tests)
+    ; ("execution tests", exec_tests) ]
     @ if !do_bless then [("blessing", [blessing])] else []
   in
   Alcotest.run "compiler_tests" ~argv:fakeargv compiler_tests

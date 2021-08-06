@@ -57,6 +57,7 @@ and field_ty = {fld_name : symbol; escape : bool ref; typ : symbol}
 and fundecl =
   {fn_name : symbol; params : field_ty list; result : symbol option; body : expr}
 
+val expr_eq : expr -> expr -> bool
 val string_of_var : var -> string
 val string_of_expr : expr -> string
 val string_of_decl : decl -> string

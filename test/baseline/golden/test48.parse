@@ -1,9 +1,0 @@
-let
-  function g(a: int): int =
-    a
-  type t = int
-  function g(a: int): int =
-    a
-in
-  0
-end

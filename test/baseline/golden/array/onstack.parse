@@ -1,6 +1,0 @@
-let
-  type intarray = array of int
-  var a := intarray[2] of 5
-in
-  a[0]
-end

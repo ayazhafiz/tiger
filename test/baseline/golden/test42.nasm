@@ -97,36 +97,11 @@ _start:
   mov rcx, rax                            
   add rcx, rdx                            
   mov qword [rcx], rsi                    ; .age=0
-  mov [r12 + 0], rax                      ; arr2[0] = rectype1 {
-                                          ;   name="aname",
-                                          ;   address="somewhere",
-                                          ;   id=0,
-                                          ;   age=0
-                                          ; }
-  mov [r12 + 8], rax                      ; arr2[1] = rectype1 {
-                                          ;   name="aname",
-                                          ;   address="somewhere",
-                                          ;   id=0,
-                                          ;   age=0
-                                          ; }
-  mov [r12 + 16], rax                     ; arr2[2] = rectype1 {
-                                          ;   name="aname",
-                                          ;   address="somewhere",
-                                          ;   id=0,
-                                          ;   age=0
-                                          ; }
-  mov [r12 + 24], rax                     ; arr2[3] = rectype1 {
-                                          ;   name="aname",
-                                          ;   address="somewhere",
-                                          ;   id=0,
-                                          ;   age=0
-                                          ; }
-  mov [r12 + 32], rax                     ; arr2[4] = rectype1 {
-                                          ;   name="aname",
-                                          ;   address="somewhere",
-                                          ;   id=0,
-                                          ;   age=0
-                                          ; }
+  mov [r12 + 0], rax                      ; arr2[0] = rectype1 { name="aname", address="somewhere", id=0, age=0 }
+  mov [r12 + 8], rax                      ; arr2[1] = rectype1 { name="aname", address="somewhere", id=0, age=0 }
+  mov [r12 + 16], rax                     ; arr2[2] = rectype1 { name="aname", address="somewhere", id=0, age=0 }
+  mov [r12 + 24], rax                     ; arr2[3] = rectype1 { name="aname", address="somewhere", id=0, age=0 }
+  mov [r12 + 32], rax                     ; arr2[4] = rectype1 { name="aname", address="somewhere", id=0, age=0 }
   mov r14, rbp                            
   sub r14, 928                            
   lea rax, [rel str__]                    

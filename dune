@@ -1,3 +1,9 @@
 (executable
  (name tigerc)
+ (modules tigerc)
+ (libraries Tiger))
+
+(executable
+ (name tigerfmt)
+ (modules tigerfmt)
  (libraries Tiger))
