@@ -58,8 +58,7 @@ _start:
   imul rcx, rax, 8                        
   mov rax, rbx                            
   add rax, rcx                            
-  mov rax, [rax]                          ; b
-                                          ; .aa
+  mov rax, [rax]                          ; b.aa
   add rax, rdx                            
   mov rdi, [rax]                          ; %arg1:print
   call print                              
@@ -68,8 +67,7 @@ _start:
   mov rax, 0                              
   imul rax, rax, 8                        
   add rbx, rax                            
-  mov rax, [rbx]                          ; b
-                                          ; .aa
+  mov rax, [rbx]                          ; b.aa
   add rax, rcx                            
   mov rax, [rax]                          ; return b.aa.a
   mov rbx, [rbp - 40]                     ; fetch spilled t24

@@ -132,167 +132,163 @@ and fn_eq {fn_name = f1; params = p1; result = r1; body = b1}
   symeq f1 f2 && listeq field_eq p1 p2 && Option.equal symeq r1 r2
   && expr_eq b1 b2
 
-module F = Format
-
-let with_formatter cb =
-  let buf = Buffer.create 128 in
-  let fmt = F.formatter_of_buffer buf in
-  F.pp_set_geometry fmt ~margin:80 ~max_indent:68;
-  cb fmt;
-  F.pp_print_flush fmt ();
-  Buffer.to_seq buf |> String.of_seq
+module F = Strictly_annotated
 
 let isseq = function SeqExpr _ -> true | _ -> false
+let cons = F.(List.fold_left ( ^^ ) empty)
 
-let rec pr_var f = function
-  | SimpleVar (s, _) -> F.fprintf f "%s" (name s)
-  | FieldVar (v, s, _) ->
-      pr_var f v;
-      F.fprintf f "@,.%s" (name s)
-  | SubscriptVar (v, s, _) ->
-      pr_var f v;
-      F.fprintf f "[";
-      pr_expr f s;
-      F.fprintf f "]"
+let rec pr_var =
+  let open F in
+  function
+  | SimpleVar (s, _) -> text (name s)
+  | FieldVar (v, s, _) -> pr_var v ^^ text "." ^^ text (name s)
+  | SubscriptVar (v, s, _) -> pr_var v ^^ text "[" ^^ pr_expr s ^^ text "]"
 
-and pr_expr ?(wrap_seq = true) f e =
-  let should_wrap = wrap_seq && isseq e in
-  if should_wrap then F.fprintf f "(";
-  ( match e with
-  | NilExpr -> F.fprintf f "nil"
-  | VarExpr (v, _) ->
-      F.pp_open_hvbox f 2;
-      pr_var f v;
-      F.pp_close_box f ()
-  | IntExpr n -> F.fprintf f "%d" n
-  | StringExpr s -> F.fprintf f "\"%s\"" (String.escaped s)
-  | CallExpr {func; args; _} ->
-      F.fprintf f "@[<hv 2>%s(@," (name func);
-      let lastargi = List.length args - 1 in
-      List.iteri
-        (fun i arg ->
-          pr_expr f arg;
-          if i <> lastargi then F.fprintf f ",@ " else F.fprintf f "@," )
-        args;
-      F.fprintf f ")@]"
-  | OpExpr {left; oper; right; _} ->
-      F.fprintf f "@[<hov 2>";
-      pr_expr f left;
-      F.fprintf f " ";
-      pr_oper f oper;
-      F.fprintf f "@ ";
-      pr_expr f right;
-      F.fprintf f "@]"
-  | RecordExpr {typ; fields; _} ->
-      F.fprintf f "@[<hv 2>%s@ {@[<hv 2>@ " (name typ);
-      let lastfieldi = List.length fields - 1 in
-      List.iteri
-        (fun i (fld, v) ->
-          F.fprintf f "@[<hov 2>%s=@," (name fld);
-          pr_expr f v;
-          F.fprintf f "@]";
-          if i <> lastfieldi then F.fprintf f ",@ " )
-        fields;
-      F.fprintf f "@]@ }@]"
-  | SeqExpr (exprs, _) ->
-      F.fprintf f "@[<v>";
-      let lastexpri = List.length exprs - 1 in
-      List.iteri
-        (fun i e ->
-          pr_expr f e;
-          if i <> lastexpri then F.fprintf f ";@," )
-        exprs;
-      F.fprintf f "@]"
-  | AssignExpr {var; expr} ->
-      F.fprintf f "@[<hov 2>";
-      pr_var f var;
-      F.fprintf f " :=@ ";
-      pr_expr f expr;
-      F.fprintf f "@]"
-  | IfExpr {test; then'; else'; _} ->
-      F.fprintf f "@[<hov>@[<hv 2>if@ ";
-      pr_expr f test;
-      F.fprintf f "@]@ @[<hv 2>then@ ";
-      pr_expr f then';
-      ( match else' with
-      | Some else' ->
-          F.fprintf f "@]@ @[<hv 2>else@ ";
-          pr_expr f else'
-      | None -> () );
-      F.fprintf f "@]@]"
-  | WhileExpr {test; body} ->
-      F.fprintf f "while ";
-      pr_expr f test;
-      F.fprintf f " do@[<hv 2>@ ";
-      pr_expr f body;
-      F.fprintf f "@]"
-  | ForExpr {var; lo; hi; body; _} ->
-      F.fprintf f "for %s := " (name var);
-      pr_expr f lo;
-      F.fprintf f " to ";
-      pr_expr f hi;
-      F.fprintf f "do@[<hv 2>@ ";
-      pr_expr f body;
-      F.fprintf f "@]"
-  | BreakExpr -> F.fprintf f "break"
-  | LetExpr {decls; body; _} ->
-      F.fprintf f "@[<v 2>let@ ";
-      let lastdecli = List.length decls - 1 in
-      List.iteri
-        (fun i d ->
-          pr_decl f d;
-          if i <> lastdecli then F.fprintf f "@,@," )
-        decls;
-      F.fprintf f "@]@.@[<v 2>in@ ";
-      pr_expr ~wrap_seq:false f body;
-      F.fprintf f "@]@.end@."
-  | ArrayExpr {typ; size; init; _} ->
-      F.fprintf f "%s[" (name typ);
-      pr_expr f size;
-      F.fprintf f "] of ";
-      pr_expr f init );
-  if should_wrap then F.fprintf f ")"
+and pr_expr ?(wrap_seq = true) e =
+  let open F in
+  let edoc =
+    match e with
+    | NilExpr -> text "nil"
+    | VarExpr (v, _) -> group (nest 2 (pr_var v))
+    | IntExpr n -> text (string_of_int n)
+    | StringExpr s -> text (Printf.sprintf "\"%s\"" (String.escaped s))
+    | CallExpr {func; args; _} ->
+        let lastargi = List.length args - 1 in
+        let args =
+          List.mapi
+            (fun i arg ->
+              pr_expr arg
+              ^^ if i <> lastargi then text "," ^^ space else breakhint )
+            args
+          |> cons
+        in
+        group (nest 2 (text (name func) ^^ text "(" ^. args ^^ text ")"))
+    | OpExpr {left; oper; right; _} ->
+        (* TODO: check if operator chain passes printing width; if so, print as
+           a vertical group. See the many_params test case for an example of
+           when this is useful. *)
+        group
+          (nest 2 (pr_expr left ^^ text " " ^^ pr_oper oper ^| pr_expr right))
+    | RecordExpr {typ; fields; _} ->
+        let lastfieldi = List.length fields - 1 in
+        let fields =
+          List.mapi
+            (fun i (fld, v) ->
+              let suffix =
+                if i <> lastfieldi then text "," ^^ space else empty
+              in
+              group
+                (nest 2 (text (name fld) ^^ text "=" ^. pr_expr v ^^ suffix)) )
+            fields
+          |> cons
+        in
+        let typ = text (name typ) in
+        let rcd = typ ^| text "{" ^| group (nest 2 fields) ^| text "}" in
+        group (nest 2 rcd)
+    | SeqExpr (exprs, _) ->
+        let lastexpri = List.length exprs - 1 in
+        let exprs =
+          List.mapi
+            (fun i e ->
+              pr_expr e
+              ^^ if i <> lastexpri then text ";" ^^ breakhint else empty )
+            exprs
+          |> cons
+        in
+        vgroup exprs
+    | AssignExpr {var; expr} ->
+        group (nest 2 (pr_var var ^^ text " :=" ^| pr_expr expr))
+    | IfExpr {test; then'; else' = None; _} ->
+        group
+          ( group (nest 2 (text "if" ^| pr_expr test))
+          ^| group (nest 2 (text "then" ^| pr_expr then')) )
+    | IfExpr {test; then'; else' = Some else'; _} ->
+        group
+          ( group (nest 2 (text "if" ^| pr_expr test))
+          ^| group (nest 2 (text "then" ^| pr_expr then'))
+          ^| group (nest 2 (text "else" ^| pr_expr else')) )
+    | WhileExpr {test; body} ->
+        group
+          ( group (nest 2 (text "while" ^| pr_expr test))
+          ^| group (nest 2 (text "do" ^| pr_expr body)) )
+    | ForExpr {var; lo; hi; body; _} ->
+        group
+          ( group
+              (nest 2
+                 (text "for" ^| text (name var) ^^ text " := " ^^ pr_expr lo) )
+          ^| group (nest 2 (text "to" ^| pr_expr hi))
+          ^| group (nest 2 (text "do" ^| pr_expr body)) )
+    | BreakExpr -> text "break"
+    | LetExpr {decls; body; _} ->
+        let lastdecli = List.length decls - 1 in
+        let decls =
+          List.mapi
+            (fun i d ->
+              pr_decl d ^^ if i <> lastdecli then space ^^ space else empty )
+            decls
+          |> cons
+        in
+        let body = pr_expr ~wrap_seq:false body in
+        vgroup
+          ( vgroup (nest 2 (text "let" ^| decls))
+          ^| group (nest 2 (text "in" ^| body))
+          ^| group (text "end") )
+    | ArrayExpr {typ; size; init; _} ->
+        group
+          ( group (nest 2 (text (name typ) ^^ text "[" ^. pr_expr size))
+          ^. group (text "] of " ^^ pr_expr init) )
+  in
+  if wrap_seq && isseq e then text "(" ^^ edoc ^^ text ")" else edoc
 
-and pr_decl f = function
+and pr_decl =
+  let open F in
+  function
   | FunctionDecl decls ->
       let lastdecli = List.length decls - 1 in
-      List.iteri
-        (fun i fn ->
-          pr_fn f fn;
-          if i <> lastdecli then F.fprintf f "@\n" )
+      List.mapi
+        (fun i fn -> pr_fn fn ^^ if i <> lastdecli then text "\n" else empty)
         decls
+      |> cons
   | VarDecl {name; typ = None; init; _} ->
-      F.fprintf f "@[<hov 2>var %s :=@ " (Symbol.name name);
-      pr_expr f init;
-      F.fprintf f "@]"
+      group
+        (nest 2
+           (text "var " ^^ text (Symbol.name name) ^^ text " :=" ^| pr_expr init) )
   | VarDecl {name; typ = Some typ; init; _} ->
-      F.fprintf f "@[<hov 2>var %s@ :@ %s@ :=@ " (Symbol.name name)
-        (Symbol.name typ);
-      pr_expr f init;
-      F.fprintf f "@]"
+      group
+        (nest 2
+           ( text "var "
+           ^^ text (Symbol.name name)
+           ^| group (text ": " ^^ text (Symbol.name typ))
+           ^| group (text ":= " ^^ pr_expr init) ) )
   | TypeDecl sigs ->
       let lastsigi = List.length sigs - 1 in
-      List.iteri
-        (fun i s ->
-          pr_tysig f s;
-          if i <> lastsigi then F.fprintf f "@\n" )
+      List.mapi
+        (fun i s -> pr_tysig s ^^ if i <> lastsigi then text "\n" else empty)
         sigs
+      |> cons
 
-and pr_ty f = function
-  | NameTy sym -> F.fprintf f "%s" (name sym)
+and pr_ty =
+  let open F in
+  function
+  | NameTy sym -> text (name sym)
   | RecordTy fields ->
-      F.fprintf f "@[<hv>{@[<hv 2>@ ";
       let lastfieldi = List.length fields - 1 in
-      List.iteri
-        (fun i {fld_name; typ; _} ->
-          F.fprintf f "@[<hov 2>%s:@ %s@]" (name fld_name) (name typ);
-          if i <> lastfieldi then F.fprintf f ",@ " )
-        fields;
-      F.fprintf f "@]@ }@]"
-  | ArrayTy sym -> F.fprintf f "array of %s" (name sym)
+      let fields =
+        List.mapi
+          (fun i {fld_name; typ; _} ->
+            let suffix = if i <> lastfieldi then text "," ^^ space else empty in
+            group
+              (nest 2
+                 (text (name fld_name) ^^ text ":" ^| text (name typ) ^^ suffix) )
+            )
+          fields
+        |> cons
+      in
+      group (group (nest 2 (text "{" ^| fields)) ^| group (text "}"))
+  | ArrayTy sym -> text "array of " ^^ text (name sym)
 
-and pr_oper f op =
-  F.fprintf f "%s"
+and pr_oper op =
+  F.text
     ( match op with
     | PlusOp -> "+"
     | MinusOp -> "-"
@@ -305,28 +301,43 @@ and pr_oper f op =
     | GtOp -> ">"
     | GeOp -> ">=" )
 
-and pr_tysig f {name; ty} =
-  F.fprintf f "@[<hv 2>type %s =@ " (Symbol.name name);
-  pr_ty f ty;
-  F.fprintf f "@]"
+and pr_tysig {name; ty} =
+  let open F in
+  group
+    (nest 2 (text "type " ^^ text (Symbol.name name) ^^ text " =" ^| pr_ty ty))
 
-and pr_fn f = function
+and pr_fn =
+  let open F in
+  function
   | {fn_name; params; result; body} ->
-      F.fprintf f "@[<hv 2>@[<hv 2>function %s(@," (name fn_name);
       let lastparami = List.length params - 1 in
-      List.iteri
-        (fun i {fld_name; typ; _} ->
-          F.fprintf f "%s: %s" (name fld_name) (name typ);
-          if i <> lastparami then F.fprintf f ",@ " else F.fprintf f "@," )
-        params;
-      ( match result with
-      | None -> F.fprintf f ") =@]@ "
-      | Some ty -> F.fprintf f ") : %s =@]@ " (name ty) );
-      pr_expr f body;
-      F.fprintf f "@]"
+      let params =
+        List.mapi
+          (fun i {fld_name; typ; _} ->
+            let suffix = if i <> lastparami then text "," ^^ space else empty in
+            group (nest 2 (text (name fld_name) ^^ text ":" ^| text (name typ)))
+            ^^ suffix )
+          params
+        |> cons
+      in
+      let ret =
+        match result with
+        | None -> empty
+        | Some ty -> text " : " ^^ text (name ty)
+      in
+      group
+        ( group
+            ( group
+                (nest 2
+                   ( text "function "
+                   ^^ text (name fn_name)
+                   ^^ text "(" ^. params ) )
+            ^. group (text ")" ^^ ret ^^ text " =") )
+        ^| group (pr_expr body) )
 
-let string_of_var v = with_formatter (fun f -> pr_var f v)
-let string_of_expr e = with_formatter (fun f -> pr_expr f e)
-let string_of_decl d = with_formatter (fun f -> pr_decl f d)
-let string_of_ty t = with_formatter (fun f -> pr_ty f t)
+let pretty = F.pretty 80 "/* "
+let string_of_var v = pr_var v |> pretty
+let string_of_expr e = pr_expr e |> pretty
+let string_of_decl d = pr_decl d |> pretty
+let string_of_ty t = pr_ty t |> pretty
 let fmt_expr fmt e = Format.pp_print_string fmt (string_of_expr e)

@@ -310,8 +310,7 @@ _start:
   imul rcx, rax, 8                        
   mov rax, rbx                            
   add rax, rcx                            
-  mov rax, [rax]                          ; rec2
-                                          ; .dates
+  mov rax, [rax]                          ; rec2.dates
   add rax, rdx                            
   mov qword [rax], rsi                    ; rec2.dates[0] := 2323
   mov rdx, 2323                           
@@ -320,8 +319,7 @@ _start:
   mov rax, 1                              
   imul rax, rax, 8                        
   add rbx, rax                            
-  mov rax, [rbx]                          ; rec2
-                                          ; .dates
+  mov rax, [rbx]                          ; rec2.dates
   add rax, rcx                            
   mov qword [rax], rdx                    ; rec2.dates[2] := 2323
   mov rax, 0                              

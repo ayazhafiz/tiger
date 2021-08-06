@@ -1,1 +1,1 @@
-for i := 10 to " "do i := i - 1
+for i := 10 to " " do i := i - 1

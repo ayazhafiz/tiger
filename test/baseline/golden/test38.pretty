@@ -1,6 +1,6 @@
 let
   type a = int
-  type a = string
+type a = string
 in
   0
 end

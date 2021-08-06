@@ -1,6 +1,6 @@
 let
   type arrtype = array of int
-  type rectype = { name: string, id: int }
+type rectype = { name: string, id: int }
   
   var rec := rectype { name="aname", id=0 }
   
