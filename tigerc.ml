@@ -37,9 +37,13 @@ let speclist =
 
 let emit kind target expr =
   match (kind, target) with
-  | Asm, (Driver.X86_64_apple_darwin20_1_0 | Driver.X86_64_linux_gnu) ->
+  | ( Asm
+    , ( Driver.X86_64_apple_darwin20_1_0 | Driver.X86_64_apple_darwin20_6_0
+      | Driver.X86_64_linux_gnu ) ) ->
       Backend_registry.X86_64_Backend.emit_assem expr
-  | Exe, (Driver.X86_64_apple_darwin20_1_0 | Driver.X86_64_linux_gnu) ->
+  | ( Exe
+    , ( Driver.X86_64_apple_darwin20_1_0 | Driver.X86_64_apple_darwin20_6_0
+      | Driver.X86_64_linux_gnu ) ) ->
       Backend_registry.X86_64_Backend.emit_exe target expr
 
 let () =
