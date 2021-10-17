@@ -1,3 +1,4 @@
 (library
  (name Util)
+ (public_name tigerc_util)
  (libraries str))

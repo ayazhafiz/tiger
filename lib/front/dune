@@ -5,4 +5,5 @@
 
 (library
  (name Front)
- (libraries str unix Util))
+ (public_name tigerc_front)
+ (libraries str unix tigerc_util))

@@ -1,3 +1,4 @@
 (library
  (name Tiger)
- (libraries Front Back Data))
+ (public_name tiger)
+ (libraries tigerc_front tigerc_back tigerc_data))
